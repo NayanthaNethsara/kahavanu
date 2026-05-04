@@ -22,3 +22,6 @@ captures/
 # Native build outputs
 .externalNativeBuild/
 .cxx/
+
+.fake
+.vscode

@@ -7,15 +7,15 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
-import androidx.compose.ui.unit.dp
+import com.kahavanu.ui.theme.OnboardingTokens
 import com.kahavanu.ui.theme.appDecorativeGradientBrush
 
 @Composable
 fun AppDecorativeGradientOverlay(modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
-            .size(280.dp)
-            .blur(60.dp)
+            .size(OnboardingTokens.gradientSize)
+            .blur(OnboardingTokens.gradientBlur)
             .background(
                 brush = appDecorativeGradientBrush(),
                 shape = CircleShape,

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.Image
@@ -19,7 +20,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import com.kahavanu.R
 import com.kahavanu.ui.component.AppDecorativeGradientOverlay
 import com.kahavanu.ui.component.AppPrimaryButton
@@ -55,8 +55,8 @@ fun OnboardingScreen(
                     painter = painterResource(id = R.drawable.kahavanu_logo),
                     contentDescription = "Kahavanu logo",
                     modifier = Modifier
-                        .fillMaxSize()
-                        .height(60.dp),
+                        .width(OnboardingTokens.headerWidth)
+                        .height(OnboardingTokens.headerHeight),
                 )
 
                 Spacer(modifier = Modifier.height(OnboardingTokens.headerBottomSpacing))
@@ -65,8 +65,8 @@ fun OnboardingScreen(
                     painter = painterResource(id = R.drawable.money_tree),
                     contentDescription = "Money Tree",
                     modifier = Modifier
-                        .fillMaxSize()
-                        .height(400.dp),
+                        .width(OnboardingTokens.imageWidth)
+                        .height(OnboardingTokens.imageHeight),
                 )
 
                 Spacer(modifier = Modifier.height(Spacing.extraLarge))
@@ -80,7 +80,7 @@ fun OnboardingScreen(
                     textAlign = TextAlign.Center,
                 )
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(Spacing.small))
 
                 Text(
                     text = "Automate your finances, achieve your goals",

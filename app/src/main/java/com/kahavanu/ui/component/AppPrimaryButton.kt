@@ -21,6 +21,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.kahavanu.ui.theme.OnboardingButtonGreen
+import com.kahavanu.ui.theme.OnboardingTokens
+import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.appButtonHighlightBrush
 
 @Composable
@@ -33,7 +35,7 @@ fun AppPrimaryButton(
         onClick = onClick,
         modifier = modifier
             .fillMaxWidth()
-            .height(54.dp)
+            .height(OnboardingTokens.buttonHeight)
             .background(
                 color = OnboardingButtonGreen,
                 shape = MaterialTheme.shapes.extraLarge,
@@ -57,7 +59,7 @@ fun AppPrimaryButton(
                 text = text,
                 style = MaterialTheme.typography.titleMedium,
             )
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(Spacing.small))
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                 contentDescription = null,

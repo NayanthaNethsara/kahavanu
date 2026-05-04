@@ -3,8 +3,11 @@ package com.kahavanu.ui.theme
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Shapes
 import androidx.compose.runtime.Immutable
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 /**
  * Spacing scale following Material Design 3
@@ -127,31 +130,30 @@ object OnboardingTokens {
 }
 
 /**
- * Typography styles for specific use cases
+ * Typography styles for screen-specific use cases that fall outside
+ * the standard Material 3 type scale.
  */
 @Immutable
 object TypographyTokens {
-    // Onboarding headline: 20sp, weight 500, line height 28sp
-    val onboardingHeadline = """
-        fontSize: 20.sp
-        fontWeight: FontWeight.Medium
-        lineHeight: 28.sp
-        letterSpacing: (-0.8492).sp
-    """.trimIndent()
+    val onboardingHeadline = TextStyle(
+        fontSize = 20.sp,
+        fontWeight = FontWeight.Medium,
+        lineHeight = 28.sp,
+        letterSpacing = (-0.85).sp,
+    )
 
-    // Onboarding subheading: 14sp, weight 400, line height 20sp
-    val onboardingSubheading = """
-        fontSize: 14.sp
-        fontWeight: FontWeight.Normal
-        lineHeight: 20.sp
-        letterSpacing: (-0.1504).sp
-    """.trimIndent()
+    val onboardingSubheading = TextStyle(
+        fontSize = 14.sp,
+        fontWeight = FontWeight.Normal,
+        lineHeight = 20.sp,
+        letterSpacing = (-0.15).sp,
+    )
 
-    // Button label: 15sp, weight 500, line height 22.5sp
-    val buttonLabel = """
-        fontSize: 15.sp
-        fontWeight: FontWeight.Medium
-        lineHeight: 22.5.sp
-        letterSpacing: (-0.2344).sp
-    """.trimIndent()
+    val buttonLabel = TextStyle(
+        fontSize = 15.sp,
+        fontWeight = FontWeight.Medium,
+        lineHeight = 22.5.sp,
+        letterSpacing = (-0.23).sp,
+    )
 }
+

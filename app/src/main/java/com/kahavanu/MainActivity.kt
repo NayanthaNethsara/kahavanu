@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import com.kahavanu.ui.screen.OnboardingScreen
 import com.kahavanu.ui.theme.KahavanuTheme
 
 class MainActivity : ComponentActivity() {
@@ -26,25 +27,10 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = Color.White,
                 ) {
-                    LogoScreen()
+                    OnboardingScreen()
                 }
             }
         }
     }
 }
 
-@Composable
-private fun LogoScreen() {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White),
-        contentAlignment = Alignment.Center,
-    ) {
-        Image(
-            painter = painterResource(id = R.drawable.ic_launcher_foreground),
-            contentDescription = "App logo",
-            modifier = Modifier.size(120.dp),
-        )
-    }
-}

@@ -25,3 +25,4 @@ captures/
 
 .fake
 .vscode
+app/google-services.json

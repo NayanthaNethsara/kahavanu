@@ -1,4 +1,4 @@
-package com.kahavanu.ui.screen
+package com.kahavanu.ui.auth
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -33,14 +33,11 @@ import androidx.compose.ui.text.withStyle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kahavanu.R
-import com.kahavanu.config.AppConfig
-import com.kahavanu.data.auth.AuthRepositoryProvider
-import com.kahavanu.ui.auth.AuthViewModel
-import com.kahavanu.ui.auth.AuthViewModelFactory
-import com.kahavanu.ui.auth.rememberGoogleSignInLauncher
-import com.kahavanu.ui.component.AppDecorativeGradientOverlay
-import com.kahavanu.ui.component.AuthOutlinedButton
-import com.kahavanu.ui.component.AuthPrimaryButton
+import com.kahavanu.core.config.AppConfig
+import com.kahavanu.di.AppContainer
+import com.kahavanu.ui.common.AppDecorativeGradientOverlay
+import com.kahavanu.ui.common.AuthOutlinedButton
+import com.kahavanu.ui.common.AuthPrimaryButton
 import com.kahavanu.ui.theme.OnboardingTokens
 import com.kahavanu.ui.theme.Spacing
 
@@ -50,7 +47,7 @@ fun AuthChoiceScreen(
     onLogin: () -> Unit,
     onAuthSuccess: () -> Unit,
     viewModel: AuthViewModel = viewModel(
-        factory = AuthViewModelFactory(AuthRepositoryProvider.repository),
+        factory = AuthViewModelFactory(AppContainer.authRepository),
     ),
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle().value

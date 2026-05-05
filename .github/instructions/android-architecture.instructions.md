@@ -12,9 +12,30 @@ applyTo: "app/src/main/java/**"
 - Prefer coroutines and Flows between layers.
 - Add a domain layer with use cases if logic is reused across multiple ViewModels or gets complex.
 
+## Package structure
+```
+com.kahavanu/
+├── core/              # Base classes, constants, config
+│   └── config/
+├── data/              # Data layer (implementations)
+│   └── auth/          # DefaultAuthRepository
+├── domain/            # Domain layer (contracts)
+│   ├── model/         # Domain models (UserSession)
+│   └── repository/    # Repository interfaces (AuthRepository)
+├── di/                # Dependency injection (AppContainer)
+├── ui/                # Presentation layer
+│   ├── auth/          # Auth feature (screens + ViewModel)
+│   ├── home/          # Home feature
+│   ├── onboarding/    # Onboarding feature
+│   ├── common/        # Shared UI components
+│   ├── navigation/    # AppDestination + AppNavGraph
+│   └── theme/         # Color, Type, DesignTokens, Theme
+└── MainActivity.kt
+```
+
 ## Firebase/Auth pattern
-- Define an AuthRepository interface in the data layer.
-- Keep Firebase SDK calls inside a DefaultAuthRepository.
+- Define an AuthRepository interface in the domain layer.
+- Keep Firebase SDK calls inside a DefaultAuthRepository in the data layer.
 - ViewModels depend on AuthRepository, never on FirebaseAuth directly.
 - Expose auth state as Flow<Session?> or StateFlow<Session?> from repository.
 
@@ -24,6 +45,7 @@ applyTo: "app/src/main/java/**"
 - Avoid sending one-off events from ViewModels; update state instead.
 - Keep ViewModels at screen level, not inside reusable composables.
 - Use plain state holders for reusable UI components and hoist state.
+- Group screens, ViewModels, and state classes by feature in ui/{feature}/.
 
 ## ViewModel rules
 - Do not depend on Activity, Context, Resources, or AndroidViewModel.
@@ -56,6 +78,7 @@ class ${Screen}ViewModel(
 
 ## Dependencies
 - Prefer constructor injection; scope only when needed.
+- Wire dependencies through di/AppContainer.
 - Use Hilt if the project grows beyond simple manual DI.
 
 ## Testing

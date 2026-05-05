@@ -1,5 +1,6 @@
-package com.kahavanu.data.auth
+package com.kahavanu.domain.repository
 
+import com.kahavanu.domain.model.UserSession
 import kotlinx.coroutines.flow.Flow
 
 interface AuthRepository {

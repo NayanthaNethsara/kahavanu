@@ -32,11 +32,17 @@ package com.kahavanu.ui
  * ### Theme (theme/Theme.kt)
  * Light-only KahavanuTheme composable providing colorScheme, typography, and shapes.
  *
- * ## Components (component/)
+ * ## Components (common/)
  *
  * ### AppPrimaryButton
  * Full-width CTA button with green background and arrow icon.
  * Uses OnboardingTokens.buttonHeight, M3 shapes.extraLarge, and appButtonHighlightBrush overlay.
+ *
+ * ### AuthPrimaryButton / AuthOutlinedButton
+ * Auth-specific button variants for sign-in/sign-up flows.
+ *
+ * ### AuthTextField
+ * Labeled outlined text field with leading/trailing icon support.
  *
  * ### AppDecorativeGradientOverlay
  * Blurred circular gradient for visual interest.
@@ -45,36 +51,67 @@ package com.kahavanu.ui
  * ## Navigation (navigation/)
  *
  * ### AppDestination
- * Sealed class providing type-safe route constants: Onboarding, Home, Login.
+ * Sealed class providing type-safe route constants: Onboarding, AuthChoice, Login, Signup, Home.
  *
- * ## Screens (screen/)
+ * ### AppNavGraph
+ * Composable function encapsulating the full NavHost and all destination wiring.
  *
- * ### OnboardingScreen
- * Scrollable layout: gradient overlay -> logo -> illustration -> headline -> subheading -> CTA button.
- * All sizing via OnboardingTokens, all spacing via Spacing object.
+ * ## Feature Packages
  *
- * ### HomeScreen
- * Placeholder destination after onboarding.
+ * ### auth/
+ * AuthChoiceScreen, LoginScreen, SignupScreen, AuthViewModel, AuthUiState, GoogleSignInHelper
+ *
+ * ### onboarding/
+ * OnboardingScreen
+ *
+ * ### home/
+ * HomeScreen
  *
  * ## File Structure
  *
  * ```
- * ui/
- * +-- DesignSystemGuide.kt
- * +-- theme/
- * |   +-- Color.kt
- * |   +-- Type.kt
- * |   +-- DesignTokens.kt
- * |   +-- AppButtonStyles.kt
- * |   +-- Theme.kt
- * +-- component/
- * |   +-- AppPrimaryButton.kt
- * |   +-- AppDecorativeGradientOverlay.kt
- * +-- navigation/
- * |   +-- AppDestination.kt
- * +-- screen/
- *     +-- OnboardingScreen.kt
- *     +-- HomeScreen.kt
+ * com.kahavanu/
+ * +-- MainActivity.kt
+ * +-- core/
+ * |   +-- config/
+ * |       +-- AppConfig.kt
+ * +-- data/
+ * |   +-- auth/
+ * |       +-- DefaultAuthRepository.kt
+ * +-- domain/
+ * |   +-- model/
+ * |   |   +-- UserSession.kt
+ * |   +-- repository/
+ * |       +-- AuthRepository.kt
+ * +-- di/
+ * |   +-- AppContainer.kt
+ * +-- ui/
+ *     +-- DesignSystemGuide.kt
+ *     +-- auth/
+ *     |   +-- AuthChoiceScreen.kt
+ *     |   +-- AuthUiState.kt
+ *     |   +-- AuthViewModel.kt
+ *     |   +-- GoogleSignInHelper.kt
+ *     |   +-- LoginScreen.kt
+ *     |   +-- SignupScreen.kt
+ *     +-- common/
+ *     |   +-- AppDecorativeGradientOverlay.kt
+ *     |   +-- AppPrimaryButton.kt
+ *     |   +-- AuthButtons.kt
+ *     |   +-- AuthTextField.kt
+ *     +-- home/
+ *     |   +-- HomeScreen.kt
+ *     +-- navigation/
+ *     |   +-- AppDestination.kt
+ *     |   +-- AppNavGraph.kt
+ *     +-- onboarding/
+ *     |   +-- OnboardingScreen.kt
+ *     +-- theme/
+ *         +-- AppButtonStyles.kt
+ *         +-- Color.kt
+ *         +-- DesignTokens.kt
+ *         +-- Theme.kt
+ *         +-- Type.kt
  * ```
  *
  * ## Rules
@@ -84,4 +121,7 @@ package com.kahavanu.ui
  * - Include contentDescription for all images.
  * - Use AppDestination for navigation routes.
  * - New screen-specific tokens go in OnboardingTokens or a similarly named object.
+ * - Repository interfaces live in domain/repository; implementations in data/.
+ * - ViewModels depend on domain interfaces, never on data implementations directly.
+ * - All dependency wiring goes through di/AppContainer.
  */

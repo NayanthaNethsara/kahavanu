@@ -3,7 +3,7 @@ package com.kahavanu.ui.auth
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.kahavanu.data.auth.AuthRepository
+import com.kahavanu.domain.repository.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -89,11 +89,6 @@ class AuthViewModel(
         _uiState.update { it.copy(errorMessage = null, isLoading = false) }
     }
 }
-
-data class AuthUiState(
-    val isLoading: Boolean = false,
-    val errorMessage: String? = null,
-)
 
 class AuthViewModelFactory(
     private val repository: AuthRepository,

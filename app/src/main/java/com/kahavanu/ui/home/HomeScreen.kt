@@ -1,4 +1,4 @@
-package com.kahavanu.ui.screen
+package com.kahavanu.ui.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -17,8 +17,6 @@ import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -32,7 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.kahavanu.data.auth.AuthRepositoryProvider
+import com.kahavanu.di.AppContainer
 import com.kahavanu.ui.auth.AuthViewModel
 import com.kahavanu.ui.auth.AuthViewModelFactory
 import com.kahavanu.ui.theme.Spacing
@@ -41,7 +39,7 @@ import com.kahavanu.ui.theme.Spacing
 fun HomeScreen(
     onLogout: () -> Unit,
     viewModel: AuthViewModel = viewModel(
-        factory = AuthViewModelFactory(AuthRepositoryProvider.repository),
+        factory = AuthViewModelFactory(AppContainer.authRepository),
     ),
 ) {
     val currentUser = viewModel.currentUser.collectAsStateWithLifecycle().value
@@ -49,7 +47,6 @@ fun HomeScreen(
     Column(
         modifier = Modifier.fillMaxSize(),
     ) {
-        // Top Header
         HomeHeader(
             userName = currentUser?.displayName ?: "User",
             userEmail = currentUser?.email ?: "No email",
@@ -59,7 +56,6 @@ fun HomeScreen(
             },
         )
 
-        // Main Content
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -93,7 +89,6 @@ fun HomeScreen(
             }
         }
 
-        // Bottom Navigation Dock
         HomeBottomDock()
     }
 }
@@ -118,7 +113,6 @@ private fun HomeHeader(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // User Profile Section
             Column(
                 modifier = Modifier.weight(1f),
             ) {
@@ -135,7 +129,6 @@ private fun HomeHeader(
                 )
             }
 
-            // Profile Avatar
             Box(
                 modifier = Modifier
                     .size(48.dp)
@@ -153,7 +146,6 @@ private fun HomeHeader(
                 )
             }
 
-            // Logout Button
             IconButton(onClick = onLogout) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.Logout,

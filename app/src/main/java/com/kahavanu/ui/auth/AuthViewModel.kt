@@ -40,7 +40,7 @@ class AuthViewModel(
             _uiState.update {
                 it.copy(
                     isLoading = false,
-                    errorMessage = result.exceptionOrNull()?.localizedMessage,
+                    errorMessage = if (result.isFailure) "Invalid email or password" else null,
                 )
             }
         }
@@ -53,7 +53,7 @@ class AuthViewModel(
             _uiState.update {
                 it.copy(
                     isLoading = false,
-                    errorMessage = result.exceptionOrNull()?.localizedMessage,
+                    errorMessage = if (result.isFailure) "Could not create account. Please try again." else null,
                 )
             }
         }
@@ -66,7 +66,7 @@ class AuthViewModel(
             _uiState.update {
                 it.copy(
                     isLoading = false,
-                    errorMessage = result.exceptionOrNull()?.localizedMessage,
+                    errorMessage = if (result.isFailure) "Google sign-in failed. Please try again." else null,
                 )
             }
         }

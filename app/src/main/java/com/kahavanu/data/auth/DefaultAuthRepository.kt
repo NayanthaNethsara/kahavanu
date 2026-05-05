@@ -9,7 +9,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlin.coroutines.resume
+
 
 class DefaultAuthRepository(
     private val auth: FirebaseAuth,
@@ -73,10 +73,11 @@ private fun com.google.firebase.auth.FirebaseUser.toSession(): UserSession = Use
 private suspend fun <T> com.google.android.gms.tasks.Task<T>.awaitResult(): Result<T> {
     return suspendCancellableCoroutine { continuation ->
         addOnCompleteListener { task ->
+            if (!continuation.isActive) return@addOnCompleteListener
             if (task.isSuccessful) {
-                continuation.resume(Result.success(task.result))
+                continuation.resumeWith(kotlin.Result.success(Result.success(task.result)))
             } else {
-                continuation.resume(Result.failure(task.exception ?: Exception("Unknown error")))
+                continuation.resumeWith(kotlin.Result.success(Result.failure(task.exception ?: Exception("Unknown error"))))
             }
         }
     }
@@ -85,10 +86,11 @@ private suspend fun <T> com.google.android.gms.tasks.Task<T>.awaitResult(): Resu
 private suspend fun com.google.android.gms.tasks.Task<*>.awaitUnitResult(): Result<Unit> {
     return suspendCancellableCoroutine { continuation ->
         addOnCompleteListener { task ->
+            if (!continuation.isActive) return@addOnCompleteListener
             if (task.isSuccessful) {
-                continuation.resume(Result.success(Unit))
+                continuation.resumeWith(kotlin.Result.success(Result.success(Unit)))
             } else {
-                continuation.resume(Result.failure(task.exception ?: Exception("Unknown error")))
+                continuation.resumeWith(kotlin.Result.success(Result.failure(task.exception ?: Exception("Unknown error"))))
             }
         }
     }

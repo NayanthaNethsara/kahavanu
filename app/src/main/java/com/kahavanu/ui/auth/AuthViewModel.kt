@@ -22,14 +22,14 @@ class AuthViewModel(
         .map { it != null }
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
+            started = SharingStarted.Eagerly,
             initialValue = repository.currentSession != null,
         )
 
     val currentUser = repository.authState
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
+            started = SharingStarted.Eagerly,
             initialValue = repository.currentSession,
         )
 

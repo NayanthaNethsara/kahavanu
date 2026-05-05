@@ -21,6 +21,24 @@ fun AppNavGraph(
     startDestination: String,
 ) {
     val isAuthenticated by authViewModel.isAuthenticated.collectAsStateWithLifecycle()
+    val currentUser by authViewModel.currentUser.collectAsStateWithLifecycle()
+
+    // Single source of truth for auth-state-driven navigation.
+    // Screens must not perform auth navigation themselves; this effect owns it.
+    LaunchedEffect(isAuthenticated) {
+        val currentRoute = navController.currentBackStackEntry?.destination?.route
+        if (isAuthenticated && currentRoute != AppDestination.Home.route) {
+            navController.navigate(AppDestination.Home.route) {
+                popUpTo(0) { inclusive = true }
+                launchSingleTop = true
+            }
+        } else if (!isAuthenticated && currentRoute == AppDestination.Home.route) {
+            navController.navigate(AppDestination.AuthChoice.route) {
+                popUpTo(0) { inclusive = true }
+                launchSingleTop = true
+            }
+        }
+    }
 
     NavHost(
         navController = navController,
@@ -30,9 +48,7 @@ fun AppNavGraph(
             OnboardingScreen(
                 onGetStarted = {
                     navController.navigate(AppDestination.AuthChoice.route) {
-                        popUpTo(AppDestination.Onboarding.route) {
-                            inclusive = true
-                        }
+                        popUpTo(AppDestination.Onboarding.route) { inclusive = true }
                         launchSingleTop = true
                     }
                 },
@@ -40,72 +56,28 @@ fun AppNavGraph(
         }
         composable(AppDestination.AuthChoice.route) {
             AuthChoiceScreen(
-                onCreateAccount = {
-                    navController.navigate(AppDestination.Signup.route)
-                },
-                onLogin = {
-                    navController.navigate(AppDestination.Login.route)
-                },
-                onAuthSuccess = {
-                    navController.navigate(AppDestination.Home.route) {
-                        popUpTo(AppDestination.AuthChoice.route) {
-                            inclusive = true
-                        }
-                        launchSingleTop = true
-                    }
-                },
+                onCreateAccount = { navController.navigate(AppDestination.Signup.route) },
+                onLogin = { navController.navigate(AppDestination.Login.route) },
                 viewModel = authViewModel,
             )
         }
         composable(AppDestination.Login.route) {
             LoginScreen(
                 onBack = { navController.popBackStack() },
-                onAuthSuccess = {
-                    navController.navigate(AppDestination.Home.route) {
-                        popUpTo(AppDestination.AuthChoice.route) {
-                            inclusive = true
-                        }
-                        launchSingleTop = true
-                    }
-                },
                 viewModel = authViewModel,
             )
         }
         composable(AppDestination.Signup.route) {
             SignupScreen(
                 onBack = { navController.popBackStack() },
-                onAuthSuccess = {
-                    navController.navigate(AppDestination.Home.route) {
-                        popUpTo(AppDestination.AuthChoice.route) {
-                            inclusive = true
-                        }
-                        launchSingleTop = true
-                    }
-                },
                 viewModel = authViewModel,
             )
         }
         composable(AppDestination.Home.route) {
-            if (isAuthenticated) {
-                HomeScreen(
-                    onLogout = {
-                        navController.navigate(AppDestination.AuthChoice.route) {
-                            popUpTo(AppDestination.Home.route) {
-                                inclusive = true
-                            }
-                            launchSingleTop = true
-                        }
-                    },
-                )
-            } else {
-                LaunchedEffect(Unit) {
-                    navController.navigate(AppDestination.AuthChoice.route) {
-                        popUpTo(AppDestination.Home.route) {
-                            inclusive = true
-                        }
-                    }
-                }
-            }
+            HomeScreen(
+                currentSession = currentUser,
+                onSignOut = { authViewModel.signOut() },
+            )
         }
     }
 }

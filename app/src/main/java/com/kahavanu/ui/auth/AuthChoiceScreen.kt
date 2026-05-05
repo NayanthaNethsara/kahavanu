@@ -20,7 +20,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
@@ -45,23 +45,15 @@ import com.kahavanu.ui.theme.Spacing
 fun AuthChoiceScreen(
     onCreateAccount: () -> Unit,
     onLogin: () -> Unit,
-    onAuthSuccess: () -> Unit,
     viewModel: AuthViewModel = viewModel(
         factory = AuthViewModelFactory(AppContainer.authRepository),
     ),
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
-    val isAuthenticated = viewModel.isAuthenticated.collectAsStateWithLifecycle().value
     val googleLauncher = rememberGoogleSignInLauncher(
         onIdToken = { token -> viewModel.signInWithGoogle(token) },
         onError = { message -> viewModel.setError(message) },
     )
-
-    LaunchedEffect(isAuthenticated) {
-        if (isAuthenticated) {
-            onAuthSuccess()
-        }
-    }
 
     Surface(
         modifier = Modifier.fillMaxSize(),

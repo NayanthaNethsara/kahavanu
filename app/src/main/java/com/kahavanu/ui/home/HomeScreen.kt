@@ -28,32 +28,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.kahavanu.di.AppContainer
-import com.kahavanu.ui.auth.AuthViewModel
-import com.kahavanu.ui.auth.AuthViewModelFactory
+import com.kahavanu.domain.model.UserSession
 import com.kahavanu.ui.theme.Spacing
 
 @Composable
 fun HomeScreen(
-    onLogout: () -> Unit,
-    viewModel: AuthViewModel = viewModel(
-        factory = AuthViewModelFactory(AppContainer.authRepository),
-    ),
+    currentSession: UserSession?,
+    onSignOut: () -> Unit,
 ) {
-    val currentUser = viewModel.currentUser.collectAsStateWithLifecycle().value
-
     Column(
         modifier = Modifier.fillMaxSize(),
     ) {
         HomeHeader(
-            userName = currentUser?.displayName ?: "User",
-            userEmail = currentUser?.email ?: "No email",
-            onLogout = {
-                viewModel.signOut()
-                onLogout()
-            },
+            userName = currentSession?.displayName ?: "User",
+            userEmail = currentSession?.email ?: "No email",
+            onSignOut = onSignOut,
         )
 
         Box(
@@ -74,14 +63,14 @@ fun HomeScreen(
                 )
                 Spacer(modifier = Modifier.height(Spacing.medium))
                 Text(
-                    text = currentUser?.displayName ?: "User",
+                    text = currentSession?.displayName ?: "User",
                     style = MaterialTheme.typography.headlineSmall,
                     color = MaterialTheme.colorScheme.secondary,
                 )
-                if (currentUser?.email != null) {
+                if (currentSession?.email != null) {
                     Spacer(modifier = Modifier.height(Spacing.small))
                     Text(
-                        text = currentUser.email,
+                        text = currentSession.email,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -97,7 +86,7 @@ fun HomeScreen(
 private fun HomeHeader(
     userName: String,
     userEmail: String,
-    onLogout: () -> Unit,
+    onSignOut: () -> Unit,
 ) {
     Surface(
         modifier = Modifier
@@ -146,7 +135,7 @@ private fun HomeHeader(
                 )
             }
 
-            IconButton(onClick = onLogout) {
+            IconButton(onClick = onSignOut) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.Logout,
                     contentDescription = "Logout",

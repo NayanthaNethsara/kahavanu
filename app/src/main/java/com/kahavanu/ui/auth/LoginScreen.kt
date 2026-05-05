@@ -33,7 +33,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -58,7 +58,6 @@ import com.kahavanu.ui.theme.Spacing
 @Composable
 fun LoginScreen(
     onBack: () -> Unit,
-    onAuthSuccess: () -> Unit,
     viewModel: AuthViewModel = viewModel(
         factory = AuthViewModelFactory(AppContainer.authRepository),
     ),
@@ -68,18 +67,11 @@ fun LoginScreen(
     var password by rememberSaveable { mutableStateOf("") }
     var isPasswordVisible by rememberSaveable { mutableStateOf(false) }
     val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
-    val isAuthenticated = viewModel.isAuthenticated.collectAsStateWithLifecycle().value
 
     val googleLauncher = rememberGoogleSignInLauncher(
         onIdToken = { token -> viewModel.signInWithGoogle(token) },
         onError = { message -> viewModel.setError(message) },
     )
-
-    LaunchedEffect(isAuthenticated) {
-        if (isAuthenticated) {
-            onAuthSuccess()
-        }
-    }
 
     Surface(
         modifier = Modifier.fillMaxSize(),

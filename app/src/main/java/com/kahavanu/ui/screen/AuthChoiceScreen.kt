@@ -1,6 +1,7 @@
 package com.kahavanu.ui.screen
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
@@ -41,7 +43,6 @@ import com.kahavanu.ui.component.AuthOutlinedButton
 import com.kahavanu.ui.component.AuthPrimaryButton
 import com.kahavanu.ui.theme.OnboardingTokens
 import com.kahavanu.ui.theme.Spacing
-import androidx.compose.foundation.text.ClickableText
 
 @Composable
 fun AuthChoiceScreen(
@@ -162,33 +163,35 @@ fun AuthChoiceScreen(
 @Composable
 private fun TermsFooter() {
     val uriHandler = LocalUriHandler.current
-    val termsTag = "terms"
-    val privacyTag = "privacy"
+    
     val text = buildAnnotatedString {
         append("By continuing, you agree to our ")
-        pushStringAnnotation(tag = termsTag, annotation = AppConfig.termsOfServiceUrl)
+        pushStringAnnotation(tag = "URL", annotation = AppConfig.termsOfServiceUrl)
         withStyle(SpanStyle(color = MaterialTheme.colorScheme.secondary)) {
             append("Terms of Service")
         }
         pop()
         append(" and ")
-        pushStringAnnotation(tag = privacyTag, annotation = AppConfig.privacyPolicyUrl)
+        pushStringAnnotation(tag = "URL", annotation = AppConfig.privacyPolicyUrl)
         withStyle(SpanStyle(color = MaterialTheme.colorScheme.secondary)) {
             append("Privacy Policy")
         }
         pop()
     }
 
-    ClickableText(
+    Text(
         text = text,
         style = MaterialTheme.typography.bodySmall.copy(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
         ),
-        onClick = { offset ->
-            text.getStringAnnotations(start = offset, end = offset)
-                .firstOrNull()
-                ?.let { uriHandler.openUri(it.item) }
+        modifier = Modifier.pointerInput(Unit) {
+            detectTapGestures { offset ->
+                text.getStringAnnotations(tag = "URL", start = offset.x.toInt(), end = offset.x.toInt())
+                    .firstOrNull()?.let { annotation ->
+                        uriHandler.openUri(annotation.item)
+                    }
+            }
         },
     )
 }

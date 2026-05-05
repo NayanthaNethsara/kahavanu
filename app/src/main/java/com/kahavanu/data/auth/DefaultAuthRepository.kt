@@ -12,6 +12,9 @@ import kotlin.coroutines.resume
 class DefaultAuthRepository(
     private val auth: FirebaseAuth,
 ) : AuthRepository {
+    override val currentSession: UserSession?
+        get() = auth.currentUser?.toSession()
+
     override val authState: Flow<UserSession?> = callbackFlow {
         trySend(auth.currentUser?.toSession())
         val listener = FirebaseAuth.AuthStateListener { firebaseAuth ->
@@ -77,6 +80,14 @@ private suspend fun <T> com.google.android.gms.tasks.Task<T>.awaitResult(): Resu
     }
 }
 
-private suspend fun com.google.android.gms.tasks.Task<Void>.awaitUnitResult(): Result<Unit> {
-    return awaitResult<Void>().map { Unit }
+private suspend fun com.google.android.gms.tasks.Task<*>.awaitUnitResult(): Result<Unit> {
+    return suspendCancellableCoroutine { continuation ->
+        addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                continuation.resume(Result.success(Unit))
+            } else {
+                continuation.resume(Result.failure(task.exception ?: Exception("Unknown error")))
+            }
+        }
+    }
 }

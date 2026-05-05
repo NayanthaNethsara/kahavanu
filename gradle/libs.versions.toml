@@ -13,8 +13,8 @@ material = "1.12.0"
 kotlin = "2.0.21"
 coil = "3.0.0"
 navigationCompose = "2.8.3"
-firebaseBom = "33.1.0"
-googleServices = "4.4.2"
+firebaseBom = "34.12.0"
+googleServices = "4.4.4"
 playServicesAuth = "21.2.0"
 
 [libraries]
@@ -38,7 +38,7 @@ androidx-compose-material-icons-extended = { group = "androidx.compose.material"
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
-firebase-auth-ktx = { group = "com.google.firebase", name = "firebase-auth-ktx" }
+firebase-auth = { group = "com.google.firebase", name = "firebase-auth" }
 play-services-auth = { group = "com.google.android.gms", name = "play-services-auth", version.ref = "playServicesAuth" }
 
 [plugins]

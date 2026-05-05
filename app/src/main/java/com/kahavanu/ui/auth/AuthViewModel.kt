@@ -23,7 +23,7 @@ class AuthViewModel(
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = false,
+            initialValue = repository.currentSession != null,
         )
 
     fun login(email: String, password: String) {

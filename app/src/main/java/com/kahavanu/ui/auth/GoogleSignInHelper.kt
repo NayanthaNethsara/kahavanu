@@ -18,6 +18,7 @@ class GoogleSignInLauncher(
 )
 
 @Composable
+@Suppress("DEPRECATION")
 fun rememberGoogleSignInLauncher(
     onIdToken: (String) -> Unit,
     onError: (String) -> Unit,

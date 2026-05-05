@@ -31,10 +31,9 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.kahavanu.R
 import com.kahavanu.core.config.AppConfig
-import com.kahavanu.di.AppContainer
 import com.kahavanu.ui.common.AppDecorativeGradientOverlay
 import com.kahavanu.ui.common.AuthOutlinedButton
 import com.kahavanu.ui.common.AuthPrimaryButton
@@ -45,9 +44,7 @@ import com.kahavanu.ui.theme.Spacing
 fun AuthChoiceScreen(
     onCreateAccount: () -> Unit,
     onLogin: () -> Unit,
-    viewModel: AuthViewModel = viewModel(
-        factory = AuthViewModelFactory(AppContainer.authRepository),
-    ),
+    viewModel: AuthViewModel = hiltViewModel(),
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
     val googleLauncher = rememberGoogleSignInLauncher(

@@ -1,9 +1,9 @@
 package com.kahavanu.ui.auth
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.kahavanu.domain.repository.AuthRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -11,8 +11,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class AuthViewModel(
+@HiltViewModel
+class AuthViewModel @Inject constructor(
     private val repository: AuthRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(AuthUiState())
@@ -87,17 +89,5 @@ class AuthViewModel(
     fun signOut() {
         repository.signOut()
         _uiState.update { it.copy(errorMessage = null, isLoading = false) }
-    }
-}
-
-class AuthViewModelFactory(
-    private val repository: AuthRepository,
-) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(AuthViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return AuthViewModel(repository) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

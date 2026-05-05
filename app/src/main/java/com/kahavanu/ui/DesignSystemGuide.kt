@@ -84,7 +84,7 @@ package com.kahavanu.ui
  * |   +-- repository/
  * |       +-- AuthRepository.kt
  * +-- di/
- * |   +-- AppContainer.kt
+ * |   +-- AuthModule.kt
  * +-- ui/
  *     +-- DesignSystemGuide.kt
  *     +-- auth/
@@ -123,5 +123,7 @@ package com.kahavanu.ui
  * - New screen-specific tokens go in OnboardingTokens or a similarly named object.
  * - Repository interfaces live in domain/repository; implementations in data/.
  * - ViewModels depend on domain interfaces, never on data implementations directly.
- * - All dependency wiring goes through di/AppContainer.
+ * - All dependency wiring goes through di/AuthModule (Hilt @Module).
+ * - Use @HiltViewModel + @Inject constructor on ViewModels; use hiltViewModel() in screens.
+ * - No manual ViewModelProvider.Factory or singleton containers in Composables.
  */

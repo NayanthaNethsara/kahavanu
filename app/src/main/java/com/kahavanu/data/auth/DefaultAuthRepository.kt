@@ -9,9 +9,12 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
+import javax.inject.Inject
+import javax.inject.Singleton
 
 
-class DefaultAuthRepository(
+@Singleton
+class DefaultAuthRepository @Inject constructor(
     private val auth: FirebaseAuth,
 ) : AuthRepository {
     override val currentSession: UserSession?

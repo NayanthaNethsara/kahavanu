@@ -44,9 +44,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.kahavanu.R
-import com.kahavanu.di.AppContainer
 import com.kahavanu.ui.common.AppDecorativeGradientOverlay
 import com.kahavanu.ui.common.AuthOutlinedButton
 import com.kahavanu.ui.common.AuthPrimaryButton
@@ -57,9 +56,7 @@ import com.kahavanu.ui.theme.Spacing
 @Composable
 fun SignupScreen(
     onBack: () -> Unit,
-    viewModel: AuthViewModel = viewModel(
-        factory = AuthViewModelFactory(AppContainer.authRepository),
-    ),
+    viewModel: AuthViewModel = hiltViewModel(),
 ) {
     var fullName by rememberSaveable { mutableStateOf("") }
     var email by rememberSaveable { mutableStateOf("") }

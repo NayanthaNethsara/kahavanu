@@ -1,16 +1,19 @@
 package com.kahavanu.ui.auth
 
-import android.app.Activity
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.android.gms.common.api.ApiException
+import androidx.credentials.CredentialManager
+import androidx.credentials.CustomCredential
+import androidx.credentials.GetCredentialRequest
+import androidx.credentials.GetCredentialResponse
+import androidx.credentials.exceptions.GetCredentialException
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.kahavanu.R
+import kotlinx.coroutines.launch
 
 @Stable
 class GoogleSignInLauncher(
@@ -18,42 +21,58 @@ class GoogleSignInLauncher(
 )
 
 @Composable
-@Suppress("DEPRECATION")
 fun rememberGoogleSignInLauncher(
     onIdToken: (String) -> Unit,
     onError: (String) -> Unit,
 ): GoogleSignInLauncher {
     val context = LocalContext.current
-    val googleSignInClient = remember {
-        val options = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestIdToken(context.getString(R.string.default_web_client_id))
-            .requestEmail()
+    val scope = rememberCoroutineScope()
+    val credentialManager = remember { CredentialManager.create(context) }
+    val request = remember {
+        val googleIdOption = GetGoogleIdOption.Builder()
+            .setFilterByAuthorizedAccounts(false)
+            .setServerClientId(context.getString(R.string.default_web_client_id))
+            .setAutoSelectEnabled(true)
             .build()
-        GoogleSignIn.getClient(context, options)
+        GetCredentialRequest.Builder()
+            .addCredentialOption(googleIdOption)
+            .build()
     }
 
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult(),
-    ) { result ->
-        if (result.resultCode != Activity.RESULT_OK) {
-            onError("Google sign-in cancelled")
-            return@rememberLauncherForActivityResult
+    return remember(credentialManager, request) {
+        GoogleSignInLauncher(
+            launch = {
+                scope.launch {
+                    try {
+                        val result = credentialManager.getCredential(context, request)
+                        handleCredentialResult(result, onIdToken, onError)
+                    } catch (ex: GetCredentialException) {
+                        onError("Google sign-in failed")
+                    }
+                }
+            },
+        )
+    }
+}
+
+private fun handleCredentialResult(
+    result: GetCredentialResponse,
+    onIdToken: (String) -> Unit,
+    onError: (String) -> Unit,
+) {
+    val credential = result.credential
+    if (credential is CustomCredential &&
+        credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
+    ) {
+        val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
+        val idToken = googleIdTokenCredential.idToken
+        if (idToken.isBlank()) {
+            onError("Missing Google ID token")
+        } else {
+            onIdToken(idToken)
         }
-        val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
-        try {
-            val account = task.getResult(ApiException::class.java)
-            val token = account.idToken
-            if (token == null) {
-                onError("Missing Google ID token")
-            } else {
-                onIdToken(token)
-            }
-        } catch (ex: ApiException) {
-            onError("Google sign-in failed")
-        }
+        return
     }
 
-    return remember(googleSignInClient, launcher) {
-        GoogleSignInLauncher(launch = { launcher.launch(googleSignInClient.signInIntent) })
-    }
+    onError("Unsupported credential type")
 }

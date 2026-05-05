@@ -82,7 +82,7 @@ object BlurValues {
     val small: Dp = 8.dp
     val medium: Dp = 16.dp
     val large: Dp = 24.dp
-    val extraLarge: Dp = 60.dp
+    val extraLarge: Dp = 100.dp
 }
 
 /**
@@ -107,8 +107,8 @@ object OnboardingTokens {
     val headerHeight: Dp = 64.dp
 
     // Image
-    val imageWidth: Dp = 280.dp
-    val imageHeight: Dp = 372.dp
+    val imageWidth: Dp = 300.dp
+    val imageHeight: Dp = 400.dp
 
     // Button
     val buttonHeight: Dp = 54.dp
@@ -117,7 +117,7 @@ object OnboardingTokens {
     val buttonIconSize: Dp = 20.dp
 
     // Decorative overlay
-    val gradientSize: Dp = 256.dp
+    val gradientSize: Dp = 200.dp
     val gradientBlur: Dp = BlurValues.extraLarge
     val gradientTopOffset: Dp = 80.dp
     val gradientLeftOffset: Dp = 97.51.dp

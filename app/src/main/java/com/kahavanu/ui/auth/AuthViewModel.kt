@@ -26,6 +26,13 @@ class AuthViewModel(
             initialValue = repository.currentSession != null,
         )
 
+    val currentUser = repository.authState
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = repository.currentSession,
+        )
+
     fun login(email: String, password: String) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
@@ -75,6 +82,11 @@ class AuthViewModel(
 
     fun setError(message: String?) {
         _uiState.update { it.copy(errorMessage = message) }
+    }
+
+    fun signOut() {
+        repository.signOut()
+        _uiState.update { it.copy(errorMessage = null, isLoading = false) }
     }
 }
 

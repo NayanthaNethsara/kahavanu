@@ -113,7 +113,16 @@ class MainActivity : ComponentActivity() {
                         }
                         composable(AppDestination.Home.route) {
                             if (isAuthenticated) {
-                                HomeScreen()
+                                HomeScreen(
+                                    onLogout = {
+                                        navController.navigate(AppDestination.AuthChoice.route) {
+                                            popUpTo(AppDestination.Home.route) {
+                                                inclusive = true
+                                            }
+                                            launchSingleTop = true
+                                        }
+                                    },
+                                )
                             } else {
                                 LaunchedEffect(Unit) {
                                     navController.navigate(AppDestination.AuthChoice.route) {

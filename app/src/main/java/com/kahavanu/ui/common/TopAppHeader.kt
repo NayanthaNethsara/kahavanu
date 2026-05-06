@@ -44,8 +44,9 @@ fun TopAppHeader(
                 brush = Brush.verticalGradient(
                     colors = listOf(
                         Color.White,
-                        Color.White.copy(alpha = 0.95f),
-                        Color.White.copy(alpha = 0.6f),
+                        Color.White,
+                        Color.White,
+                        Color.White.copy(alpha = 0.9f),
                         Color.Transparent
                     )
                 )
@@ -57,6 +58,7 @@ fun TopAppHeader(
             modifier = Modifier
                 .fillMaxWidth()
                 .statusBarsPadding()
+                .padding(bottom = 10.dp)
         ) {
             Row(
                 modifier = Modifier

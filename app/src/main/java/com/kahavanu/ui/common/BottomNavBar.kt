@@ -28,10 +28,7 @@ import androidx.compose.material.icons.automirrored.outlined.TrendingDown
 import androidx.compose.material.icons.automirrored.outlined.TrendingUp
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material.icons.outlined.PieChart
 import androidx.compose.material.icons.outlined.Radar
-import androidx.compose.material.icons.outlined.TrendingDown
-import androidx.compose.material.icons.outlined.TrendingUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface

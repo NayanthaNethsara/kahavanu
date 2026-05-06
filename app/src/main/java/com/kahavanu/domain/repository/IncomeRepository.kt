@@ -1,7 +1,10 @@
 package com.kahavanu.domain.repository
 
 import com.kahavanu.domain.model.IncomeLogEntry
+import com.kahavanu.domain.model.IncomeLogResult
+import kotlinx.coroutines.flow.Flow
 
 interface IncomeRepository {
-    suspend fun logIncome(entry: IncomeLogEntry): Result<Unit>
+    fun observeIncomeLogs(): Flow<List<IncomeLogEntry>>
+    suspend fun logIncome(entry: IncomeLogEntry): Result<IncomeLogResult>
 }

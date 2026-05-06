@@ -16,6 +16,7 @@ import com.kahavanu.ui.common.TopAppHeader
 import com.kahavanu.ui.expenses.ExpensesScreen
 import com.kahavanu.ui.goals.GoalsScreen
 import com.kahavanu.ui.home.HomeScreen
+import com.kahavanu.ui.income.IncomeLogScreen
 import com.kahavanu.ui.income.IncomeScreen
 import com.kahavanu.ui.navigation.AppDestination
 import com.kahavanu.ui.profile.ProfileScreen
@@ -28,6 +29,13 @@ fun MainTabsScreen(
 ) {
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = currentBackStackEntry?.destination?.route
+    val showBottomBar = currentRoute in setOf(
+        AppDestination.Home.route,
+        AppDestination.Income.route,
+        AppDestination.Expenses.route,
+        AppDestination.Goals.route,
+        AppDestination.Profile.route,
+    )
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -37,16 +45,18 @@ fun MainTabsScreen(
             )
         },
         bottomBar = {
-            BottomNavBar(
-                currentRoute = currentRoute,
-                onNavigate = { destination ->
-                    navController.navigate(destination.route) {
-                        popUpTo(AppDestination.Home.route) { saveState = true }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
-                },
-            )
+            if (showBottomBar) {
+                BottomNavBar(
+                    currentRoute = currentRoute,
+                    onNavigate = { destination ->
+                        navController.navigate(destination.route) {
+                            popUpTo(AppDestination.Home.route) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                )
+            }
         },
     ) {
         NavHost(
@@ -60,7 +70,15 @@ fun MainTabsScreen(
                 )
             }
             composable(AppDestination.Income.route) {
-                IncomeScreen()
+                IncomeScreen(
+                    onLogIncome = { navController.navigate(AppDestination.IncomeLog.route) },
+                )
+            }
+            composable(AppDestination.IncomeLog.route) {
+                IncomeLogScreen(
+                    onBack = { navController.popBackStack() },
+                    onLogged = { navController.popBackStack() },
+                )
             }
             composable(AppDestination.Expenses.route) {
                 ExpensesScreen()

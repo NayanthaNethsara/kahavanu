@@ -3,6 +3,7 @@ package com.kahavanu.ui.income
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kahavanu.domain.model.IncomeLogEntry
+import com.kahavanu.domain.model.IncomeLogResult
 import com.kahavanu.domain.repository.IncomeRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -61,13 +62,17 @@ class IncomeViewModel @Inject constructor(
             val result = repository.logIncome(entry)
             _uiState.update {
                 if (result.isSuccess) {
+                    val successMessage = when (result.getOrThrow()) {
+                        IncomeLogResult.SYNCED -> "Income logged"
+                        IncomeLogResult.LOCAL_ONLY -> "Saved offline. Will sync when online."
+                    }
                     it.copy(
                         title = "",
                         amount = "",
                         note = "",
                         currency = currency,
                         isSaving = false,
-                        successMessage = "Income logged",
+                        successMessage = successMessage,
                     )
                 } else {
                     it.copy(

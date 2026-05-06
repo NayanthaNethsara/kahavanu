@@ -9,50 +9,28 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-/**
- * Spacing scale following Material Design 3
- * Used for consistent padding, margins, and gaps throughout the app
- */
 @Immutable
 object Spacing {
-    val extraSmall: Dp = 4.dp
-    val small: Dp = 8.dp
-    val medium: Dp = 12.dp
-    val large: Dp = 16.dp
-    val extraLarge: Dp = 24.dp
-    val huge: Dp = 32.dp
-    val massive: Dp = 48.dp
-    val jumbo: Dp = 64.dp
+    val extraSmall: Dp = 4.dp  // p-1
+    val small: Dp = 8.dp       // p-2
+    val medium: Dp = 12.dp     // p-3
+    val large: Dp = 16.dp      // p-4
+    val extraLarge: Dp = 24.dp // p-6
+    val huge: Dp = 32.dp       // p-8
+    val massive: Dp = 48.dp    // p-12
+    val jumbo: Dp = 64.dp      // p-16
 }
 
-/**
- * Corner radius scale following Material Design 3
- * Used for consistent shape styling
- */
 @Immutable
 object CornerRadius {
-    // Extra small: 4dp (for small components)
-    val extraSmall: Dp = 4.dp
-
-    // Small: 8dp (for cards, chips)
-    val small: Dp = 8.dp
-
-    // Medium: 12dp (for default components)
-    val medium: Dp = 12.dp
-
-    // Large: 16dp (for large surfaces)
-    val large: Dp = 16.dp
-
-    // Extra large: 28dp (for expanded surfaces)
-    val extraLarge: Dp = 28.dp
-
-    // Full: for pill-shaped buttons
-    val full: Dp = 50.dp
+    val extraSmall: Dp = 4.dp  // rounded
+    val small: Dp = 6.dp       // rounded-md
+    val medium: Dp = 8.dp      // rounded-lg
+    val large: Dp = 12.dp      // rounded-xl
+    val extraLarge: Dp = 24.dp // rounded-3xl
+    val full: Dp = 9999.dp     // rounded-full (Tailwind uses 9999px for pills)
 }
 
-/**
- * Material Design 3 shapes
- */
 val KahavanuShapes = Shapes(
     extraSmall = RoundedCornerShape(CornerRadius.extraSmall),
     small = RoundedCornerShape(CornerRadius.small),
@@ -61,28 +39,22 @@ val KahavanuShapes = Shapes(
     extraLarge = RoundedCornerShape(CornerRadius.extraLarge),
 )
 
-/**
- * Shadow and elevation scale following Material Design 3
- */
 @Immutable
 object Elevation {
-    val level0: Dp = 0.dp
-    val level1: Dp = 1.dp
-    val level2: Dp = 3.dp
-    val level3: Dp = 6.dp
-    val level4: Dp = 8.dp
-    val level5: Dp = 12.dp
+    val level0: Dp = 0.dp  // shadow-none
+    val level1: Dp = 1.dp  // shadow-sm
+    val level2: Dp = 2.dp  // shadow
+    val level3: Dp = 4.dp  // shadow-md
+    val level4: Dp = 10.dp // shadow-lg
+    val level5: Dp = 20.dp // shadow-xl
 }
 
-/**
- * Blur effects for decorative elements
- */
 @Immutable
 object BlurValues {
-    val small: Dp = 8.dp
-    val medium: Dp = 16.dp
-    val large: Dp = 24.dp
-    val extraLarge: Dp = 100.dp
+    val small: Dp = 4.dp       // blur-sm
+    val medium: Dp = 12.dp     // blur-md
+    val large: Dp = 16.dp      // blur-lg
+    val extraLarge: Dp = 64.dp // blur-3xl
 }
 
 /**

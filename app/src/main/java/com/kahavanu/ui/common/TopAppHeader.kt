@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -37,7 +36,6 @@ import com.kahavanu.ui.theme.Spacing
 fun TopAppHeader(
     currentSession: UserSession?,
     onNotificationClick: () -> Unit = {},
-    onMenuClick: () -> Unit = {},
 ) {
     Surface(
         modifier = Modifier
@@ -91,8 +89,8 @@ fun TopAppHeader(
                     val glassModifier = Modifier
                         .size(42.dp)
                         .shadow(
-                            elevation = 12.dp,
-                            spotColor = RawColors.Gray.Gray300,
+                            elevation = 10.dp,
+                            spotColor = RawColors.Gray.Gray400,
                             ambientColor = RawColors.Gray.Gray400,
                             shape = CircleShape
                         )
@@ -115,21 +113,8 @@ fun TopAppHeader(
                         Icon(
                             imageVector = Icons.Outlined.Notifications,
                             contentDescription = "Notifications",
-                            tint = RawColors.Slate.Slate700,
+                            tint = RawColors.Emerald.Emerald700,
                             modifier = Modifier.size(22.dp)
-                        )
-                    }
-
-                    // Hamburger Menu
-                    IconButton(
-                        onClick = onMenuClick,
-                        modifier = glassModifier
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Menu,
-                            contentDescription = "Menu",
-                            tint = RawColors.Slate.Slate700,
-                            modifier = Modifier.size(24.dp)
                         )
                     }
                 }

@@ -33,13 +33,6 @@ fun MainTabsScreen(
         topBar = {
             TopAppHeader(
                 currentSession = currentSession,
-                onProfileClick = {
-                    navController.navigate(AppDestination.Profile.route) {
-                        popUpTo(AppDestination.Home.route) { saveState = true }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
-                }
             )
         },
         bottomBar = {

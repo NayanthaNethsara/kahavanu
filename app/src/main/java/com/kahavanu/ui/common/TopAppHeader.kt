@@ -42,7 +42,6 @@ import com.kahavanu.ui.theme.Spacing
 fun TopAppHeader(
     currentSession: UserSession?,
     onNotificationClick: () -> Unit = {},
-    onProfileClick: () -> Unit = {},
     onMenuClick: () -> Unit = {},
 ) {
     Surface(
@@ -97,31 +96,12 @@ fun TopAppHeader(
                         )
                     }
 
-                    // Profile Avatar Button
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primaryContainer)
-                            .clickable { onProfileClick() },
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text(
-                            text = currentSession?.displayName?.firstOrNull()?.uppercase() ?: "K",
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontWeight = FontWeight.Bold
-                            ),
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        )
-                    }
-
                     // Hamburger Menu
                     IconButton(
                         onClick = onMenuClick,
                         modifier = Modifier
                             .size(40.dp)
                             .clip(CircleShape)
-                            .background(Color.Gray.copy(alpha = 0.08f))
                     ) {
                         Icon(
                             imageVector = Icons.Default.Menu,

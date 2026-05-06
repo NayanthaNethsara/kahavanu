@@ -34,10 +34,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -60,15 +56,8 @@ fun LoginScreen(
     viewModel: AuthViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
-    var email by rememberSaveable { mutableStateOf("") }
-    var password by rememberSaveable { mutableStateOf("") }
-    var isPasswordVisible by rememberSaveable { mutableStateOf(false) }
     val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
-
-    val googleLauncher = rememberGoogleSignInLauncher(
-        onIdToken = { token -> viewModel.signInWithGoogle(token) },
-        onError = { message -> viewModel.setError(message) },
-    )
+    val googleSignInRequest = rememberGoogleSignInRequest()
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -132,15 +121,15 @@ fun LoginScreen(
                 AuthOutlinedButton(
                     text = "Continue with Google",
                     leadingIcon = Icons.Outlined.GTranslate,
-                    onClick = googleLauncher.launch,
+                    onClick = { viewModel.startGoogleSignIn(googleSignInRequest) },
                 )
 
                 Spacer(modifier = Modifier.height(Spacing.large))
 
                 AuthTextField(
                     label = "Email",
-                    value = email,
-                    onValueChange = { email = it },
+                    value = uiState.email,
+                    onValueChange = viewModel::onEmailChange,
                     placeholder = "you@example.com",
                     leadingIcon = Icons.Outlined.MailOutline,
                 )
@@ -149,14 +138,14 @@ fun LoginScreen(
 
                 AuthTextField(
                     label = "Password",
-                    value = password,
-                    onValueChange = { password = it },
+                    value = uiState.password,
+                    onValueChange = viewModel::onPasswordChange,
                     placeholder = "••••••••",
                     leadingIcon = Icons.Outlined.Lock,
                     trailingIcon = {
-                        IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
+                        IconButton(onClick = viewModel::togglePasswordVisibility) {
                             Icon(
-                                imageVector = if (isPasswordVisible) {
+                                imageVector = if (uiState.isPasswordVisible) {
                                     Icons.Outlined.VisibilityOff
                                 } else {
                                     Icons.Outlined.Visibility
@@ -165,7 +154,7 @@ fun LoginScreen(
                             )
                         }
                     },
-                    visualTransformation = if (isPasswordVisible) {
+                    visualTransformation = if (uiState.isPasswordVisible) {
                         VisualTransformation.None
                     } else {
                         PasswordVisualTransformation()
@@ -178,12 +167,12 @@ fun LoginScreen(
                 ) {
                     TextButton(
                         onClick = {
-                            if (email.isBlank()) {
+                            if (uiState.email.isBlank()) {
                                 Toast.makeText(context, "Enter your email first", Toast.LENGTH_SHORT)
                                     .show()
                             } else {
                                 viewModel.sendPasswordReset(
-                                    email = email,
+                                    email = uiState.email,
                                     onSuccess = {
                                         Toast.makeText(
                                             context,
@@ -211,11 +200,11 @@ fun LoginScreen(
                     text = if (uiState.isLoading) "Signing in..." else "Log in",
                     trailingIcon = Icons.AutoMirrored.Filled.ArrowForward,
                     onClick = {
-                        if (email.isBlank() || password.length < 8) {
+                        if (uiState.email.isBlank() || uiState.password.length < 8) {
                             viewModel.setError("Enter a valid email and password")
                             return@AuthPrimaryButton
                         }
-                        viewModel.login(email, password)
+                        viewModel.login(uiState.email, uiState.password)
                     },
                 )
 

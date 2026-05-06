@@ -1,9 +1,7 @@
 package com.kahavanu.ui.auth
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
@@ -13,20 +11,9 @@ import androidx.credentials.exceptions.GetCredentialException
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.kahavanu.R
-import kotlinx.coroutines.launch
-
-@Stable
-class GoogleSignInLauncher(
-    val launch: () -> Unit,
-)
-
 @Composable
-fun rememberGoogleSignInLauncher(
-    onIdToken: (String) -> Unit,
-    onError: (String) -> Unit,
-): GoogleSignInLauncher {
+fun rememberGoogleSignInRequest(): suspend () -> Result<String> {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
     val credentialManager = remember { CredentialManager.create(context) }
     val request = remember {
         val googleIdOption = GetGoogleIdOption.Builder()
@@ -39,42 +26,35 @@ fun rememberGoogleSignInLauncher(
             .build()
     }
 
-    return remember(credentialManager, request) {
-        GoogleSignInLauncher(
-            launch = {
-                scope.launch {
-                    try {
-                        val result = credentialManager.getCredential(context, request)
-                        handleCredentialResult(result, onIdToken, onError)
-                    } catch (_: GetCredentialException) {
-                        onError("Google sign-in is unavailable. Please try again.")
-                    } catch (_: Exception) {
-                        onError("Google sign-in failed. Please try again.")
-                    }
-                }
-            },
-        )
+    return remember(credentialManager, request, context) {
+        suspend {
+            try {
+                val result = credentialManager.getCredential(context, request)
+                extractIdToken(result)
+            } catch (error: GetCredentialException) {
+                Result.failure(error)
+            } catch (error: Exception) {
+                Result.failure(error)
+            }
+        }
     }
 }
 
-private fun handleCredentialResult(
+private fun extractIdToken(
     result: GetCredentialResponse,
-    onIdToken: (String) -> Unit,
-    onError: (String) -> Unit,
-) {
+): Result<String> {
     val credential = result.credential
     if (credential is CustomCredential &&
         credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
     ) {
         val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
         val idToken = googleIdTokenCredential.idToken
-        if (idToken.isBlank()) {
-            onError("Missing Google ID token")
+        return if (idToken.isBlank()) {
+            Result.failure(IllegalStateException("Missing Google ID token"))
         } else {
-            onIdToken(idToken)
+            Result.success(idToken)
         }
-        return
     }
 
-    onError("Unsupported credential type")
+    return Result.failure(IllegalStateException("Unsupported credential type"))
 }

@@ -35,6 +35,22 @@ class AuthViewModel @Inject constructor(
             initialValue = repository.currentSession,
         )
 
+    fun onFullNameChange(value: String) {
+        _uiState.update { it.copy(fullName = value) }
+    }
+
+    fun onEmailChange(value: String) {
+        _uiState.update { it.copy(email = value) }
+    }
+
+    fun onPasswordChange(value: String) {
+        _uiState.update { it.copy(password = value) }
+    }
+
+    fun togglePasswordVisibility() {
+        _uiState.update { it.copy(isPasswordVisible = !it.isPasswordVisible) }
+    }
+
     fun login(email: String, password: String) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
@@ -61,10 +77,18 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    fun signInWithGoogle(idToken: String) {
+    fun startGoogleSignIn(requestIdToken: suspend () -> Result<String>) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-            val result = repository.signInWithGoogleIdToken(idToken)
+            val tokenResult = requestIdToken()
+            if (tokenResult.isFailure) {
+                val message = tokenResult.exceptionOrNull()?.message
+                    ?: "Google sign-in failed. Please try again."
+                _uiState.update { it.copy(isLoading = false, errorMessage = message) }
+                return@launch
+            }
+
+            val result = repository.signInWithGoogleIdToken(tokenResult.getOrThrow())
             _uiState.update {
                 it.copy(
                     isLoading = false,

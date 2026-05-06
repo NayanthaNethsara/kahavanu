@@ -47,10 +47,7 @@ fun AuthChoiceScreen(
     viewModel: AuthViewModel = hiltViewModel(),
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
-    val googleLauncher = rememberGoogleSignInLauncher(
-        onIdToken = { token -> viewModel.signInWithGoogle(token) },
-        onError = { message -> viewModel.setError(message) },
-    )
+    val googleSignInRequest = rememberGoogleSignInRequest()
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -107,7 +104,7 @@ fun AuthChoiceScreen(
                     AuthOutlinedButton(
                         text = "Continue with Google",
                         leadingIcon = Icons.Outlined.GTranslate,
-                        onClick = googleLauncher.launch,
+                        onClick = { viewModel.startGoogleSignIn(googleSignInRequest) },
                     )
 
                     Text(

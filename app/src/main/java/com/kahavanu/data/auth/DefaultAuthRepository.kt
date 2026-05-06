@@ -5,9 +5,9 @@ import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.kahavanu.domain.model.UserSession
 import com.kahavanu.domain.repository.AuthRepository
-import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -17,16 +17,19 @@ import javax.inject.Singleton
 class DefaultAuthRepository @Inject constructor(
     private val auth: FirebaseAuth,
 ) : AuthRepository {
-    override val currentSession: UserSession?
-        get() = auth.currentUser?.toSession()
+    private val authStateFlow = MutableStateFlow(auth.currentUser?.toSession())
 
-    override val authState: Flow<UserSession?> = callbackFlow {
-        trySend(auth.currentUser?.toSession())
-        val listener = FirebaseAuth.AuthStateListener { firebaseAuth ->
-            trySend(firebaseAuth.currentUser?.toSession())
-        }
-        auth.addAuthStateListener(listener)
-        awaitClose { auth.removeAuthStateListener(listener) }
+    override val currentSession: UserSession?
+        get() = authStateFlow.value
+
+    override val authState: Flow<UserSession?> = authStateFlow.asStateFlow()
+
+    private val authStateListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
+        authStateFlow.value = firebaseAuth.currentUser?.toSession()
+    }
+
+    init {
+        auth.addAuthStateListener(authStateListener)
     }
 
     override suspend fun signInWithEmail(email: String, password: String): Result<Unit> {
@@ -63,7 +66,12 @@ class DefaultAuthRepository @Inject constructor(
     }
 
     override fun signOut() {
+        authStateFlow.value = null
         auth.signOut()
+    }
+
+    fun cleanup() {
+        auth.removeAuthStateListener(authStateListener)
     }
 }
 

@@ -34,10 +34,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -58,16 +54,8 @@ fun SignupScreen(
     onBack: () -> Unit,
     viewModel: AuthViewModel = hiltViewModel(),
 ) {
-    var fullName by rememberSaveable { mutableStateOf("") }
-    var email by rememberSaveable { mutableStateOf("") }
-    var password by rememberSaveable { mutableStateOf("") }
-    var isPasswordVisible by rememberSaveable { mutableStateOf(false) }
     val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
-
-    val googleLauncher = rememberGoogleSignInLauncher(
-        onIdToken = { token -> viewModel.signInWithGoogle(token) },
-        onError = { message -> viewModel.setError(message) },
-    )
+    val googleSignInRequest = rememberGoogleSignInRequest()
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -131,15 +119,15 @@ fun SignupScreen(
                 AuthOutlinedButton(
                     text = "Continue with Google",
                     leadingIcon = Icons.Outlined.GTranslate,
-                    onClick = googleLauncher.launch,
+                    onClick = { viewModel.startGoogleSignIn(googleSignInRequest) },
                 )
 
                 Spacer(modifier = Modifier.height(Spacing.large))
 
                 AuthTextField(
                     label = "Full name",
-                    value = fullName,
-                    onValueChange = { fullName = it },
+                    value = uiState.fullName,
+                    onValueChange = viewModel::onFullNameChange,
                     placeholder = "Kavindu Perera",
                     leadingIcon = Icons.Outlined.AccountCircle,
                 )
@@ -148,8 +136,8 @@ fun SignupScreen(
 
                 AuthTextField(
                     label = "Email",
-                    value = email,
-                    onValueChange = { email = it },
+                    value = uiState.email,
+                    onValueChange = viewModel::onEmailChange,
                     placeholder = "you@example.com",
                     leadingIcon = Icons.Outlined.MailOutline,
                 )
@@ -158,14 +146,14 @@ fun SignupScreen(
 
                 AuthTextField(
                     label = "Password",
-                    value = password,
-                    onValueChange = { password = it },
+                    value = uiState.password,
+                    onValueChange = viewModel::onPasswordChange,
                     placeholder = "••••••••",
                     leadingIcon = Icons.Outlined.Lock,
                     trailingIcon = {
-                        IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
+                        IconButton(onClick = viewModel::togglePasswordVisibility) {
                             Icon(
-                                imageVector = if (isPasswordVisible) {
+                                imageVector = if (uiState.isPasswordVisible) {
                                     Icons.Outlined.VisibilityOff
                                 } else {
                                     Icons.Outlined.Visibility
@@ -174,7 +162,7 @@ fun SignupScreen(
                             )
                         }
                     },
-                    visualTransformation = if (isPasswordVisible) {
+                    visualTransformation = if (uiState.isPasswordVisible) {
                         VisualTransformation.None
                     } else {
                         PasswordVisualTransformation()
@@ -193,11 +181,11 @@ fun SignupScreen(
                     text = if (uiState.isLoading) "Creating account..." else "Create account",
                     trailingIcon = Icons.AutoMirrored.Filled.ArrowForward,
                     onClick = {
-                        if (fullName.isBlank() || email.isBlank() || password.length < 8) {
+                        if (uiState.fullName.isBlank() || uiState.email.isBlank() || uiState.password.length < 8) {
                             viewModel.setError("Enter your name, email, and a stronger password")
                             return@AuthPrimaryButton
                         }
-                        viewModel.signup(fullName, email, password)
+                        viewModel.signup(uiState.fullName, uiState.email, uiState.password)
                     },
                 )
 

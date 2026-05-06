@@ -1,4 +1,4 @@
-package com.kahavanu.ui.pipeline
+package com.kahavanu.ui.expenses
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,13 +9,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 
 @Composable
-fun PipelineScreen() {
+fun ExpensesScreen() {
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,
     ) {
         Text(
-            text = "Pipeline",
+            text = "Expenses",
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.onBackground,
         )

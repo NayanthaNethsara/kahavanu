@@ -13,10 +13,11 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.kahavanu.domain.model.UserSession
 import com.kahavanu.ui.common.BottomNavBar
 import com.kahavanu.ui.common.TopAppHeader
+import com.kahavanu.ui.expenses.ExpensesScreen
 import com.kahavanu.ui.goals.GoalsScreen
 import com.kahavanu.ui.home.HomeScreen
+import com.kahavanu.ui.income.IncomeScreen
 import com.kahavanu.ui.navigation.AppDestination
-import com.kahavanu.ui.pipeline.PipelineScreen
 import com.kahavanu.ui.profile.ProfileScreen
 
 @Composable
@@ -58,8 +59,11 @@ fun MainTabsScreen(
                     currentSession = currentSession,
                 )
             }
-            composable(AppDestination.Pipeline.route) {
-                PipelineScreen()
+            composable(AppDestination.Income.route) {
+                IncomeScreen()
+            }
+            composable(AppDestination.Expenses.route) {
+                ExpensesScreen()
             }
             composable(AppDestination.Goals.route) {
                 GoalsScreen()

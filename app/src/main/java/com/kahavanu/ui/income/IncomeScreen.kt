@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -20,14 +21,21 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kahavanu.ui.theme.Elevation
 import com.kahavanu.ui.theme.KahavanuShapes
 import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 
 @Composable
-fun IncomeScreen() {
+fun IncomeScreen(
+    viewModel: IncomeViewModel = hiltViewModel(),
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -51,6 +59,16 @@ fun IncomeScreen() {
         item { IncomeHeader() }
         item { TotalExpectedCard() }
         item { IncomeActionButtons() }
+        item {
+            IncomeLogInputSection(
+                uiState = uiState,
+                onTitleChange = viewModel::onTitleChange,
+                onAmountChange = viewModel::onAmountChange,
+                onCurrencyChange = viewModel::onCurrencyChange,
+                onNoteChange = viewModel::onNoteChange,
+                onSubmit = viewModel::logIncome,
+            )
+        }
         item { MatchAndCatchSection() }
         item { PersistenceSection() }
         item { CryptoGatewaySection() }
@@ -254,6 +272,87 @@ private fun IncomeActionButtons() {
             title = "Recurrent Income",
             subtitle = "View and manage recurring income streams"
         )
+    }
+}
+
+@Composable
+private fun IncomeLogInputSection(
+    uiState: IncomeUiState,
+    onTitleChange: (String) -> Unit,
+    onAmountChange: (String) -> Unit,
+    onCurrencyChange: (String) -> Unit,
+    onNoteChange: (String) -> Unit,
+    onSubmit: () -> Unit,
+) {
+    Column {
+        SectionHeader(
+            title = "Quick Log",
+            subtitle = "Add income in seconds",
+        )
+        GlassCard(modifier = Modifier.fillMaxWidth()) {
+            Column(
+                modifier = Modifier.padding(Spacing.large),
+                verticalArrangement = Arrangement.spacedBy(Spacing.medium),
+            ) {
+                OutlinedTextField(
+                    value = uiState.title,
+                    onValueChange = onTitleChange,
+                    label = { Text("Title") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.medium),
+                ) {
+                    OutlinedTextField(
+                        value = uiState.amount,
+                        onValueChange = onAmountChange,
+                        label = { Text("Amount") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        singleLine = true,
+                        modifier = Modifier.weight(1f),
+                    )
+                    OutlinedTextField(
+                        value = uiState.currency,
+                        onValueChange = onCurrencyChange,
+                        label = { Text("Currency") },
+                        singleLine = true,
+                        modifier = Modifier.weight(0.6f),
+                    )
+                }
+                OutlinedTextField(
+                    value = uiState.note,
+                    onValueChange = onNoteChange,
+                    label = { Text("Note (optional)") },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+
+                if (uiState.errorMessage != null) {
+                    Text(
+                        text = uiState.errorMessage,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+
+                if (uiState.successMessage != null) {
+                    Text(
+                        text = uiState.successMessage,
+                        color = RawColors.Emerald.Emerald600,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+
+                Button(
+                    onClick = onSubmit,
+                    enabled = !uiState.isSaving,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(if (uiState.isSaving) "Logging..." else "Log income")
+                }
+            }
+        }
     }
 }
 

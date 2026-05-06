@@ -1,4 +1,4 @@
-package com.kahavanu.ui.screen
+package com.kahavanu.ui.onboarding
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
@@ -24,8 +24,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import com.kahavanu.R
-import com.kahavanu.ui.component.AppDecorativeGradientOverlay
-import com.kahavanu.ui.component.AppPrimaryButton
+import com.kahavanu.ui.common.AppDecorativeGradientOverlay
+import com.kahavanu.ui.common.AppPrimaryButton
 import com.kahavanu.ui.theme.OnboardingTokens
 import com.kahavanu.ui.theme.Spacing
 
@@ -53,7 +53,6 @@ fun OnboardingScreen(
                     .padding(horizontal = Spacing.extraLarge),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                // Zone 1: top gap
                 Spacer(modifier = Modifier.weight(1f))
 
                 Image(
@@ -64,10 +63,8 @@ fun OnboardingScreen(
                         .height(OnboardingTokens.headerHeight),
                 )
 
-                // Zone 2: gap between logo and content group
                 Spacer(modifier = Modifier.weight(1f))
 
-                // Image + text treated as a single group
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Image(
                         painter = painterResource(id = R.drawable.money_tree),
@@ -98,7 +95,6 @@ fun OnboardingScreen(
                     )
                 }
 
-                // Zone 3: gap between content group and button
                 Spacer(modifier = Modifier.weight(1f))
 
                 AppPrimaryButton(

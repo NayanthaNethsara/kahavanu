@@ -1,9 +1,9 @@
 package com.kahavanu.ui.auth
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.kahavanu.data.auth.AuthRepository
+import com.kahavanu.domain.repository.AuthRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -11,8 +11,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class AuthViewModel(
+@HiltViewModel
+class AuthViewModel @Inject constructor(
     private val repository: AuthRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(AuthUiState())
@@ -22,16 +24,32 @@ class AuthViewModel(
         .map { it != null }
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
+            started = SharingStarted.Eagerly,
             initialValue = repository.currentSession != null,
         )
 
     val currentUser = repository.authState
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
+            started = SharingStarted.Eagerly,
             initialValue = repository.currentSession,
         )
+
+    fun onFullNameChange(value: String) {
+        _uiState.update { it.copy(fullName = value) }
+    }
+
+    fun onEmailChange(value: String) {
+        _uiState.update { it.copy(email = value) }
+    }
+
+    fun onPasswordChange(value: String) {
+        _uiState.update { it.copy(password = value) }
+    }
+
+    fun togglePasswordVisibility() {
+        _uiState.update { it.copy(isPasswordVisible = !it.isPasswordVisible) }
+    }
 
     fun login(email: String, password: String) {
         viewModelScope.launch {
@@ -59,10 +77,18 @@ class AuthViewModel(
         }
     }
 
-    fun signInWithGoogle(idToken: String) {
+    fun startGoogleSignIn(requestIdToken: suspend () -> Result<String>) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-            val result = repository.signInWithGoogleIdToken(idToken)
+            val tokenResult = requestIdToken()
+            if (tokenResult.isFailure) {
+                val message = tokenResult.exceptionOrNull()?.message
+                    ?: "Google sign-in failed. Please try again."
+                _uiState.update { it.copy(isLoading = false, errorMessage = message) }
+                return@launch
+            }
+
+            val result = repository.signInWithGoogleIdToken(tokenResult.getOrThrow())
             _uiState.update {
                 it.copy(
                     isLoading = false,
@@ -87,22 +113,5 @@ class AuthViewModel(
     fun signOut() {
         repository.signOut()
         _uiState.update { it.copy(errorMessage = null, isLoading = false) }
-    }
-}
-
-data class AuthUiState(
-    val isLoading: Boolean = false,
-    val errorMessage: String? = null,
-)
-
-class AuthViewModelFactory(
-    private val repository: AuthRepository,
-) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(AuthViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return AuthViewModel(repository) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

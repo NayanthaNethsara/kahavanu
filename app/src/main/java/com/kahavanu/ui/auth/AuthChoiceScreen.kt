@@ -1,4 +1,4 @@
-package com.kahavanu.ui.screen
+package com.kahavanu.ui.auth
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -20,7 +20,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
@@ -31,16 +31,12 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.kahavanu.R
-import com.kahavanu.config.AppConfig
-import com.kahavanu.data.auth.AuthRepositoryProvider
-import com.kahavanu.ui.auth.AuthViewModel
-import com.kahavanu.ui.auth.AuthViewModelFactory
-import com.kahavanu.ui.auth.rememberGoogleSignInLauncher
-import com.kahavanu.ui.component.AppDecorativeGradientOverlay
-import com.kahavanu.ui.component.AuthOutlinedButton
-import com.kahavanu.ui.component.AuthPrimaryButton
+import com.kahavanu.core.config.AppConfig
+import com.kahavanu.ui.common.AppDecorativeGradientOverlay
+import com.kahavanu.ui.common.AuthOutlinedButton
+import com.kahavanu.ui.common.AuthPrimaryButton
 import com.kahavanu.ui.theme.OnboardingTokens
 import com.kahavanu.ui.theme.Spacing
 
@@ -48,23 +44,10 @@ import com.kahavanu.ui.theme.Spacing
 fun AuthChoiceScreen(
     onCreateAccount: () -> Unit,
     onLogin: () -> Unit,
-    onAuthSuccess: () -> Unit,
-    viewModel: AuthViewModel = viewModel(
-        factory = AuthViewModelFactory(AuthRepositoryProvider.repository),
-    ),
+    viewModel: AuthViewModel = hiltViewModel(),
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
-    val isAuthenticated = viewModel.isAuthenticated.collectAsStateWithLifecycle().value
-    val googleLauncher = rememberGoogleSignInLauncher(
-        onIdToken = { token -> viewModel.signInWithGoogle(token) },
-        onError = { message -> viewModel.setError(message) },
-    )
-
-    LaunchedEffect(isAuthenticated) {
-        if (isAuthenticated) {
-            onAuthSuccess()
-        }
-    }
+    val googleSignInRequest = rememberGoogleSignInRequest()
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -121,7 +104,7 @@ fun AuthChoiceScreen(
                     AuthOutlinedButton(
                         text = "Continue with Google",
                         leadingIcon = Icons.Outlined.GTranslate,
-                        onClick = googleLauncher.launch,
+                        onClick = { viewModel.startGoogleSignIn(googleSignInRequest) },
                     )
 
                     Text(

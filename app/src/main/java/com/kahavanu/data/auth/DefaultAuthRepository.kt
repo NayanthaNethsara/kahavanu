@@ -3,25 +3,33 @@ package com.kahavanu.data.auth
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.UserProfileChangeRequest
-import kotlinx.coroutines.channels.awaitClose
+import com.kahavanu.domain.model.UserSession
+import com.kahavanu.domain.repository.AuthRepository
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlin.coroutines.resume
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class DefaultAuthRepository(
+
+@Singleton
+class DefaultAuthRepository @Inject constructor(
     private val auth: FirebaseAuth,
 ) : AuthRepository {
-    override val currentSession: UserSession?
-        get() = auth.currentUser?.toSession()
+    private val authStateFlow = MutableStateFlow(auth.currentUser?.toSession())
 
-    override val authState: Flow<UserSession?> = callbackFlow {
-        trySend(auth.currentUser?.toSession())
-        val listener = FirebaseAuth.AuthStateListener { firebaseAuth ->
-            trySend(firebaseAuth.currentUser?.toSession())
-        }
-        auth.addAuthStateListener(listener)
-        awaitClose { auth.removeAuthStateListener(listener) }
+    override val currentSession: UserSession?
+        get() = authStateFlow.value
+
+    override val authState: Flow<UserSession?> = authStateFlow.asStateFlow()
+
+    private val authStateListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
+        authStateFlow.value = firebaseAuth.currentUser?.toSession()
+    }
+
+    init {
+        auth.addAuthStateListener(authStateListener)
     }
 
     override suspend fun signInWithEmail(email: String, password: String): Result<Unit> {
@@ -58,7 +66,12 @@ class DefaultAuthRepository(
     }
 
     override fun signOut() {
+        authStateFlow.value = null
         auth.signOut()
+    }
+
+    fun cleanup() {
+        auth.removeAuthStateListener(authStateListener)
     }
 }
 
@@ -71,10 +84,11 @@ private fun com.google.firebase.auth.FirebaseUser.toSession(): UserSession = Use
 private suspend fun <T> com.google.android.gms.tasks.Task<T>.awaitResult(): Result<T> {
     return suspendCancellableCoroutine { continuation ->
         addOnCompleteListener { task ->
+            if (!continuation.isActive) return@addOnCompleteListener
             if (task.isSuccessful) {
-                continuation.resume(Result.success(task.result))
+                continuation.resumeWith(kotlin.Result.success(Result.success(task.result)))
             } else {
-                continuation.resume(Result.failure(task.exception ?: Exception("Unknown error")))
+                continuation.resumeWith(kotlin.Result.success(Result.failure(task.exception ?: Exception("Unknown error"))))
             }
         }
     }
@@ -83,10 +97,11 @@ private suspend fun <T> com.google.android.gms.tasks.Task<T>.awaitResult(): Resu
 private suspend fun com.google.android.gms.tasks.Task<*>.awaitUnitResult(): Result<Unit> {
     return suspendCancellableCoroutine { continuation ->
         addOnCompleteListener { task ->
+            if (!continuation.isActive) return@addOnCompleteListener
             if (task.isSuccessful) {
-                continuation.resume(Result.success(Unit))
+                continuation.resumeWith(kotlin.Result.success(Result.success(Unit)))
             } else {
-                continuation.resume(Result.failure(task.exception ?: Exception("Unknown error")))
+                continuation.resumeWith(kotlin.Result.success(Result.failure(task.exception ?: Exception("Unknown error"))))
             }
         }
     }

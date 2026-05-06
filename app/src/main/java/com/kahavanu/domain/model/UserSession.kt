@@ -1,4 +1,4 @@
-package com.kahavanu.data.auth
+package com.kahavanu.domain.model
 
 data class UserSession(
     val uid: String,

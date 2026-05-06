@@ -1,4 +1,4 @@
-package com.kahavanu.ui.component
+package com.kahavanu.ui.common
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement

@@ -1,4 +1,4 @@
-package com.kahavanu.ui.screen
+package com.kahavanu.ui.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -17,8 +17,6 @@ import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -30,36 +28,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.kahavanu.data.auth.AuthRepositoryProvider
-import com.kahavanu.ui.auth.AuthViewModel
-import com.kahavanu.ui.auth.AuthViewModelFactory
+import com.kahavanu.domain.model.UserSession
 import com.kahavanu.ui.theme.Spacing
 
 @Composable
 fun HomeScreen(
-    onLogout: () -> Unit,
-    viewModel: AuthViewModel = viewModel(
-        factory = AuthViewModelFactory(AuthRepositoryProvider.repository),
-    ),
+    currentSession: UserSession?,
+    onSignOut: () -> Unit,
 ) {
-    val currentUser = viewModel.currentUser.collectAsStateWithLifecycle().value
-
     Column(
         modifier = Modifier.fillMaxSize(),
     ) {
-        // Top Header
         HomeHeader(
-            userName = currentUser?.displayName ?: "User",
-            userEmail = currentUser?.email ?: "No email",
-            onLogout = {
-                viewModel.signOut()
-                onLogout()
-            },
+            userName = currentSession?.displayName ?: "User",
+            userEmail = currentSession?.email ?: "No email",
+            onSignOut = onSignOut,
         )
 
-        // Main Content
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -78,14 +63,14 @@ fun HomeScreen(
                 )
                 Spacer(modifier = Modifier.height(Spacing.medium))
                 Text(
-                    text = currentUser?.displayName ?: "User",
+                    text = currentSession?.displayName ?: "User",
                     style = MaterialTheme.typography.headlineSmall,
                     color = MaterialTheme.colorScheme.secondary,
                 )
-                if (currentUser?.email != null) {
+                if (currentSession?.email != null) {
                     Spacer(modifier = Modifier.height(Spacing.small))
                     Text(
-                        text = currentUser.email,
+                        text = currentSession.email,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -93,7 +78,6 @@ fun HomeScreen(
             }
         }
 
-        // Bottom Navigation Dock
         HomeBottomDock()
     }
 }
@@ -102,7 +86,7 @@ fun HomeScreen(
 private fun HomeHeader(
     userName: String,
     userEmail: String,
-    onLogout: () -> Unit,
+    onSignOut: () -> Unit,
 ) {
     Surface(
         modifier = Modifier
@@ -118,7 +102,6 @@ private fun HomeHeader(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // User Profile Section
             Column(
                 modifier = Modifier.weight(1f),
             ) {
@@ -135,7 +118,6 @@ private fun HomeHeader(
                 )
             }
 
-            // Profile Avatar
             Box(
                 modifier = Modifier
                     .size(48.dp)
@@ -153,8 +135,7 @@ private fun HomeHeader(
                 )
             }
 
-            // Logout Button
-            IconButton(onClick = onLogout) {
+            IconButton(onClick = onSignOut) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.Logout,
                     contentDescription = "Logout",

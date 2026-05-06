@@ -7,12 +7,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.kahavanu.ui.auth.AuthChoiceScreen
 import com.kahavanu.ui.auth.AuthViewModel
 import com.kahavanu.ui.auth.LoginScreen
 import com.kahavanu.ui.auth.SignupScreen
-import com.kahavanu.ui.home.HomeScreen
 import com.kahavanu.ui.onboarding.OnboardingScreen
+import com.kahavanu.ui.main.MainTabsScreen
 
 @Composable
 fun AppNavGraph(
@@ -74,7 +75,8 @@ fun AppNavGraph(
             )
         }
         composable(AppDestination.Home.route) {
-            HomeScreen(
+            MainTabsScreen(
+                navController = rememberNavController(),
                 currentSession = currentUser,
                 onSignOut = { authViewModel.signOut() },
             )

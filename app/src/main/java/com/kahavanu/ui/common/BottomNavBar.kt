@@ -8,6 +8,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -84,8 +85,25 @@ fun BottomNavBar(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .navigationBarsPadding()
-            .padding(horizontal = Spacing.large, vertical = Spacing.large)
+            .pointerInput(Unit) {
+                detectTapGestures { /* Intercept and consume touches */ }
+            }
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        Color.Transparent,
+                        Color.White.copy(alpha = 0.6f),
+                        Color.White,
+
+                    )
+                )
+            )
+            .padding(
+                start = Spacing.large,
+                end = Spacing.large,
+                top = Spacing.large,
+                bottom = Spacing.huge
+            )
     ) {
         Surface(
             modifier = Modifier
@@ -93,11 +111,12 @@ fun BottomNavBar(
                 .shadow(
                     elevation = 20.dp,
                     spotColor = RawColors.Gray.Gray400,
-                    ambientColor = RawColors.Gray.Gray500
+                    ambientColor = RawColors.Gray.Gray600,
+                    shape = CircleShape
                 ),
-            CircleShape,
-            color = Color.White.copy(alpha = 0.85f),
-            border = BorderStroke(0.5.dp, Color.White.copy(alpha = 0.5f))
+            shape = CircleShape,
+            color = Color.White.copy(alpha = 0.95f),
+            border = BorderStroke(0.5.dp, RawColors.Slate.Slate100.copy(alpha = 0.7f))
         ) {
             var totalWidth by remember { mutableFloatStateOf(0f) }
             val coroutineScope = rememberCoroutineScope()

@@ -32,3 +32,16 @@ applyTo: "app/src/main/java/**"
 - Use Room for offline persistence where data is needed by UI.
 - Repository should read from Room and expose cached data immediately.
 - Network failures must not block UI; show cached data and update when available.
+
+## Coding Standards & Structure
+- **Self-Documenting Naming**: Code must be readable without external explanation.
+  - Variables: Use specific, descriptive nouns reflecting purpose/units.
+  - Functions: Use clear verb-noun combinations.
+  - Booleans: Prefix with `is`, `has`, or `can` (e.g., `isAvailable`, `hasError`).
+- **Strategic Commenting**:
+  - Do not explain *what* the code does if syntax is clear; explain *why* (non-obvious decisions, limitations).
+  - Always attempt to refactor and simplify complex logic before resorting to adding a comment.
+- **Pragmatic Modularity**:
+  - Write clean, scalable, and reusable code without over-engineering. 
+  - Do not break code into excessively small, fragmented files unless it provides a clear reuse or readability benefit.
+  - Keep related UI sections or logic together when it makes sense to avoid navigating through too many unnecessary files.

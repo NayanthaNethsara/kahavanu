@@ -40,6 +40,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.BiasAlignment
@@ -121,6 +122,8 @@ fun BottomNavBar(
             val coroutineScope = rememberCoroutineScope()
             
             val activeIndex = items.indexOfFirst { it.destination.route == currentRoute }.coerceAtLeast(0)
+            val currentActiveIndex by rememberUpdatedState(activeIndex)
+            val currentOnNavigate by rememberUpdatedState(onNavigate)
             val targetBias = (activeIndex / (items.size - 1).toFloat()) * 2 - 1
 
             val indicatorBias = remember { Animatable(targetBias) }
@@ -166,8 +169,8 @@ fun BottomNavBar(
                                     )
                                 }
                                 
-                                if (nearestIndex != activeIndex) {
-                                    onNavigate(items[nearestIndex].destination)
+                                if (nearestIndex != currentActiveIndex) {
+                                    currentOnNavigate(items[nearestIndex].destination)
                                 }
                             },
                             onDragCancel = {
@@ -183,8 +186,8 @@ fun BottomNavBar(
                                     )
                                 }
                                 
-                                if (nearestIndex != activeIndex) {
-                                    onNavigate(items[nearestIndex].destination)
+                                if (nearestIndex != currentActiveIndex) {
+                                    currentOnNavigate(items[nearestIndex].destination)
                                 }
                             },
                             onHorizontalDrag = { change, dragAmount ->

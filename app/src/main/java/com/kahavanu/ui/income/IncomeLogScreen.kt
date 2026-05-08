@@ -54,6 +54,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -67,6 +68,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kahavanu.domain.model.IncomeSource
 import com.kahavanu.domain.model.IncomeSourceType
+import com.kahavanu.ui.theme.KahavanuShapes
 import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
@@ -74,6 +76,7 @@ import com.kahavanu.ui.theme.TextSecondary
 import com.kahavanu.ui.theme.TextPrimaryEmerald
 import com.kahavanu.ui.theme.TextSecondaryEmerald
 import com.kahavanu.ui.theme.TextTertiaryEmerald
+import com.kahavanu.ui.theme.TextSize
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -217,6 +220,7 @@ fun IncomeLogScreen(
                         text = errorMessage,
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodySmall,
+                        fontSize = TextSize.sm,
                     )
                 }
 
@@ -224,8 +228,9 @@ fun IncomeLogScreen(
                 if (successMessage != null) {
                     Text(
                         text = successMessage,
-                        color = RawColors.Blue.Blue600,
+                        color = TextPrimaryEmerald,
                         style = MaterialTheme.typography.bodySmall,
+                        fontSize = TextSize.sm,
                     )
                 }
 
@@ -262,20 +267,19 @@ private fun TopBar(
             Column {
                 Text(
                     text = "LOG INCOME",
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        color = TextSecondary,
-                        letterSpacing = 0.72.sp,
-                        fontWeight = FontWeight.Medium,
-                    ),
+                    style = MaterialTheme.typography.labelSmall,
+                    fontSize = TextSize.xs,
+                    color = TextSecondary,
+                    letterSpacing = 0.72.sp,
+                    fontWeight = FontWeight.Medium,
                 )
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 18.sp,
-                        letterSpacing = (-0.8).sp,
-                        color = TextPrimary,
-                    ),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontSize = TextSize.lg,
+                    fontWeight = FontWeight.Medium,
+                    letterSpacing = (-0.8).sp,
+                    color = TextPrimary,
                 )
             }
         }
@@ -293,26 +297,22 @@ private fun CircularIconButton(
     contentDescription: String,
     onClick: () -> Unit,
 ) {
-    Surface(
+    Box(
         modifier = Modifier
             .size(40.dp)
-            .shadow(6.dp, CircleShape),
-        color = Color.White.copy(alpha = 0.7f),
-        shape = CircleShape,
-        border = androidx.compose.foundation.BorderStroke(
-            0.7.dp,
-            RawColors.Slate.Slate200.copy(alpha = 0.7f),
-        ),
-        onClick = onClick,
+            .shadow(6.dp, CircleShape)
+            .background(Color.White.copy(alpha = 0.8f), CircleShape)
+            .border(0.7.dp, RawColors.Slate.Slate200.copy(alpha = 0.7f), CircleShape)
+            .clip(CircleShape)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center
     ) {
-        Box(contentAlignment = Alignment.Center) {
-            Icon(
-                imageVector = icon,
-                contentDescription = contentDescription,
-                tint = TextSecondary,
-                modifier = Modifier.size(18.dp),
-            )
-        }
+        Icon(
+            imageVector = icon,
+            contentDescription = contentDescription,
+            tint = TextSecondary,
+            modifier = Modifier.size(20.dp),
+        )
     }
 }
 
@@ -361,37 +361,39 @@ private fun IncomeTypeCard(
     modifier: Modifier = Modifier,
 ) {
     val backgroundColor = if (selected) {
-        RawColors.Blue.Blue500.copy(alpha = 0.14f)
+        RawColors.Emerald.Emerald500.copy(alpha = 0.12f)
     } else {
-        Color.White.copy(alpha = 0.7f)
+        Color.White.copy(alpha = 0.4f)
     }
     val borderColor = if (selected) {
-        RawColors.Blue.Blue500
+        RawColors.Emerald.Emerald500
     } else {
-        RawColors.Slate.Slate200.copy(alpha = 0.9f)
+        RawColors.Slate.Slate900.copy(alpha = 0.08f)
     }
-    Surface(
+    
+    Box(
         modifier = modifier
-            .height(123.dp),
-        color = backgroundColor,
-        shape = RoundedCornerShape(16.dp),
-        border = androidx.compose.foundation.BorderStroke(0.7.dp, borderColor),
-        shadowElevation = if (selected) 12.dp else 6.dp,
-        onClick = onClick,
+            .height(123.dp)
+            .background(backgroundColor, KahavanuShapes.large)
+            .border(1.dp, borderColor, KahavanuShapes.large)
+            .clip(KahavanuShapes.large)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 12.dp, vertical = 12.dp),
+                .padding(Spacing.medium),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(Spacing.small),
         ) {
+            // Icon Container
             Box(
                 modifier = Modifier
                     .size(40.dp)
                     .background(
-                        if (selected) RawColors.Blue.Blue500 else RawColors.Slate.Slate900.copy(alpha = 0.06f),
-                        RoundedCornerShape(14.dp),
+                        if (selected) RawColors.Emerald.Emerald500 else RawColors.Slate.Slate900.copy(alpha = 0.06f),
+                        KahavanuShapes.medium,
                     ),
                 contentAlignment = Alignment.Center,
             ) {
@@ -399,25 +401,27 @@ private fun IncomeTypeCard(
                     imageVector = icon,
                     contentDescription = null,
                     tint = if (selected) Color.White else RawColors.Slate.Slate500,
-                    modifier = Modifier.size(18.dp),
+                    modifier = Modifier.size(20.dp),
                 )
             }
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
                 Text(
                     text = type.label,
-                    style = MaterialTheme.typography.labelMedium.copy(
-                        fontWeight = FontWeight.Medium,
-                        color = if (selected) RawColors.Blue.Blue500 else RawColors.Slate.Slate900,
-                    ),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontSize = TextSize.sm,
+                    fontWeight = FontWeight.Bold,
+                    color = if (selected) RawColors.Emerald.Emerald600 else TextPrimary,
                 )
-                Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = type.description,
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        color = RawColors.Slate.Slate500,
-                        fontSize = 10.sp,
-                        lineHeight = 14.sp,
-                    ),
+                    style = MaterialTheme.typography.labelSmall,
+                    fontSize = TextSize.xs,
+                    color = TextSecondary,
+                    lineHeight = 14.sp,
                     textAlign = TextAlign.Center,
                 )
             }
@@ -438,6 +442,7 @@ private fun IncomeSourceSection(
             Text(
                 text = "No sources yet. Add one from settings.",
                 style = MaterialTheme.typography.bodySmall,
+                fontSize = TextSize.sm,
                 color = RawColors.Slate.Slate500,
             )
         } else {
@@ -503,10 +508,10 @@ private fun SourceChip(
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = source.name,
-                style = MaterialTheme.typography.labelSmall.copy(
-                    fontWeight = FontWeight.Medium,
-                    color = if (selected) TextTertiaryEmerald else TextSecondary,
-                ),
+                style = MaterialTheme.typography.labelSmall,
+                fontSize = TextSize.xs,
+                fontWeight = FontWeight.Medium,
+                color = if (selected) TextTertiaryEmerald else TextSecondary,
             )
         }
     }
@@ -565,7 +570,7 @@ private fun AmountSection(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 textStyle = MaterialTheme.typography.titleMedium.copy(
                     fontWeight = FontWeight.Medium,
-                    fontSize = 18.sp,
+                    fontSize = TextSize.lg,
                 ),
                 colors = textFieldColors(),
             )
@@ -628,10 +633,10 @@ private fun CurrencyOptionButton(
     ) {
         Text(
             text = text,
-            style = MaterialTheme.typography.labelMedium.copy(
-                fontWeight = FontWeight.Medium,
-                color = if (selected) Color.White else TextSecondary,
-            ),
+            style = MaterialTheme.typography.labelMedium,
+            fontSize = TextSize.sm,
+            fontWeight = FontWeight.Medium,
+            color = if (selected) Color.White else TextSecondary,
         )
     }
 }
@@ -670,20 +675,20 @@ private fun DateSection(
 private fun InfoBanner(text: String) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        color = RawColors.Blue.Blue500.copy(alpha = 0.14f),
+        color = RawColors.Emerald.Emerald500.copy(alpha = 0.14f),
         shape = RoundedCornerShape(16.dp),
         border = androidx.compose.foundation.BorderStroke(
             0.7.dp,
-            RawColors.Blue.Blue500.copy(alpha = 0.2f),
+            RawColors.Emerald.Emerald500.copy(alpha = 0.2f),
         ),
     ) {
         Text(
             text = text,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
-            style = MaterialTheme.typography.bodySmall.copy(
-                color = RawColors.Blue.Blue500,
-                lineHeight = 18.sp,
-            ),
+            style = MaterialTheme.typography.bodySmall,
+            fontSize = TextSize.sm,
+            color = RawColors.Emerald.Emerald700,
+            lineHeight = 18.sp,
         )
     }
 }
@@ -694,26 +699,44 @@ private fun PrimaryActionButton(
     enabled: Boolean,
     onClick: () -> Unit,
 ) {
-    Button(
-        onClick = onClick,
-        enabled = enabled,
+    val gradient = Brush.verticalGradient(
+        colors = listOf(
+            RawColors.Emerald.Emerald500.copy(alpha = 0.9f),
+            RawColors.Emerald.Emerald500.copy(alpha = 0.75f),
+            RawColors.Emerald.Emerald500.copy(alpha = 0.9f)
+        )
+    )
+
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(50.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = RawColors.Blue.Blue500,
-            contentColor = Color.White,
-            disabledContainerColor = RawColors.Blue.Blue500.copy(alpha = 0.5f),
-        ),
-        shape = RoundedCornerShape(9999.dp),
-        elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp),
+            .height(54.dp)
+            .shadow(elevation = 18.dp, spotColor = Color.Black.copy(alpha = 0.25f), shape = KahavanuShapes.large)
+            .background(
+                if (enabled) gradient else Brush.verticalGradient(listOf(Color.Gray, Color.DarkGray)),
+                KahavanuShapes.large
+            )
+            .border(
+                width = 0.5.dp,
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        Color.White.copy(alpha = 0.9f),
+                        Color.White.copy(alpha = 0.1f)
+                    )
+                ),
+                shape = KahavanuShapes.large
+            )
+            .clip(KahavanuShapes.large)
+            .clickable(enabled = enabled, onClick = onClick),
+        contentAlignment = Alignment.Center
     ) {
         Text(
             text = text,
-            style = MaterialTheme.typography.titleSmall.copy(
-                fontWeight = FontWeight.Medium,
-                letterSpacing = (-0.23).sp,
-            ),
+            style = MaterialTheme.typography.titleSmall,
+            fontSize = TextSize.base,
+            fontWeight = FontWeight.Bold,
+            color = Color.White,
+            letterSpacing = (-0.23).sp,
         )
     }
 }
@@ -722,11 +745,10 @@ private fun PrimaryActionButton(
 private fun SectionLabel(text: String) {
     Text(
         text = text,
-        style = MaterialTheme.typography.bodySmall.copy(
-            fontWeight = FontWeight.Medium,
-            color = TextSecondary,
-            fontSize = 13.sp,
-        ),
+        style = MaterialTheme.typography.bodySmall,
+        fontSize = TextSize.sm,
+        fontWeight = FontWeight.Medium,
+        color = TextSecondary,
     )
 }
 

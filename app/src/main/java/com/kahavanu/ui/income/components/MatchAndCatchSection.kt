@@ -2,6 +2,7 @@ package com.kahavanu.ui.income.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.ui.draw.shadow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -30,6 +32,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -78,13 +81,13 @@ fun MatchAndCatchSection() {
 private fun MatchItem(source: String, time: String, amount: String, matchPercent: String, likelyFor: String) {
     val figmaGreen = Color(0xFF00BC7D)
     
-    Column(modifier = Modifier.padding(17.dp)) {
+    Column(modifier = Modifier.padding(Spacing.large)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.Top
+            verticalAlignment = Alignment.Top,
         ) {
-            Column {
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.small)) {
                 Text(
                     text = "$source · $time",
                     style = MaterialTheme.typography.labelSmall,
@@ -118,13 +121,13 @@ private fun MatchItem(source: String, time: String, amount: String, matchPercent
             }
         }
         
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(Spacing.medium))
         
         Surface(
             modifier = Modifier.fillMaxWidth(),
-            color = RawColors.Slate.Slate900.copy(alpha = 0.04f),
-            shape = KahavanuShapes.small,
-            border = BorderStroke(1.16.dp, RawColors.Slate.Slate900.copy(alpha = 0.1f))
+            color = RawColors.Slate.Slate900.copy(alpha = 0.03f),
+            shape = KahavanuShapes.large,
+            border = BorderStroke(1.16.dp, RawColors.Slate.Slate500.copy(alpha = 0.1f))
         ) {
             Row(
                 modifier = Modifier.padding(horizontal = 13.dp, vertical = 9.dp),
@@ -136,7 +139,7 @@ private fun MatchItem(source: String, time: String, amount: String, matchPercent
                     tint = figmaGreen,
                     modifier = Modifier.size(14.dp)
                 )
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(Spacing.small))
                 Text(
                     text = buildAnnotatedString {
                         withStyle(style = SpanStyle(color = TextSecondary)) {
@@ -152,11 +155,11 @@ private fun MatchItem(source: String, time: String, amount: String, matchPercent
             }
         }
         
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(Spacing.medium))
         
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.small),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Surface(
@@ -166,27 +169,52 @@ private fun MatchItem(source: String, time: String, amount: String, matchPercent
                     .height(36.dp)
                     .shadow(elevation = 18.dp, spotColor = Color.Black.copy(alpha = 0.25f), shape = CircleShape),
                 shape = CircleShape,
-                color = figmaGreen
+                color = Color.Transparent
             ) {
-                Row(
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            brush = Brush.verticalGradient(
+                                colors = listOf(
+                                    RawColors.Emerald.Emerald500.copy(alpha = 0.9f),
+                                    RawColors.Emerald.Emerald500.copy(alpha = 0.75f),
+                                    RawColors.Emerald.Emerald500.copy(alpha = 0.9f)
+                                )
+                            )
+                        )
+                        .border(
+                            width = 0.5.dp,
+                            brush = Brush.verticalGradient(
+                                colors = listOf(
+                                    Color.White.copy(alpha = 0.9f),
+                                    Color.White.copy(alpha = 0.1f)
+                                )
+                            ),
+                            shape = CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        imageVector = Icons.Filled.Check,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(14.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = "Link this one",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = Color.White,
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 12.sp,
-                        textAlign = TextAlign.Center
-                    )
+                    Row(
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Check,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(modifier = Modifier.width(Spacing.extraSmall))
+                        Text(
+                            text = "Link this one",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = Color.White,
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 12.sp,
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
             }
             

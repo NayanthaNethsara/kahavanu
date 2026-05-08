@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,14 +23,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.outlined.AddCircle
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.Notifications
-import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material.icons.outlined.History
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -46,6 +44,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.material.icons.automirrored.outlined.PlaylistAdd
+import androidx.compose.material.icons.outlined.PendingActions
+import androidx.compose.material.icons.outlined.Repeat
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -61,7 +62,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kahavanu.domain.model.IncomeLogEntry
-import com.kahavanu.ui.theme.Elevation
 import com.kahavanu.ui.theme.KahavanuShapes
 import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
@@ -110,16 +110,18 @@ fun IncomeScreen(
     ) {
         item { IncomeHeader() }
         item {
-            TotalExpectedCard(
-                totalForMonth = totalForMonth,
-                currency = currency,
-                monthLabel = monthLabel,
-                breakdowns = breakdowns,
-                selectedFilter = selectedFilter,
-                onFilterSelected = { selectedFilter = it }
-            )
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.large)) {
+                TotalExpectedCard(
+                    totalForMonth = totalForMonth,
+                    currency = currency,
+                    monthLabel = monthLabel,
+                    breakdowns = breakdowns,
+                    selectedFilter = selectedFilter,
+                    onFilterSelected = { selectedFilter = it }
+                )
+                IncomeActionButtons(onLogIncome = onLogIncome)
+            }
         }
-        item { IncomeActionButtons(onLogIncome = onLogIncome) }
         item { MatchAndCatchSection() }
         item { PersistenceSection() }
         item { CryptoGatewaySection() }
@@ -145,69 +147,6 @@ private fun GlassCard(
         border = BorderStroke(0.5.dp, Color.White.copy(alpha = 0.5f))
     ) {
         Column(content = content)
-    }
-}
-
-@Composable
-private fun ActionGlassCard(
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit,
-    content: @Composable RowScope.() -> Unit,
-) {
-    Surface(
-        modifier = modifier
-            .shadow(
-                elevation = 20.dp,
-                spotColor = RawColors.Gray.Gray400,
-                ambientColor = RawColors.Gray.Gray500,
-                shape = KahavanuShapes.large
-            ),
-        shape = KahavanuShapes.large,
-        color = Color.White.copy(alpha = 0.85f),
-        border = BorderStroke(0.5.dp, Color.White.copy(alpha = 0.5f)),
-        onClick = onClick
-    ) {
-        Row(
-            modifier = Modifier.padding(Spacing.large),
-            verticalAlignment = Alignment.CenterVertically,
-            content = content
-        )
-    }
-}
-
-@Composable
-private fun LiquidEmeraldIconBox(icon: ImageVector) {
-    Box(
-        modifier = Modifier
-            .size(48.dp)
-            .shadow(Elevation.level2, CircleShape)
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        RawColors.Emerald.Emerald400.copy(alpha = 0.9f),
-                        RawColors.Emerald.Emerald400.copy(alpha = 0.75f),
-                        RawColors.Emerald.Emerald400.copy(alpha = 0.9f)
-                    )
-                ),
-                shape = CircleShape
-            )
-            .border(
-                width = 0.5.dp,
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        Color.White.copy(alpha = 0.9f),
-                        Color.White.copy(alpha = 0.1f)
-                    )
-                ),
-                shape = CircleShape
-            ),
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = Color.White
-        )
     }
 }
 
@@ -403,52 +342,76 @@ private fun IncomeFilterTab(
 
 @Composable
 private fun IncomeActionButtons(onLogIncome: () -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(Spacing.medium)) {
-        ActionCard(
-            icon = Icons.Outlined.AddCircle,
-            title = "Log Income",
-            subtitle = "Track one-time, recurrent, or pending income",
-            onClick = onLogIncome,
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+        QuickActionButton(
+            icon = Icons.AutoMirrored.Outlined.PlaylistAdd,
+            label = "Log Income",
+            onClick = onLogIncome
         )
-        ActionCard(
-            icon = Icons.Outlined.Refresh,
-            title = "Recurrent Income",
-            subtitle = "View and manage recurring income streams",
-            onClick = { },
+        QuickActionButton(
+            icon = Icons.Outlined.Repeat,
+            label = "View Recurrents",
+            onClick = { }
+        )
+        QuickActionButton(
+            icon = Icons.Outlined.PendingActions,
+            label = "Pending",
+            onClick = { }
+        )
+        QuickActionButton(
+            icon = Icons.Outlined.History,
+            label = "History",
+            onClick = { }
         )
     }
 }
 
 @Composable
-private fun ActionCard(
+private fun QuickActionButton(
     icon: ImageVector,
-    title: String,
-    subtitle: String,
+    label: String,
     onClick: () -> Unit,
-) {
-    ActionGlassCard(
-        modifier = Modifier.fillMaxWidth(),
-        onClick = onClick
+) {    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        LiquidEmeraldIconBox(icon = icon)
-        Spacer(modifier = Modifier.width(Spacing.medium))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Medium,
-                color = RawColors.Slate.Slate900
-            )
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodySmall,
-                color = RawColors.Slate.Slate500
+        Box(
+            modifier = Modifier
+                .size(65.dp)
+                .shadow(
+                    elevation = 20.dp,
+                    spotColor = RawColors.Gray.Gray400,
+                    ambientColor = RawColors.Gray.Gray500,
+                    shape = KahavanuShapes.large
+                )
+                .background(
+                    color = Color.White.copy(alpha = 0.85f),
+                    shape = KahavanuShapes.large
+                )
+                .border(
+                    width = 0.5.dp,
+                    color = Color.White.copy(alpha = 0.5f),
+                    shape = KahavanuShapes.large
+                )
+                .clickable(onClick = onClick)
+                .padding(Spacing.small),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = RawColors.Emerald.Emerald600,
+                modifier = Modifier.size(25.dp)
             )
         }
-        Icon(
-            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-            contentDescription = null,
-            tint = RawColors.Slate.Slate400
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = RawColors.Slate.Slate500,
+            fontWeight = FontWeight.Medium
         )
     }
 }

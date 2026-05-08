@@ -1,9 +1,11 @@
 package com.kahavanu.ui.income
 
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kahavanu.domain.model.IncomeLogEntry
 import com.kahavanu.domain.repository.IncomeRepository
+import com.kahavanu.ui.theme.RawColors
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.Instant
 import java.time.YearMonth
@@ -13,6 +15,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
+
+data class IncomeBreakdownItem(
+    val label: String,
+    val amount: Double,
+    val color: Color
+)
 
 @HiltViewModel
 class IncomeOverviewViewModel @Inject constructor(
@@ -35,6 +43,31 @@ class IncomeOverviewViewModel @Inject constructor(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = 0.0,
+        )
+
+    val breakdowns: StateFlow<List<IncomeBreakdownItem>> = incomeLogs
+        .map { logs ->
+            val month = YearMonth.now()
+            val monthLogs = logs.filter { isInMonth(it.receivedAtEpochMillis, month) }
+            
+            // Heuristic-based breakdown for now since logs don't have explicit types
+            val recurrentTotal = monthLogs.filter { 
+                it.title.contains("Salary", true) || 
+                it.title.contains("Retainer", true) || 
+                it.title.contains("Subscription", true)
+            }.sumOf { it.amount }
+            
+            val otherTotal = monthLogs.sumOf { it.amount } - recurrentTotal
+
+            listOf(
+                IncomeBreakdownItem("Main Recurrent", recurrentTotal, RawColors.Emerald.Emerald600),
+                IncomeBreakdownItem("Freelance / Other", otherTotal, RawColors.Slate.Slate600)
+            )
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = emptyList(),
         )
 
     val currency: StateFlow<String> = incomeLogs

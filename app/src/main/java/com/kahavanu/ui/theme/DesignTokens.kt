@@ -8,6 +8,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.TextUnit
+
+@Immutable
+object TextSize {
+    val xs: TextUnit = 12.sp    // text-xs
+    val sm: TextUnit = 14.sp    // text-sm
+    val base: TextUnit = 16.sp  // text-base
+    val lg: TextUnit = 18.sp    // text-lg
+    val xl: TextUnit = 20.sp    // text-xl
+    val xxl: TextUnit = 24.sp   // text-2xl
+    val xxxl: TextUnit = 30.sp  // text-3xl
+}
 
 @Immutable
 object Spacing {

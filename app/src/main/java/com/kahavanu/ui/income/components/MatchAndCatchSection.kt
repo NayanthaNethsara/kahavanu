@@ -48,6 +48,7 @@ import com.kahavanu.ui.theme.TextSecondary
 import com.kahavanu.ui.theme.TextTertiary
 import com.kahavanu.ui.theme.TextTertiaryEmerald
 import com.kahavanu.ui.theme.Spacing
+import com.kahavanu.ui.theme.TextSize
 
 @Composable
 fun MatchAndCatchSection() {
@@ -92,7 +93,7 @@ private fun MatchItem(source: String, time: String, amount: String, matchPercent
                     text = "$source · $time",
                     style = MaterialTheme.typography.labelSmall,
                     color = TextSecondary,
-                    fontSize = 11.sp,
+                    fontSize = TextSize.xs,
                     letterSpacing = 0.06.sp
                 )
                 Text(
@@ -100,7 +101,7 @@ private fun MatchItem(source: String, time: String, amount: String, matchPercent
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Medium,
                     color = TextPrimary,
-                    fontSize = 18.sp,
+                    fontSize = TextSize.lg,
                     letterSpacing = (-0.8).sp
                 )
             }
@@ -115,7 +116,7 @@ private fun MatchItem(source: String, time: String, amount: String, matchPercent
                     style = MaterialTheme.typography.labelSmall,
                     color = TextTertiaryEmerald,
                     fontWeight = FontWeight.Medium,
-                    fontSize = 10.sp,
+                    fontSize = TextSize.xs,
                     letterSpacing = 0.5.sp
                 )
             }
@@ -150,7 +151,7 @@ private fun MatchItem(source: String, time: String, amount: String, matchPercent
                         }
                     },
                     style = MaterialTheme.typography.bodySmall,
-                    fontSize = 12.sp
+                    fontSize = TextSize.sm
                 )
             }
         }
@@ -211,7 +212,7 @@ private fun MatchItem(source: String, time: String, amount: String, matchPercent
                             style = MaterialTheme.typography.labelMedium,
                             color = Color.White,
                             fontWeight = FontWeight.Medium,
-                            fontSize = 12.sp,
+                            fontSize = TextSize.sm,
                             textAlign = TextAlign.Center
                         )
                     }
@@ -234,7 +235,7 @@ private fun MatchItem(source: String, time: String, amount: String, matchPercent
                         style = MaterialTheme.typography.labelMedium,
                         color = TextSecondary,
                         fontWeight = FontWeight.Medium,
-                        fontSize = 12.sp,
+                        fontSize = TextSize.sm,
                         textAlign = TextAlign.Center
                     )
                 }

@@ -29,6 +29,7 @@ import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
 import com.kahavanu.ui.theme.TextTertiaryEmerald
 import com.kahavanu.ui.theme.Spacing
+import com.kahavanu.ui.theme.TextSize
 
 @Composable
 fun IncomeLogSection(logs: List<IncomeLogEntry>) {
@@ -82,9 +83,26 @@ private fun LogItem(title: String, type: String, date: String, amount: String) {
         }
         Spacer(modifier = Modifier.width(Spacing.medium))
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = TextPrimary)
-            Text(text = "$type • $date", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleSmall,
+                fontSize = TextSize.base,
+                fontWeight = FontWeight.SemiBold,
+                color = TextPrimary
+            )
+            Text(
+                text = "$type • $date",
+                style = MaterialTheme.typography.bodySmall,
+                fontSize = TextSize.xs,
+                color = TextSecondary
+            )
         }
-        Text(text = amount, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = TextPrimary)
+        Text(
+            text = amount,
+            style = MaterialTheme.typography.titleSmall,
+            fontSize = TextSize.base,
+            fontWeight = FontWeight.Bold,
+            color = TextPrimary
+        )
     }
 }

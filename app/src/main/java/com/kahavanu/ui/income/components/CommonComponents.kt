@@ -33,6 +33,7 @@ import com.kahavanu.ui.theme.TextPrimaryEmerald
 import com.kahavanu.ui.theme.TextSecondaryEmerald
 import com.kahavanu.ui.theme.TextTertiaryEmerald
 import com.kahavanu.ui.theme.Spacing
+import com.kahavanu.ui.theme.TextSize
 
 @Composable
 fun GlassCard(
@@ -67,6 +68,7 @@ fun SectionHeader(title: String, subtitle: String, actionText: String? = null, b
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleLarge,
+                    fontSize = TextSize.lg,
                     fontWeight = FontWeight.Medium,
                     color = TextPrimary
                 )
@@ -81,6 +83,7 @@ fun SectionHeader(title: String, subtitle: String, actionText: String? = null, b
                         Text(
                             text = badgeCount,
                             style = MaterialTheme.typography.labelSmall,
+                            fontSize = TextSize.xs,
                             color = TextSecondaryEmerald,
                             fontWeight = FontWeight.Bold
                         )
@@ -88,12 +91,18 @@ fun SectionHeader(title: String, subtitle: String, actionText: String? = null, b
                 }
             }
             Spacer(modifier = Modifier.height(Spacing.extraSmall))
-            Text(text = subtitle, style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodyMedium,
+                fontSize = TextSize.sm,
+                color = TextSecondary
+            )
         }
         if (actionText != null) {
             Text(
                 text = actionText,
                 style = MaterialTheme.typography.labelMedium,
+                fontSize = TextSize.sm,
                 fontWeight = FontWeight.Bold,
                 color = TextTertiary,
                 modifier = Modifier.padding(top = Spacing.extraSmall)

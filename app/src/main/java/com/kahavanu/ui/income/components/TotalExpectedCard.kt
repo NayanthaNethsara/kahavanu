@@ -36,6 +36,7 @@ import com.kahavanu.ui.theme.TextSecondary
 import com.kahavanu.ui.theme.TextPrimaryEmerald
 import com.kahavanu.ui.theme.TextSecondaryEmerald
 import com.kahavanu.ui.theme.TextTertiaryEmerald
+import com.kahavanu.ui.theme.TextSize
 import kotlin.math.roundToInt
 
 @Composable
@@ -71,12 +72,14 @@ fun TotalExpectedCard(
                     Text(
                         text = "Total received · $monthLabel",
                         style = MaterialTheme.typography.bodyMedium,
+                        fontSize = TextSize.sm,
                         color = TextSecondary
                     )
                     Spacer(modifier = Modifier.height(Spacing.extraSmall))
                     Text(
                         text = totalText,
                         style = MaterialTheme.typography.headlineLarge,
+                        fontSize = TextSize.xxxl,
                         fontWeight = FontWeight.Medium,
                         color = TextPrimary
                     )
@@ -110,11 +113,13 @@ fun TotalExpectedCard(
                 Text(
                     text = receivedLabel,
                     style = MaterialTheme.typography.bodySmall,
+                    fontSize = TextSize.xs,
                     color = TextSecondary
                 )
                 Text(
                     text = progressLabel,
                     style = MaterialTheme.typography.labelMedium,
+                    fontSize = TextSize.sm,
                     fontWeight = FontWeight.Medium,
                     color = TextSecondary
                 )
@@ -166,12 +171,13 @@ private fun SummaryItem(label: String, value: String, color: Color) {
             Text(
                 text = label,
                 style = MaterialTheme.typography.bodySmall,
+                fontSize = TextSize.xs,
                 color = TextSecondary
             )
         }
         Text(
             text = value,
-            style = MaterialTheme.typography.labelMedium,
+            fontSize = TextSize.sm,
             fontWeight = FontWeight.Medium,
             color = TextPrimary
         )
@@ -204,6 +210,7 @@ private fun IncomeFilterTab(
         Text(
             text = text,
             style = MaterialTheme.typography.labelMedium,
+            fontSize = TextSize.sm,
             color = textColor,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
         )

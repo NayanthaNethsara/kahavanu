@@ -13,6 +13,7 @@ import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
+import com.kahavanu.ui.theme.TextSize
 
 @Composable
 fun IncomeHeader() {
@@ -20,12 +21,14 @@ fun IncomeHeader() {
         Text(
             text = "Income",
             style = MaterialTheme.typography.bodyLarge,
+            fontSize = TextSize.base,
             color = TextSecondary
         )
         Spacer(modifier = Modifier.height(Spacing.extraSmall))
         Text(
             text = "Wealth in the Air",
             style = MaterialTheme.typography.headlineMedium,
+            fontSize = TextSize.xxl,
             fontWeight = FontWeight.Medium,
             color = TextPrimary
         )

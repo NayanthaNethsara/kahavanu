@@ -29,6 +29,8 @@ import androidx.compose.ui.unit.dp
 import com.kahavanu.ui.theme.KahavanuShapes
 import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
+import com.kahavanu.ui.theme.TextPrimary
+import com.kahavanu.ui.theme.TextSecondary
 
 @Composable
 fun IncomeActionButtons(onLogIncome: () -> Unit) {
@@ -94,14 +96,14 @@ fun QuickActionButton(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = RawColors.Emerald.Emerald600,
+                tint = TextSecondary,
                 modifier = Modifier.size(25.dp)
             )
         }
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall,
-            color = RawColors.Slate.Slate500,
+            color = TextSecondary,
             fontWeight = FontWeight.Medium
         )
     }

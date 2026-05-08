@@ -40,6 +40,8 @@ import com.kahavanu.domain.model.IncomeSource
 import com.kahavanu.domain.model.IncomeSourceType
 import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
+import com.kahavanu.ui.theme.TextPrimary
+import com.kahavanu.ui.theme.TextSecondary
 
 @Composable
 fun IncomeSourcesScreen(
@@ -76,13 +78,13 @@ fun IncomeSourcesScreen(
                     Text(
                         text = "INCOME SOURCES",
                         style = MaterialTheme.typography.labelSmall,
-                        color = RawColors.Slate.Slate500,
+                        color = TextSecondary,
                         fontWeight = FontWeight.Medium,
                     )
                     Text(
                         text = "Customize your sources",
                         style = MaterialTheme.typography.titleLarge,
-                        color = RawColors.Slate.Slate900,
+                        color = TextPrimary,
                         fontWeight = FontWeight.Medium,
                     )
                 }
@@ -109,7 +111,7 @@ fun IncomeSourcesScreen(
                 Text(
                     text = "No sources yet. Add your first source below.",
                     style = MaterialTheme.typography.bodySmall,
-                    color = RawColors.Slate.Slate500,
+                    color = TextSecondary,
                 )
             } else {
                 Column(verticalArrangement = Arrangement.spacedBy(Spacing.medium)) {
@@ -200,7 +202,7 @@ private fun IncomeSourceRow(
             Text(
                 text = source.name,
                 style = MaterialTheme.typography.titleMedium,
-                color = RawColors.Slate.Slate900,
+                color = TextPrimary,
                 fontWeight = FontWeight.Medium,
             )
             Row {
@@ -208,7 +210,7 @@ private fun IncomeSourceRow(
                     Icon(
                         imageVector = Icons.Outlined.Edit,
                         contentDescription = "Edit source",
-                        tint = RawColors.Slate.Slate600,
+                        tint = TextSecondary,
                     )
                 }
                 IconButton(onClick = onDelete) {
@@ -255,7 +257,7 @@ private fun TypeToggleChip(
             Text(
                 text = type.label,
                 style = MaterialTheme.typography.labelMedium,
-                color = if (selected) RawColors.Blue.Blue700 else RawColors.Slate.Slate600,
+                color = if (selected) RawColors.Blue.Blue700 else TextSecondary,
             )
         }
     }
@@ -299,7 +301,7 @@ private fun SectionTitle(text: String) {
     Text(
         text = text,
         style = MaterialTheme.typography.titleSmall,
-        color = RawColors.Slate.Slate900,
+        color = TextPrimary,
         fontWeight = FontWeight.SemiBold,
     )
 }

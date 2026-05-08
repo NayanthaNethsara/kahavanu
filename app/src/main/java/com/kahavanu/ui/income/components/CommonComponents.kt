@@ -26,6 +26,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.kahavanu.ui.theme.KahavanuShapes
 import com.kahavanu.ui.theme.RawColors
+import com.kahavanu.ui.theme.TextPrimary
+import com.kahavanu.ui.theme.TextSecondary
+import com.kahavanu.ui.theme.TextTertiary
+import com.kahavanu.ui.theme.TextPrimaryEmerald
+import com.kahavanu.ui.theme.TextSecondaryEmerald
+import com.kahavanu.ui.theme.TextTertiaryEmerald
 import com.kahavanu.ui.theme.Spacing
 
 @Composable
@@ -62,34 +68,34 @@ fun SectionHeader(title: String, subtitle: String, actionText: String? = null, b
                     text = title,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Medium,
-                    color = RawColors.Slate.Slate900
+                    color = TextPrimary
                 )
                 if (badgeCount != null) {
                     Spacer(modifier = Modifier.width(Spacing.small))
                     Box(
                         modifier = Modifier
-                            .background(RawColors.Emerald.Emerald100, CircleShape)
-                            .padding(horizontal = Spacing.small, vertical = 2.dp),
+                            .background(RawColors.Emerald.Emerald50, CircleShape)
+                            .padding(horizontal = Spacing.medium, vertical = 2.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = badgeCount,
                             style = MaterialTheme.typography.labelSmall,
-                            color = RawColors.Emerald.Emerald800,
+                            color = TextSecondaryEmerald,
                             fontWeight = FontWeight.Bold
                         )
                     }
                 }
             }
             Spacer(modifier = Modifier.height(Spacing.extraSmall))
-            Text(text = subtitle, style = MaterialTheme.typography.bodyMedium, color = RawColors.Slate.Slate500)
+            Text(text = subtitle, style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
         }
         if (actionText != null) {
             Text(
                 text = actionText,
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.Bold,
-                color = RawColors.Emerald.Emerald600,
+                color = TextTertiary,
                 modifier = Modifier.padding(top = Spacing.extraSmall)
             )
         }

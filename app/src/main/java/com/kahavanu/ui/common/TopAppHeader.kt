@@ -33,6 +33,7 @@ import com.kahavanu.domain.model.UserSession
 import com.kahavanu.ui.theme.Elevation
 import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
+import com.kahavanu.ui.theme.TextSecondary
 
 @Composable
 fun TopAppHeader(
@@ -120,7 +121,7 @@ fun TopAppHeader(
                         Icon(
                             imageVector = Icons.Outlined.Notifications,
                             contentDescription = "Notifications",
-                            tint = RawColors.Emerald.Emerald700,
+                            tint = TextSecondary,
                             modifier = Modifier.size(22.dp)
                         )
                     }

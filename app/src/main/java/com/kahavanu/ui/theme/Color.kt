@@ -39,3 +39,12 @@ val OnboardingGradientStart = Color(0xFF00BC7D).copy(alpha = 0.14f)
 val OnboardingGradientEnd = Color(0xFF00BC7D).copy(alpha = 0.08f)
 val OnboardingGradientShadow = Color(0xFF0F172A).copy(alpha = 0.12f)
 
+// General Text Colors - Slate
+val TextPrimary = RawColors.Slate.Slate900
+val TextSecondary = RawColors.Slate.Slate600
+val TextTertiary = RawColors.Slate.Slate400
+
+// General Text Colors - Emerald
+val TextPrimaryEmerald = RawColors.Emerald.Emerald900
+val TextSecondaryEmerald = RawColors.Emerald.Emerald700
+val TextTertiaryEmerald = RawColors.Emerald.Emerald500

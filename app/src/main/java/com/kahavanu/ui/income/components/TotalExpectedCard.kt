@@ -31,6 +31,11 @@ import com.kahavanu.ui.income.IncomeFilter
 import com.kahavanu.ui.theme.KahavanuShapes
 import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
+import com.kahavanu.ui.theme.TextPrimary
+import com.kahavanu.ui.theme.TextSecondary
+import com.kahavanu.ui.theme.TextPrimaryEmerald
+import com.kahavanu.ui.theme.TextSecondaryEmerald
+import com.kahavanu.ui.theme.TextTertiaryEmerald
 import kotlin.math.roundToInt
 
 @Composable
@@ -66,14 +71,14 @@ fun TotalExpectedCard(
                     Text(
                         text = "Total received · $monthLabel",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = RawColors.Slate.Slate500
+                        color = TextSecondary
                     )
                     Spacer(modifier = Modifier.height(Spacing.extraSmall))
                     Text(
                         text = totalText,
                         style = MaterialTheme.typography.headlineLarge,
                         fontWeight = FontWeight.Medium,
-                        color = RawColors.Emerald.Emerald700
+                        color = TextPrimary
                     )
                 }
 
@@ -105,13 +110,13 @@ fun TotalExpectedCard(
                 Text(
                     text = receivedLabel,
                     style = MaterialTheme.typography.bodySmall,
-                    color = RawColors.Slate.Slate500
+                    color = TextSecondary
                 )
                 Text(
                     text = progressLabel,
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Medium,
-                    color = RawColors.Emerald.Emerald600
+                    color = TextSecondary
                 )
             }
             Spacer(modifier = Modifier.height(Spacing.small))
@@ -161,14 +166,14 @@ private fun SummaryItem(label: String, value: String, color: Color) {
             Text(
                 text = label,
                 style = MaterialTheme.typography.bodySmall,
-                color = RawColors.Slate.Slate500
+                color = TextSecondary
             )
         }
         Text(
             text = value,
             style = MaterialTheme.typography.labelMedium,
             fontWeight = FontWeight.Medium,
-            color = RawColors.Slate.Slate900
+            color = TextPrimary
         )
     }
 }
@@ -184,7 +189,7 @@ private fun IncomeFilterTab(
         label = "tabBackground"
     )
     val textColor by animateColorAsState(
-        targetValue = if (isSelected) RawColors.Slate.Slate900 else RawColors.Slate.Slate500,
+        targetValue = if (isSelected) TextPrimary else TextSecondary,
         label = "tabText"
     )
 

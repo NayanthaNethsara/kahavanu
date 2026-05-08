@@ -25,6 +25,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.kahavanu.domain.model.IncomeLogEntry
 import com.kahavanu.ui.theme.RawColors
+import com.kahavanu.ui.theme.TextPrimary
+import com.kahavanu.ui.theme.TextSecondary
+import com.kahavanu.ui.theme.TextTertiaryEmerald
 import com.kahavanu.ui.theme.Spacing
 
 @Composable
@@ -40,7 +43,7 @@ fun IncomeLogSection(logs: List<IncomeLogEntry>) {
                 Text(
                     text = "No income logged yet.",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = RawColors.Slate.Slate500,
+                    color = TextSecondary,
                     modifier = Modifier.padding(Spacing.large),
                 )
             } else {
@@ -75,13 +78,13 @@ private fun LogItem(title: String, type: String, date: String, amount: String) {
                 .border(0.5.dp, RawColors.Slate.Slate200, CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            Icon(Icons.Outlined.CheckCircle, contentDescription = null, tint = RawColors.Emerald.Emerald500, modifier = Modifier.size(20.dp))
+            Icon(Icons.Outlined.CheckCircle, contentDescription = null, tint = TextTertiaryEmerald, modifier = Modifier.size(20.dp))
         }
         Spacer(modifier = Modifier.width(Spacing.medium))
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = RawColors.Slate.Slate900)
-            Text(text = "$type • $date", style = MaterialTheme.typography.bodySmall, color = RawColors.Slate.Slate500)
+            Text(text = title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+            Text(text = "$type • $date", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
         }
-        Text(text = amount, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = RawColors.Slate.Slate900)
+        Text(text = amount, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = TextPrimary)
     }
 }

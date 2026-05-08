@@ -30,6 +30,11 @@ import androidx.compose.ui.unit.dp
 import com.kahavanu.ui.theme.KahavanuShapes
 import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
+import com.kahavanu.ui.theme.TextPrimary
+import com.kahavanu.ui.theme.TextSecondary
+import com.kahavanu.ui.theme.TextPrimaryEmerald
+import com.kahavanu.ui.theme.TextSecondaryEmerald
+import com.kahavanu.ui.theme.TextTertiaryEmerald
 
 @Composable
 fun CryptoGatewaySection() {
@@ -53,10 +58,10 @@ fun CryptoGatewaySection() {
                                 Icon(Icons.Default.KeyboardArrowDown, contentDescription = null, tint = RawColors.Emerald.Emerald600, modifier = Modifier.size(16.dp))
                             }
                             Spacer(modifier = Modifier.width(Spacing.small))
-                            Text("Money in", style = MaterialTheme.typography.bodySmall, color = RawColors.Slate.Slate500)
+                            Text("Money in", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
                         }
                         Spacer(modifier = Modifier.height(Spacing.small))
-                        Text("$ 540", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = RawColors.Slate.Slate900)
+                        Text("$ 540", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = TextPrimary)
                     }
                     Column(modifier = Modifier.weight(1f)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -70,10 +75,10 @@ fun CryptoGatewaySection() {
                                 Icon(Icons.Default.KeyboardArrowUp, contentDescription = null, tint = RawColors.Red.Red600, modifier = Modifier.size(16.dp))
                             }
                             Spacer(modifier = Modifier.width(Spacing.small))
-                            Text("Money out", style = MaterialTheme.typography.bodySmall, color = RawColors.Slate.Slate500)
+                            Text("Money out", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
                         }
                         Spacer(modifier = Modifier.height(Spacing.small))
-                        Text("$ 380", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = RawColors.Slate.Slate900)
+                        Text("$ 380", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = TextPrimary)
                     }
                 }
 
@@ -85,9 +90,9 @@ fun CryptoGatewaySection() {
                     verticalAlignment = Alignment.Bottom
                 ) {
                     Column {
-                        Text("Net position", style = MaterialTheme.typography.bodySmall, color = RawColors.Slate.Slate500)
+                        Text("Net position", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
                         Spacer(modifier = Modifier.height(Spacing.extraSmall))
-                        Text("LKR 51,200", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = RawColors.Emerald.Emerald700)
+                        Text("LKR 51,200", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = TextPrimary)
                     }
                     Box(
                         modifier = Modifier
@@ -98,7 +103,7 @@ fun CryptoGatewaySection() {
                         Text(
                             text = "Profit",
                             style = MaterialTheme.typography.labelSmall,
-                            color = RawColors.Emerald.Emerald700,
+                            color = TextSecondaryEmerald,
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -113,9 +118,9 @@ fun CryptoGatewaySection() {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Withdrawn to bank · $ 250", style = MaterialTheme.typography.bodySmall, color = RawColors.Slate.Slate500)
+                    Text("Withdrawn to bank · $ 250", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
                     TextButton(onClick = { }, contentPadding = PaddingValues(0.dp)) {
-                        Text("Verify deposit", style = MaterialTheme.typography.labelMedium, color = RawColors.Emerald.Emerald600, fontWeight = FontWeight.Bold)
+                        Text("Verify deposit", style = MaterialTheme.typography.labelMedium, color = TextSecondary, fontWeight = FontWeight.Bold)
                     }
                 }
             }

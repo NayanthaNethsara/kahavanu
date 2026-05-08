@@ -69,6 +69,11 @@ import com.kahavanu.domain.model.IncomeSource
 import com.kahavanu.domain.model.IncomeSourceType
 import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
+import com.kahavanu.ui.theme.TextPrimary
+import com.kahavanu.ui.theme.TextSecondary
+import com.kahavanu.ui.theme.TextPrimaryEmerald
+import com.kahavanu.ui.theme.TextSecondaryEmerald
+import com.kahavanu.ui.theme.TextTertiaryEmerald
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -258,7 +263,7 @@ private fun TopBar(
                 Text(
                     text = "LOG INCOME",
                     style = MaterialTheme.typography.labelSmall.copy(
-                        color = RawColors.Slate.Slate500,
+                        color = TextSecondary,
                         letterSpacing = 0.72.sp,
                         fontWeight = FontWeight.Medium,
                     ),
@@ -269,7 +274,7 @@ private fun TopBar(
                         fontWeight = FontWeight.Medium,
                         fontSize = 18.sp,
                         letterSpacing = (-0.8).sp,
-                        color = RawColors.Slate.Slate900,
+                        color = TextPrimary,
                     ),
                 )
             }
@@ -304,7 +309,7 @@ private fun CircularIconButton(
             Icon(
                 imageVector = icon,
                 contentDescription = contentDescription,
-                tint = RawColors.Emerald.Emerald500,
+                tint = TextSecondary,
                 modifier = Modifier.size(18.dp),
             )
         }
@@ -492,7 +497,7 @@ private fun SourceChip(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = if (selected) RawColors.Emerald.Emerald600 else RawColors.Slate.Slate600,
+                tint = if (selected) TextTertiaryEmerald else TextSecondary,
                 modifier = Modifier.size(16.dp),
             )
             Spacer(modifier = Modifier.height(4.dp))
@@ -500,7 +505,7 @@ private fun SourceChip(
                 text = source.name,
                 style = MaterialTheme.typography.labelSmall.copy(
                     fontWeight = FontWeight.Medium,
-                    color = if (selected) RawColors.Emerald.Emerald600 else RawColors.Slate.Slate600,
+                    color = if (selected) TextTertiaryEmerald else TextSecondary,
                 ),
             )
         }
@@ -625,7 +630,7 @@ private fun CurrencyOptionButton(
             text = text,
             style = MaterialTheme.typography.labelMedium.copy(
                 fontWeight = FontWeight.Medium,
-                color = if (selected) Color.White else RawColors.Slate.Slate600,
+                color = if (selected) Color.White else TextSecondary,
             ),
         )
     }
@@ -719,7 +724,7 @@ private fun SectionLabel(text: String) {
         text = text,
         style = MaterialTheme.typography.bodySmall.copy(
             fontWeight = FontWeight.Medium,
-            color = RawColors.Slate.Slate500,
+            color = TextSecondary,
             fontSize = 13.sp,
         ),
     )

@@ -2,6 +2,7 @@ package com.kahavanu.ui.income.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.ui.draw.shadow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,8 +16,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.outlined.AutoFixHigh
 import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -28,10 +30,20 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.dp
 import com.kahavanu.ui.theme.KahavanuShapes
 import com.kahavanu.ui.theme.RawColors
+import com.kahavanu.ui.theme.TextPrimary
+import com.kahavanu.ui.theme.TextSecondary
+import com.kahavanu.ui.theme.TextTertiary
+import com.kahavanu.ui.theme.TextTertiaryEmerald
 import com.kahavanu.ui.theme.Spacing
 
 @Composable
@@ -64,103 +76,157 @@ fun MatchAndCatchSection() {
 
 @Composable
 private fun MatchItem(source: String, time: String, amount: String, matchPercent: String, likelyFor: String) {
-    Column(modifier = Modifier.padding(Spacing.large)) {
+    val figmaGreen = Color(0xFF00BC7D)
+    
+    Column(modifier = Modifier.padding(17.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.Top
         ) {
             Column {
                 Text(
                     text = "$source · $time",
                     style = MaterialTheme.typography.labelSmall,
-                    color = RawColors.Slate.Slate500,
-                    fontWeight = FontWeight.Medium
+                    color = TextSecondary,
+                    fontSize = 11.sp,
+                    letterSpacing = 0.06.sp
                 )
                 Text(
                     text = amount,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Medium,
-                    color = RawColors.Slate.Slate900
+                    color = TextPrimary,
+                    fontSize = 18.sp,
+                    letterSpacing = (-0.8).sp
                 )
             }
             
-            Box(
-                modifier = Modifier
-                    .background(RawColors.Emerald.Emerald50, shape = CircleShape)
-                    .padding(horizontal = 10.dp, vertical = 4.dp)
+            Surface(
+                color = figmaGreen.copy(alpha = 0.12f),
+                shape = CircleShape
             ) {
                 Text(
-                    text = matchPercent,
+                    text = matchPercent.uppercase(),
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
                     style = MaterialTheme.typography.labelSmall,
-                    color = RawColors.Emerald.Emerald700,
-                    fontWeight = FontWeight.Bold
+                    color = TextTertiaryEmerald,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 10.sp,
+                    letterSpacing = 0.5.sp
                 )
             }
         }
         
-        Spacer(modifier = Modifier.height(Spacing.small))
+        Spacer(modifier = Modifier.height(12.dp))
         
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(RawColors.Slate.Slate50.copy(alpha = 0.5f), shape = KahavanuShapes.small)
-                .padding(Spacing.small)
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = RawColors.Slate.Slate900.copy(alpha = 0.04f),
+            shape = KahavanuShapes.small,
+            border = BorderStroke(1.16.dp, RawColors.Slate.Slate900.copy(alpha = 0.1f))
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier.padding(horizontal = 13.dp, vertical = 9.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Icon(
-                    imageVector = Icons.Outlined.Info,
+                    imageVector = Icons.Outlined.AutoFixHigh,
                     contentDescription = null,
-                    tint = RawColors.Emerald.Emerald600,
+                    tint = figmaGreen,
                     modifier = Modifier.size(14.dp)
                 )
-                Spacer(modifier = Modifier.width(Spacing.extraSmall))
+                Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = likelyFor,
+                    text = buildAnnotatedString {
+                        withStyle(style = SpanStyle(color = TextSecondary)) {
+                            append("Likely for ")
+                        }
+                        withStyle(style = SpanStyle(color = TextPrimary, fontWeight = FontWeight.Medium)) {
+                            append(likelyFor.removePrefix("Likely for "))
+                        }
+                    },
                     style = MaterialTheme.typography.bodySmall,
-                    color = RawColors.Slate.Slate600
+                    fontSize = 12.sp
                 )
             }
         }
         
-        Spacer(modifier = Modifier.height(Spacing.medium))
+        Spacer(modifier = Modifier.height(12.dp))
         
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(Spacing.small),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Button(
+            Surface(
                 onClick = { },
-                modifier = Modifier.weight(1f),
-                shape = KahavanuShapes.medium,
-                colors = ButtonDefaults.buttonColors(containerColor = RawColors.Slate.Slate900),
-                contentPadding = PaddingValues(vertical = 8.dp)
+                modifier = Modifier
+                    .weight(1f)
+                    .height(36.dp)
+                    .shadow(elevation = 18.dp, spotColor = Color.Black.copy(alpha = 0.25f), shape = CircleShape),
+                shape = CircleShape,
+                color = figmaGreen
             ) {
-                Text("Match Now", style = MaterialTheme.typography.labelMedium)
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Check,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "Link this one",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = Color.White,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 12.sp,
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
             
             Surface(
                 onClick = { },
-                shape = KahavanuShapes.medium,
-                color = RawColors.Slate.Slate100.copy(alpha = 0.5f),
-                border = BorderStroke(0.5.dp, RawColors.Slate.Slate200)
+                modifier = Modifier.height(36.dp),
+                shape = CircleShape,
+                color = Color.White.copy(alpha = 0.6f),
+                border = BorderStroke(1.16.dp, RawColors.Slate.Slate900.copy(alpha = 0.08f))
             ) {
-                Box(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
-                    Text("New Entry", style = MaterialTheme.typography.labelMedium, color = RawColors.Slate.Slate700)
+                Box(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "It's new",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = TextSecondary,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 12.sp,
+                        textAlign = TextAlign.Center
+                    )
                 }
             }
             
-            IconButton(
+            Surface(
                 onClick = { },
-                modifier = Modifier.size(36.dp)
+                modifier = Modifier.size(36.dp),
+                shape = CircleShape,
+                color = Color.White.copy(alpha = 0.6f),
+                border = BorderStroke(1.16.dp, RawColors.Slate.Slate900.copy(alpha = 0.08f))
             ) {
-                Icon(
-                    imageVector = Icons.Outlined.Close,
-                    contentDescription = "Dismiss",
-                    tint = RawColors.Slate.Slate400,
-                    modifier = Modifier.size(18.dp)
-                )
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = Icons.Outlined.Close,
+                        contentDescription = "Dismiss",
+                        tint = TextTertiary,
+                        modifier = Modifier.size(14.dp)
+                    )
+                }
             }
         }
     }

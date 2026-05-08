@@ -11,6 +11,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
+import com.kahavanu.ui.theme.TextPrimary
+import com.kahavanu.ui.theme.TextSecondary
 
 @Composable
 fun IncomeHeader() {
@@ -18,14 +20,14 @@ fun IncomeHeader() {
         Text(
             text = "Income",
             style = MaterialTheme.typography.bodyLarge,
-            color = RawColors.Emerald.Emerald700
+            color = TextSecondary
         )
         Spacer(modifier = Modifier.height(Spacing.extraSmall))
         Text(
             text = "Wealth in the Air",
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Medium,
-            color = RawColors.Emerald.Emerald900
+            color = TextPrimary
         )
     }
 }

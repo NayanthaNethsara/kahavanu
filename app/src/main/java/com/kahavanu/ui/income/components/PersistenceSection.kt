@@ -28,6 +28,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.kahavanu.ui.theme.KahavanuShapes
 import com.kahavanu.ui.theme.RawColors
+import com.kahavanu.ui.theme.TextPrimary
+import com.kahavanu.ui.theme.TextSecondary
+import com.kahavanu.ui.theme.TextTertiary
 import com.kahavanu.ui.theme.Spacing
 
 @Composable
@@ -88,7 +91,7 @@ private fun PersistenceItem(title: String, dueText: String, isOverdue: Boolean, 
                 text = title.first().toString(),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Medium,
-                color = RawColors.Slate.Slate700
+                color = TextSecondary
             )
         }
         
@@ -99,19 +102,19 @@ private fun PersistenceItem(title: String, dueText: String, isOverdue: Boolean, 
                 text = title,
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Medium,
-                color = RawColors.Slate.Slate900
+                color = TextPrimary
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = dueText,
                     style = MaterialTheme.typography.labelSmall,
-                    color = if (isOverdue) RawColors.Red.Red500 else RawColors.Slate.Slate500
+                    color = if (isOverdue) RawColors.Red.Red500 else TextSecondary
                 )
-                Text(text = " · ", style = MaterialTheme.typography.labelSmall, color = RawColors.Slate.Slate300)
+                Text(text = " · ", style = MaterialTheme.typography.labelSmall, color = TextTertiary)
                 Text(
                     text = statusText,
                     style = MaterialTheme.typography.labelSmall,
-                    color = RawColors.Slate.Slate400
+                    color = TextTertiary
                 )
             }
         }
@@ -121,7 +124,7 @@ private fun PersistenceItem(title: String, dueText: String, isOverdue: Boolean, 
                 text = amount,
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.SemiBold,
-                color = RawColors.Slate.Slate900
+                color = TextPrimary
             )
             if (hasNudge) {
                 Spacer(modifier = Modifier.height(4.dp))

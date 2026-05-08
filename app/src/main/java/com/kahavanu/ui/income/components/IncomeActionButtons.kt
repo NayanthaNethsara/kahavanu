@@ -31,6 +31,7 @@ import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
+import com.kahavanu.ui.theme.TextSize
 
 @Composable
 fun IncomeActionButtons(onLogIncome: () -> Unit) {
@@ -103,6 +104,7 @@ fun QuickActionButton(
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall,
+            fontSize = TextSize.xs,
             color = TextSecondary,
             fontWeight = FontWeight.Medium
         )

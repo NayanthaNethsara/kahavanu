@@ -35,6 +35,7 @@ import com.kahavanu.ui.theme.TextSecondary
 import com.kahavanu.ui.theme.TextPrimaryEmerald
 import com.kahavanu.ui.theme.TextSecondaryEmerald
 import com.kahavanu.ui.theme.TextTertiaryEmerald
+import com.kahavanu.ui.theme.TextSize
 
 @Composable
 fun CryptoGatewaySection() {
@@ -58,10 +59,10 @@ fun CryptoGatewaySection() {
                                 Icon(Icons.Default.KeyboardArrowDown, contentDescription = null, tint = RawColors.Emerald.Emerald600, modifier = Modifier.size(16.dp))
                             }
                             Spacer(modifier = Modifier.width(Spacing.small))
-                            Text("Money in", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                            Text("Money in", style = MaterialTheme.typography.bodySmall, fontSize = TextSize.xs, color = TextSecondary)
                         }
                         Spacer(modifier = Modifier.height(Spacing.small))
-                        Text("$ 540", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = TextPrimary)
+                        Text("$ 540", style = MaterialTheme.typography.titleMedium, fontSize = TextSize.base, fontWeight = FontWeight.Bold, color = TextPrimary)
                     }
                     Column(modifier = Modifier.weight(1f)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -75,10 +76,10 @@ fun CryptoGatewaySection() {
                                 Icon(Icons.Default.KeyboardArrowUp, contentDescription = null, tint = RawColors.Red.Red600, modifier = Modifier.size(16.dp))
                             }
                             Spacer(modifier = Modifier.width(Spacing.small))
-                            Text("Money out", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                            Text("Money out", style = MaterialTheme.typography.bodySmall, fontSize = TextSize.xs, color = TextSecondary)
                         }
                         Spacer(modifier = Modifier.height(Spacing.small))
-                        Text("$ 380", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = TextPrimary)
+                        Text("$ 380", style = MaterialTheme.typography.titleMedium, fontSize = TextSize.base, fontWeight = FontWeight.Bold, color = TextPrimary)
                     }
                 }
 
@@ -90,9 +91,9 @@ fun CryptoGatewaySection() {
                     verticalAlignment = Alignment.Bottom
                 ) {
                     Column {
-                        Text("Net position", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                        Text("Net position", style = MaterialTheme.typography.bodySmall, fontSize = TextSize.xs, color = TextSecondary)
                         Spacer(modifier = Modifier.height(Spacing.extraSmall))
-                        Text("LKR 51,200", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = TextPrimary)
+                        Text("LKR 51,200", style = MaterialTheme.typography.headlineSmall, fontSize = TextSize.xl, fontWeight = FontWeight.Bold, color = TextPrimary)
                     }
                     Box(
                         modifier = Modifier
@@ -100,12 +101,13 @@ fun CryptoGatewaySection() {
                             .border(0.5.dp, RawColors.Emerald.Emerald200, KahavanuShapes.small)
                             .padding(horizontal = Spacing.small, vertical = Spacing.extraSmall)
                     ) {
-                        Text(
-                            text = "Profit",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = TextSecondaryEmerald,
-                            fontWeight = FontWeight.Bold
-                        )
+                            Text(
+                                text = "Profit",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontSize = TextSize.xs,
+                                color = TextSecondaryEmerald,
+                                fontWeight = FontWeight.Bold
+                            )
                     }
                 }
 
@@ -118,9 +120,9 @@ fun CryptoGatewaySection() {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Withdrawn to bank · $ 250", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                    Text("Withdrawn to bank · $ 250", style = MaterialTheme.typography.bodySmall, fontSize = TextSize.xs, color = TextSecondary)
                     TextButton(onClick = { }, contentPadding = PaddingValues(0.dp)) {
-                        Text("Verify deposit", style = MaterialTheme.typography.labelMedium, color = TextSecondary, fontWeight = FontWeight.Bold)
+                        Text("Verify deposit", style = MaterialTheme.typography.labelMedium, fontSize = TextSize.sm, color = TextSecondary, fontWeight = FontWeight.Bold)
                     }
                 }
             }

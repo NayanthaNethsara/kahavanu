@@ -39,9 +39,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kahavanu.domain.model.IncomeSource
 import com.kahavanu.domain.model.IncomeSourceType
 import com.kahavanu.ui.theme.RawColors
+import com.kahavanu.ui.theme.TextSecondary
+import com.kahavanu.ui.theme.TextSize
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
-import com.kahavanu.ui.theme.TextSecondary
 
 @Composable
 fun IncomeSourcesScreen(
@@ -78,12 +79,14 @@ fun IncomeSourcesScreen(
                     Text(
                         text = "INCOME SOURCES",
                         style = MaterialTheme.typography.labelSmall,
+                        fontSize = TextSize.xs,
                         color = TextSecondary,
                         fontWeight = FontWeight.Medium,
                     )
                     Text(
                         text = "Customize your sources",
                         style = MaterialTheme.typography.titleLarge,
+                        fontSize = TextSize.xxl,
                         color = TextPrimary,
                         fontWeight = FontWeight.Medium,
                     )
@@ -95,6 +98,7 @@ fun IncomeSourcesScreen(
                     text = uiState.errorMessage ?: "",
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall,
+                    fontSize = TextSize.sm,
                 )
             }
 
@@ -103,6 +107,7 @@ fun IncomeSourcesScreen(
                     text = uiState.successMessage ?: "",
                     color = RawColors.Emerald.Emerald600,
                     style = MaterialTheme.typography.bodySmall,
+                    fontSize = TextSize.sm,
                 )
             }
 
@@ -111,6 +116,7 @@ fun IncomeSourcesScreen(
                 Text(
                     text = "No sources yet. Add your first source below.",
                     style = MaterialTheme.typography.bodySmall,
+                    fontSize = TextSize.sm,
                     color = TextSecondary,
                 )
             } else {
@@ -202,6 +208,7 @@ private fun IncomeSourceRow(
             Text(
                 text = source.name,
                 style = MaterialTheme.typography.titleMedium,
+                fontSize = TextSize.base,
                 color = TextPrimary,
                 fontWeight = FontWeight.Medium,
             )
@@ -257,6 +264,7 @@ private fun TypeToggleChip(
             Text(
                 text = type.label,
                 style = MaterialTheme.typography.labelMedium,
+                fontSize = TextSize.sm,
                 color = if (selected) RawColors.Blue.Blue700 else TextSecondary,
             )
         }
@@ -291,6 +299,7 @@ private fun BoxedLabel(
         Text(
             text = text,
             style = MaterialTheme.typography.labelSmall,
+            fontSize = TextSize.xs,
             color = textColor,
         )
     }
@@ -301,6 +310,7 @@ private fun SectionTitle(text: String) {
     Text(
         text = text,
         style = MaterialTheme.typography.titleSmall,
+        fontSize = TextSize.lg,
         color = TextPrimary,
         fontWeight = FontWeight.SemiBold,
     )

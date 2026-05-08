@@ -79,7 +79,6 @@ fun IncomeScreen(
         }
         item { MatchAndCatchSection() }
         item { PersistenceSection() }
-        item { CryptoGatewaySection() }
         item { IncomeLogSection(logs = logs) }
     }
 }

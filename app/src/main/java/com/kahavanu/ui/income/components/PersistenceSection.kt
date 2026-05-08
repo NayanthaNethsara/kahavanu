@@ -172,12 +172,7 @@ private fun PersistenceItem(
                     onClick = { },
                     modifier = Modifier
                         .height(24.dp)
-                        .width(72.dp)
-                        .shadow(
-                            elevation = 12.dp, 
-                            spotColor = Color.Black.copy(alpha = 0.2f), 
-                            shape = CircleShape
-                        ),
+                        .width(72.dp),
                     shape = CircleShape,
                     color = Color.Transparent
                 ) {

@@ -3,6 +3,7 @@ package com.kahavanu.ui.income
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -44,6 +45,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -67,6 +72,10 @@ import java.time.format.TextStyle
 import java.util.Locale
 import kotlin.math.roundToInt
 
+enum class IncomeFilter {
+    ALL, PENDING
+}
+
 @Composable
 fun IncomeScreen(
     onLogIncome: () -> Unit,
@@ -74,8 +83,10 @@ fun IncomeScreen(
 ) {
     val logs by viewModel.incomeLogs.collectAsStateWithLifecycle()
     val totalForMonth by viewModel.monthlyTotal.collectAsStateWithLifecycle()
+    val breakdowns by viewModel.breakdowns.collectAsStateWithLifecycle()
     val currency by viewModel.currency.collectAsStateWithLifecycle()
     val monthLabel = currentMonthLabel()
+    var selectedFilter by remember { mutableStateOf(IncomeFilter.ALL) }
 
     LazyColumn(
         modifier = Modifier
@@ -92,7 +103,7 @@ fun IncomeScreen(
         contentPadding = PaddingValues(
             start = Spacing.large,
             end = Spacing.large,
-            top = 110.dp,
+            top = 120.dp,
             bottom = 140.dp
         ),
         verticalArrangement = Arrangement.spacedBy(Spacing.extraLarge)
@@ -103,6 +114,9 @@ fun IncomeScreen(
                 totalForMonth = totalForMonth,
                 currency = currency,
                 monthLabel = monthLabel,
+                breakdowns = breakdowns,
+                selectedFilter = selectedFilter,
+                onFilterSelected = { selectedFilter = it }
             )
         }
         item { IncomeActionButtons(onLogIncome = onLogIncome) }
@@ -203,14 +217,14 @@ private fun IncomeHeader() {
         Text(
             text = "Income",
             style = MaterialTheme.typography.bodyLarge,
-            color = RawColors.Slate.Slate500
+            color = RawColors.Emerald.Emerald700
         )
         Spacer(modifier = Modifier.height(Spacing.extraSmall))
         Text(
             text = "Wealth in the Air",
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
-            color = RawColors.Slate.Slate900
+            color = RawColors.Emerald.Emerald900
         )
     }
 }
@@ -220,14 +234,19 @@ private fun TotalExpectedCard(
     totalForMonth: Double,
     currency: String,
     monthLabel: String,
+    breakdowns: List<IncomeBreakdownItem>,
+    selectedFilter: IncomeFilter,
+    onFilterSelected: (IncomeFilter) -> Unit,
 ) {
-    val totalText = formatAmount(totalForMonth, currency)
-    val progress = if (totalForMonth > 0.0) 1f else 0f
+    // If Pending is selected, we show 0 for now as it's not yet implemented in the data layer
+    val displayTotal = if (selectedFilter == IncomeFilter.ALL) totalForMonth else 0.0
+    val totalText = formatAmount(displayTotal, currency)
+    val progress = if (displayTotal > 0.0) 1f else 0f
     val progressLabel = "${(progress * 100).roundToInt()}%"
-    val receivedLabel = if (totalForMonth > 0.0) {
-        "$totalText received"
-    } else {
-        "No income received"
+    val receivedLabel = when {
+        selectedFilter == IncomeFilter.PENDING -> "Pending payments this month"
+        displayTotal > 0.0 -> "$totalText received"
+        else -> "No income received"
     }
 
     GlassCard(modifier = Modifier.fillMaxWidth()) {
@@ -245,6 +264,7 @@ private fun TotalExpectedCard(
                         style = MaterialTheme.typography.bodyMedium,
                         color = RawColors.Slate.Slate500
                     )
+                    Spacer(modifier = Modifier.height(Spacing.extraSmall))
                     Text(
                         text = totalText,
                         style = MaterialTheme.typography.headlineLarge,
@@ -258,15 +278,16 @@ private fun TotalExpectedCard(
                         .background(RawColors.Slate.Slate100.copy(alpha = 0.5f), shape = KahavanuShapes.small)
                         .padding(2.dp)
                 ) {
-                    TextButton(
-                        onClick = { },
-                        modifier = Modifier
-                            .background(Color.White.copy(alpha = 0.9f), shape = KahavanuShapes.small)
-                            .shadow(Elevation.level1, shape = KahavanuShapes.small),
-                        contentPadding = PaddingValues(horizontal = Spacing.small, vertical = Spacing.extraSmall)
-                    ) {
-                        Text(currency, style = MaterialTheme.typography.labelMedium, color = RawColors.Slate.Slate900)
-                    }
+                    IncomeFilterTab(
+                        text = "All",
+                        isSelected = selectedFilter == IncomeFilter.ALL,
+                        onClick = { onFilterSelected(IncomeFilter.ALL) }
+                    )
+                    IncomeFilterTab(
+                        text = "Pending",
+                        isSelected = selectedFilter == IncomeFilter.PENDING,
+                        onClick = { onFilterSelected(IncomeFilter.PENDING) }
+                    )
                 }
             }
 
@@ -299,7 +320,84 @@ private fun TotalExpectedCard(
                 color = RawColors.Emerald.Emerald500,
                 trackColor = RawColors.Slate.Slate100.copy(alpha = 0.5f),
             )
+
+            if (selectedFilter == IncomeFilter.ALL && breakdowns.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(Spacing.large))
+                HorizontalDivider(color = RawColors.Slate.Slate200.copy(alpha = 0.4f))
+                Spacer(modifier = Modifier.height(Spacing.medium))
+                
+                Column(verticalArrangement = Arrangement.spacedBy(Spacing.small)) {
+                    breakdowns.forEach { item ->
+                        SummaryItem(
+                            label = item.label,
+                            value = formatAmount(item.amount, currency),
+                            color = item.color
+                        )
+                    }
+                }
+            }
         }
+    }
+}
+
+@Composable
+private fun SummaryItem(label: String, value: String, color: Color) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier
+                    .size(6.dp)
+                    .background(color, CircleShape)
+            )
+            Spacer(modifier = Modifier.width(Spacing.small))
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodySmall,
+                color = RawColors.Slate.Slate500
+            )
+        }
+        Text(
+            text = value,
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.Bold,
+            color = RawColors.Slate.Slate900
+        )
+    }
+}
+
+@Composable
+private fun IncomeFilterTab(
+    text: String,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    val backgroundColor by animateColorAsState(
+        targetValue = if (isSelected) Color.White.copy(alpha = 0.9f) else Color.Transparent,
+        label = "tabBackground"
+    )
+    val textColor by animateColorAsState(
+        targetValue = if (isSelected) RawColors.Slate.Slate900 else RawColors.Slate.Slate500,
+        label = "tabText"
+    )
+
+    Box(
+        modifier = Modifier
+            .clip(KahavanuShapes.small)
+            .background(backgroundColor)
+            .clickable(onClick = onClick)
+            .padding(horizontal = Spacing.small, vertical = Spacing.extraSmall),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelMedium,
+            color = textColor,
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+        )
     }
 }
 

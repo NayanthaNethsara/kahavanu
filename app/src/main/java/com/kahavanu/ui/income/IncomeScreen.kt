@@ -223,7 +223,7 @@ private fun IncomeHeader() {
         Text(
             text = "Wealth in the Air",
             style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.Medium,
             color = RawColors.Emerald.Emerald900
         )
     }
@@ -268,7 +268,7 @@ private fun TotalExpectedCard(
                     Text(
                         text = totalText,
                         style = MaterialTheme.typography.headlineLarge,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.Medium,
                         color = RawColors.Emerald.Emerald700
                     )
                 }
@@ -306,7 +306,7 @@ private fun TotalExpectedCard(
                 Text(
                     text = progressLabel,
                     style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.Medium,
                     color = RawColors.Emerald.Emerald600
                 )
             }
@@ -363,7 +363,7 @@ private fun SummaryItem(label: String, value: String, color: Color) {
         Text(
             text = value,
             style = MaterialTheme.typography.labelMedium,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.Medium,
             color = RawColors.Slate.Slate900
         )
     }
@@ -436,7 +436,7 @@ private fun ActionCard(
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.Medium,
                 color = RawColors.Slate.Slate900
             )
             Text(
@@ -465,7 +465,7 @@ private fun SectionHeader(title: String, subtitle: String, actionText: String? =
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.Medium,
                     color = RawColors.Slate.Slate900
                 )
                 if (badgeCount != null) {
@@ -553,7 +553,7 @@ private fun MatchItem(source: String, time: String, amount: String, matchPercent
                 Text(
                     text = amount,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.Medium,
                     color = RawColors.Slate.Slate900
                 )
             }

@@ -1,7 +1,10 @@
 package com.kahavanu.data.income
 
 import com.kahavanu.data.income.local.IncomeLogEntity
+import com.kahavanu.data.income.local.IncomeSourceEntity
 import com.kahavanu.domain.model.IncomeLogEntry
+import com.kahavanu.domain.model.IncomeSource
+import com.kahavanu.domain.model.IncomeSourceType
 
 fun IncomeLogEntity.toDomain(): IncomeLogEntry = IncomeLogEntry(
     title = title,
@@ -23,3 +26,15 @@ fun IncomeLogEntry.toEntity(
     receivedAtEpochMillis = receivedAtEpochMillis,
     createdAtEpochMillis = createdAtEpochMillis,
 )
+
+fun IncomeSourceEntity.toDomain(): IncomeSource {
+    val types = typesCsv
+        .split(',')
+        .mapNotNull { IncomeSourceType.fromId(it.trim()) }
+        .toSet()
+    return IncomeSource(
+        id = localId,
+        name = name,
+        types = types,
+    )
+}

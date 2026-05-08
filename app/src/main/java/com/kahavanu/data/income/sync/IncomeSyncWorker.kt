@@ -7,6 +7,8 @@ import androidx.work.WorkerParameters
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.kahavanu.data.income.local.IncomeDatabase
+import com.kahavanu.data.income.local.IncomeDatabaseMigrations
+import com.kahavanu.data.income.local.IncomeSourceEntity
 import kotlinx.coroutines.suspendCancellableCoroutine
 
 class IncomeSyncWorker(
@@ -19,40 +21,17 @@ class IncomeSyncWorker(
             applicationContext,
             IncomeDatabase::class.java,
             IncomeDatabase.DB_NAME,
-        ).build()
+        )
+            .addMigrations(IncomeDatabaseMigrations.MIGRATION_1_2)
+            .build()
 
         return try {
-            val dao = database.incomeLogDao()
-            val unsynced = dao.getUnsynced(uid)
-            if (unsynced.isEmpty()) {
-                Result.success()
+            val firestore = FirebaseFirestore.getInstance()
+            val logResult = syncIncomeLogs(uid, firestore, database)
+            if (logResult is Result.Retry) {
+                Result.retry()
             } else {
-                val firestore = FirebaseFirestore.getInstance()
-                for (entry in unsynced) {
-                    val data = mapOf(
-                        "title" to entry.title,
-                        "amount" to entry.amount,
-                        "currency" to entry.currency,
-                        "note" to entry.note,
-                        "receivedAt" to entry.receivedAtEpochMillis,
-                        "createdAt" to entry.createdAtEpochMillis,
-                        "userId" to uid,
-                    )
-
-                    val result = firestore
-                        .collection(USERS_COLLECTION)
-                        .document(uid)
-                        .collection(INCOME_LOGS_COLLECTION)
-                        .add(data)
-                        .awaitResult()
-
-                    if (result.isSuccess) {
-                        dao.markSynced(entry.localId, result.getOrThrow().id)
-                    } else {
-                        return Result.retry()
-                    }
-                }
-                Result.success()
+                syncIncomeSources(uid, firestore, database)
             }
         } catch (_: Exception) {
             Result.retry()
@@ -60,10 +39,121 @@ class IncomeSyncWorker(
             database.close()
         }
     }
+
+    private suspend fun syncIncomeLogs(
+        uid: String,
+        firestore: FirebaseFirestore,
+        database: IncomeDatabase,
+    ): Result {
+        val dao = database.incomeLogDao()
+        val unsynced = dao.getUnsynced(uid)
+        if (unsynced.isEmpty()) {
+            return Result.success()
+        }
+
+        for (entry in unsynced) {
+            val data = mapOf(
+                "title" to entry.title,
+                "amount" to entry.amount,
+                "currency" to entry.currency,
+                "note" to entry.note,
+                "receivedAt" to entry.receivedAtEpochMillis,
+                "createdAt" to entry.createdAtEpochMillis,
+                "userId" to uid,
+            )
+
+            val result = firestore
+                .collection(USERS_COLLECTION)
+                .document(uid)
+                .collection(INCOME_LOGS_COLLECTION)
+                .add(data)
+                .awaitResult()
+
+            if (result.isSuccess) {
+                dao.markSynced(entry.localId, result.getOrThrow().id)
+            } else {
+                return Result.retry()
+            }
+        }
+        return Result.success()
+    }
+
+    private suspend fun syncIncomeSources(
+        uid: String,
+        firestore: FirebaseFirestore,
+        database: IncomeDatabase,
+    ): Result {
+        val sourceDao = database.incomeSourceDao()
+        val pendingSources = sourceDao.getUnsynced(uid)
+        for (source in pendingSources) {
+            val result = if (source.isDeleted) {
+                deleteRemoteSource(uid, firestore, source)
+            } else {
+                upsertRemoteSource(uid, firestore, source)
+            }
+
+            if (result.isSuccess) {
+                sourceDao.markSynced(source.localId, result.getOrThrow())
+            } else {
+                return Result.retry()
+            }
+        }
+        return Result.success()
+    }
 }
 
 private const val USERS_COLLECTION = "users"
 private const val INCOME_LOGS_COLLECTION = "incomeLogs"
+private const val INCOME_SOURCES_COLLECTION = "incomeSources"
+
+private suspend fun upsertRemoteSource(
+    uid: String,
+    firestore: FirebaseFirestore,
+    source: IncomeSourceEntity,
+): Result<String?> {
+    val data = mapOf(
+        "name" to source.name,
+        "types" to source.typesCsv.split(',').filter { it.isNotBlank() },
+        "createdAt" to source.createdAtEpochMillis,
+        "updatedAt" to source.updatedAtEpochMillis,
+        "userId" to uid,
+    )
+
+    return if (source.remoteId != null) {
+        firestore
+            .collection(USERS_COLLECTION)
+            .document(uid)
+            .collection(INCOME_SOURCES_COLLECTION)
+            .document(source.remoteId)
+            .set(data)
+            .awaitResult()
+            .map { source.remoteId }
+    } else {
+        firestore
+            .collection(USERS_COLLECTION)
+            .document(uid)
+            .collection(INCOME_SOURCES_COLLECTION)
+            .add(data)
+            .awaitResult()
+            .map { it.id }
+    }
+}
+
+private suspend fun deleteRemoteSource(
+    uid: String,
+    firestore: FirebaseFirestore,
+    source: IncomeSourceEntity,
+): Result<String?> {
+    val remoteId = source.remoteId ?: return Result.success(null)
+    return firestore
+        .collection(USERS_COLLECTION)
+        .document(uid)
+        .collection(INCOME_SOURCES_COLLECTION)
+        .document(remoteId)
+        .delete()
+        .awaitResult()
+        .map { remoteId }
+}
 
 private suspend fun <T> com.google.android.gms.tasks.Task<T>.awaitResult(): Result<T> {
     return suspendCancellableCoroutine { continuation ->

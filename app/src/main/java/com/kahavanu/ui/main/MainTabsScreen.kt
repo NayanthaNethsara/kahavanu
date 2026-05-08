@@ -18,6 +18,7 @@ import com.kahavanu.ui.goals.GoalsScreen
 import com.kahavanu.ui.home.HomeScreen
 import com.kahavanu.ui.income.IncomeLogScreen
 import com.kahavanu.ui.income.IncomeScreen
+import com.kahavanu.ui.income.IncomeSourcesScreen
 import com.kahavanu.ui.navigation.AppDestination
 import com.kahavanu.ui.profile.ProfileScreen
 
@@ -36,13 +37,16 @@ fun MainTabsScreen(
         AppDestination.Goals.route,
         AppDestination.Profile.route,
     )
+    val showTopBar = showBottomBar
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
-            TopAppHeader(
-                currentSession = currentSession,
-            )
+            if (showTopBar) {
+                TopAppHeader(
+                    currentSession = currentSession,
+                )
+            }
         },
         bottomBar = {
             if (showBottomBar) {
@@ -78,6 +82,12 @@ fun MainTabsScreen(
                 IncomeLogScreen(
                     onBack = { navController.popBackStack() },
                     onLogged = { navController.popBackStack() },
+                    onManageSources = { navController.navigate(AppDestination.IncomeSources.route) },
+                )
+            }
+            composable(AppDestination.IncomeSources.route) {
+                IncomeSourcesScreen(
+                    onBack = { navController.popBackStack() },
                 )
             }
             composable(AppDestination.Expenses.route) {

@@ -80,6 +80,21 @@ class IncomeViewModel @Inject constructor(
         updateState { it.copy(receivedDate = date, isDatePickerOpen = false) }
     }
 
+    fun onFrequencyChange(frequency: RecurrenceFrequency) {
+        updateState { it.copy(frequency = frequency) }
+    }
+
+    fun onContactSelected(name: String) {
+        updateState { current ->
+            val newDescription = if (current.clientDescription.isBlank()) {
+                name
+            } else {
+                "${current.clientDescription} ($name)"
+            }
+            current.copy(clientDescription = newDescription)
+        }
+    }
+
     fun logIncome() {
         viewModelScope.launch {
             val current = _uiState.value
@@ -113,7 +128,11 @@ class IncomeViewModel @Inject constructor(
                 title = clientDescription,
                 amount = amountValue,
                 currency = currency,
-                note = note,
+                note = if (current.incomeType == IncomeSourceType.RECURRENT) {
+                    "$note (Frequency: ${current.frequency.label})"
+                } else {
+                    note
+                },
                 receivedAtEpochMillis = receivedAtEpochMillis,
             )
 

@@ -9,6 +9,13 @@ enum class CurrencyOption(val code: String) {
     USD("USD"),
 }
 
+enum class RecurrenceFrequency(val label: String) {
+    DAILY("Daily"),
+    WEEKLY("Weekly"),
+    MONTHLY("Monthly"),
+    YEARLY("Yearly"),
+}
+
 data class IncomeUiState(
     val incomeType: IncomeSourceType = IncomeSourceType.ONE_TIME,
     val sources: List<IncomeSource> = emptyList(),
@@ -17,6 +24,7 @@ data class IncomeUiState(
     val amount: String = "",
     val currency: CurrencyOption = CurrencyOption.LKR,
     val receivedDate: LocalDate? = null,
+    val frequency: RecurrenceFrequency = RecurrenceFrequency.MONTHLY,
     val isDatePickerOpen: Boolean = false,
     val isSaving: Boolean = false,
     val errorMessage: String? = null,

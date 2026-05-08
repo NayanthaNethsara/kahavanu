@@ -6,12 +6,14 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -37,6 +39,12 @@ import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.WorkOutline
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import android.provider.ContactsContract
+import android.database.Cursor
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.Icon
@@ -96,6 +104,22 @@ fun IncomeLogScreen(
         DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.getDefault())
     }
     val dateLabel = uiState.receivedDate?.format(dateFormatter).orEmpty()
+
+    val context = LocalContext.current
+    val contactPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickContact()
+    ) { uri ->
+        uri?.let {
+            val projection = arrayOf(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)
+            context.contentResolver.query(it, projection, null, null, null)?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    val nameIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)
+                    val name = cursor.getString(nameIndex)
+                    viewModel.onContactSelected(name)
+                }
+            }
+        }
+    }
 
     if (uiState.isDatePickerOpen) {
         val pickerState = androidx.compose.material3.rememberDatePickerState(
@@ -166,6 +190,7 @@ fun IncomeLogScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .windowInsetsPadding(WindowInsets.systemBars)
+                    .imePadding()
                     .verticalScroll(scrollState)
                     .padding(
                         start = Spacing.extraLarge,
@@ -198,6 +223,19 @@ fun IncomeLogScreen(
                     value = uiState.clientDescription,
                     placeholder = "e.g., ACME Corp, Freelance project",
                     onValueChange = viewModel::onClientDescriptionChange,
+                    trailingIcon = if (uiState.incomeType == IncomeSourceType.ONE_TIME) {
+                        {
+                            Icon(
+                                imageVector = Icons.Outlined.PersonAdd,
+                                contentDescription = "Tag Contact",
+                                tint = RawColors.Slate.Slate500,
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .clickable { contactPickerLauncher.launch(null) }
+                                    .padding(8.dp)
+                            )
+                        }
+                    } else null
                 )
 
                 AmountSection(
@@ -207,7 +245,15 @@ fun IncomeLogScreen(
                     onCurrencyChange = viewModel::onCurrencyChange,
                 )
 
+                if (uiState.incomeType == IncomeSourceType.RECURRENT) {
+                    FrequencySection(
+                        selected = uiState.frequency,
+                        onSelect = viewModel::onFrequencyChange
+                    )
+                }
+
                 DateSection(
+                    label = if (uiState.incomeType == IncomeSourceType.RECURRENT) "Recurrence Start" else "Date Received",
                     dateLabel = dateLabel,
                     onOpenDatePicker = { viewModel.onDatePickerOpenChange(true) },
                 )
@@ -361,12 +407,12 @@ private fun IncomeTypeCard(
     modifier: Modifier = Modifier,
 ) {
     val backgroundColor = if (selected) {
-        RawColors.Emerald.Emerald500.copy(alpha = 0.12f)
+        RawColors.Emerald.Emerald400.copy(alpha = 0.12f)
     } else {
         Color.White.copy(alpha = 0.4f)
     }
     val borderColor = if (selected) {
-        RawColors.Emerald.Emerald500
+        RawColors.Emerald.Emerald300
     } else {
         RawColors.Slate.Slate900.copy(alpha = 0.08f)
     }
@@ -448,6 +494,7 @@ private fun IncomeSourceSection(
         } else {
             LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(Spacing.small),
+                contentPadding = PaddingValues(horizontal = Spacing.extraSmall),
             ) {
                 items(sources, key = { it.id }) { source ->
                     val isSelected = selectedSourceId == source.id
@@ -476,42 +523,52 @@ private fun SourceChip(
     val backgroundColor = if (selected) {
         RawColors.Emerald.Emerald400.copy(alpha = 0.12f)
     } else {
-        RawColors.Slate.Slate900.copy(alpha = 0.04f)
+        Color.White.copy(alpha = 0.4f)
     }
     val borderColor = if (selected) {
-        RawColors.Emerald.Emerald500.copy(alpha = 0.3f)
+        RawColors.Emerald.Emerald300
     } else {
-        RawColors.Slate.Slate900.copy(alpha = 0.06f)
+        RawColors.Slate.Slate900.copy(alpha = 0.08f)
     }
 
-    Surface(
+    Box(
         modifier = Modifier
-            .height(62.dp)
-            .width(90.dp)
-            .alpha(if (enabled) 1f else 0.5f),
-        shape = RoundedCornerShape(14.dp),
-        color = backgroundColor,
-        border = androidx.compose.foundation.BorderStroke(0.7.dp, borderColor),
-        onClick = onClick,
+            .height(84.dp)
+            .width(100.dp)
+            .alpha(if (enabled) 1f else 0.4f)
+            .background(backgroundColor, KahavanuShapes.large)
+            .border(1.dp, borderColor, KahavanuShapes.large)
+            .clip(KahavanuShapes.large)
+            .clickable(enabled = enabled, onClick = onClick),
+        contentAlignment = Alignment.Center
     ) {
         Column(
-            modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = if (selected) TextTertiaryEmerald else TextSecondary,
-                modifier = Modifier.size(16.dp),
-            )
-            Spacer(modifier = Modifier.height(4.dp))
+            Box(
+                modifier = Modifier
+                    .size(32.dp)
+                    .background(
+                        if (selected) RawColors.Emerald.Emerald500 else RawColors.Slate.Slate900.copy(alpha = 0.06f),
+                        KahavanuShapes.medium,
+                    ),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = if (selected) Color.White else RawColors.Slate.Slate500,
+                    modifier = Modifier.size(16.dp),
+                )
+            }
+            Spacer(modifier = Modifier.height(Spacing.small))
             Text(
                 text = source.name,
                 style = MaterialTheme.typography.labelSmall,
                 fontSize = TextSize.xs,
-                fontWeight = FontWeight.Medium,
-                color = if (selected) TextTertiaryEmerald else TextSecondary,
+                fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                color = if (selected) RawColors.Emerald.Emerald700 else TextSecondary,
             )
         }
     }
@@ -533,6 +590,7 @@ private fun LabeledTextField(
     value: String,
     placeholder: String,
     onValueChange: (String) -> Unit,
+    trailingIcon: @Composable (() -> Unit)? = null,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.small)) {
         SectionLabel(label)
@@ -542,7 +600,8 @@ private fun LabeledTextField(
             modifier = Modifier.fillMaxWidth(),
             placeholder = { Text(placeholder) },
             singleLine = true,
-            shape = RoundedCornerShape(14.dp),
+            shape = KahavanuShapes.large,
+            trailingIcon = trailingIcon,
             colors = textFieldColors(),
         )
     }
@@ -643,22 +702,24 @@ private fun CurrencyOptionButton(
 
 @Composable
 private fun DateSection(
+    label: String,
     dateLabel: String,
     onOpenDatePicker: () -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.small)) {
-        SectionLabel("Date Received")
+        SectionLabel(label)
         OutlinedTextField(
             value = dateLabel,
             onValueChange = {},
             modifier = Modifier
                 .fillMaxWidth()
-                .height(46.dp)
+                .height(56.dp)
+                .clip(KahavanuShapes.large)
                 .clickable(onClick = onOpenDatePicker),
             placeholder = { Text("Select date") },
             singleLine = true,
             readOnly = true,
-            shape = RoundedCornerShape(14.dp),
+            shape = KahavanuShapes.large,
             trailingIcon = {
                 Icon(
                     imageVector = Icons.Outlined.CalendarMonth,
@@ -667,6 +728,62 @@ private fun DateSection(
                 )
             },
             colors = textFieldColors(),
+        )
+    }
+}
+
+@Composable
+private fun FrequencySection(
+    selected: RecurrenceFrequency,
+    onSelect: (RecurrenceFrequency) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.small)) {
+        SectionLabel("Frequency")
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.small)
+        ) {
+            RecurrenceFrequency.values().forEach { freq ->
+                FrequencyChip(
+                    label = freq.label,
+                    selected = selected == freq,
+                    onClick = { onSelect(freq) },
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun FrequencyChip(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier
+            .height(44.dp)
+            .background(
+                if (selected) RawColors.Emerald.Emerald500.copy(alpha = 0.12f) else RawColors.Slate.Slate900.copy(alpha = 0.04f),
+                KahavanuShapes.medium
+            )
+            .border(
+                1.dp,
+                if (selected) RawColors.Emerald.Emerald500 else RawColors.Slate.Slate900.copy(alpha = 0.08f),
+                KahavanuShapes.medium
+            )
+            .clip(KahavanuShapes.medium)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            fontSize = TextSize.xs,
+            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+            color = if (selected) RawColors.Emerald.Emerald700 else TextSecondary
         )
     }
 }

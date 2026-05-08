@@ -1,0 +1,98 @@
+package com.kahavanu.ui.income.components
+
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import com.kahavanu.ui.theme.KahavanuShapes
+import com.kahavanu.ui.theme.RawColors
+import com.kahavanu.ui.theme.Spacing
+
+@Composable
+fun GlassCard(
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Surface(
+        modifier = modifier
+            .shadow(
+                elevation = 20.dp,
+                spotColor = RawColors.Gray.Gray400,
+                ambientColor = RawColors.Gray.Gray500,
+                shape = KahavanuShapes.large
+            ),
+        shape = KahavanuShapes.large,
+        color = Color.White.copy(alpha = 0.85f),
+        border = BorderStroke(0.5.dp, Color.White.copy(alpha = 0.5f))
+    ) {
+        Column(content = content)
+    }
+}
+
+@Composable
+fun SectionHeader(title: String, subtitle: String, actionText: String? = null, badgeCount: String? = null) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.Top
+    ) {
+        Column {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Medium,
+                    color = RawColors.Slate.Slate900
+                )
+                if (badgeCount != null) {
+                    Spacer(modifier = Modifier.width(Spacing.small))
+                    Box(
+                        modifier = Modifier
+                            .background(RawColors.Emerald.Emerald100, CircleShape)
+                            .padding(horizontal = Spacing.small, vertical = 2.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = badgeCount,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = RawColors.Emerald.Emerald800,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(Spacing.extraSmall))
+            Text(text = subtitle, style = MaterialTheme.typography.bodyMedium, color = RawColors.Slate.Slate500)
+        }
+        if (actionText != null) {
+            Text(
+                text = actionText,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                color = RawColors.Emerald.Emerald600,
+                modifier = Modifier.padding(top = Spacing.extraSmall)
+            )
+        }
+    }
+    Spacer(modifier = Modifier.height(Spacing.large))
+}

@@ -3,15 +3,47 @@ package com.kahavanu.ui.income
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.outlined.AddCircle
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Link
+import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -21,13 +53,30 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.kahavanu.domain.model.IncomeLogEntry
 import com.kahavanu.ui.theme.Elevation
 import com.kahavanu.ui.theme.KahavanuShapes
 import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
+import java.time.Instant
+import java.time.YearMonth
+import java.time.ZoneId
+import java.time.format.TextStyle
+import java.util.Locale
+import kotlin.math.roundToInt
 
 @Composable
-fun IncomeScreen() {
+fun IncomeScreen(
+    onLogIncome: () -> Unit,
+    viewModel: IncomeOverviewViewModel = hiltViewModel(),
+) {
+    val logs by viewModel.incomeLogs.collectAsStateWithLifecycle()
+    val totalForMonth by viewModel.monthlyTotal.collectAsStateWithLifecycle()
+    val currency by viewModel.currency.collectAsStateWithLifecycle()
+    val monthLabel = currentMonthLabel()
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -49,19 +98,25 @@ fun IncomeScreen() {
         verticalArrangement = Arrangement.spacedBy(Spacing.extraLarge)
     ) {
         item { IncomeHeader() }
-        item { TotalExpectedCard() }
-        item { IncomeActionButtons() }
+        item {
+            TotalExpectedCard(
+                totalForMonth = totalForMonth,
+                currency = currency,
+                monthLabel = monthLabel,
+            )
+        }
+        item { IncomeActionButtons(onLogIncome = onLogIncome) }
         item { MatchAndCatchSection() }
         item { PersistenceSection() }
         item { CryptoGatewaySection() }
-        item { IncomeLogSection() }
+        item { IncomeLogSection(logs = logs) }
     }
 }
 
 @Composable
 private fun GlassCard(
     modifier: Modifier = Modifier,
-    content: @Composable ColumnScope.() -> Unit
+    content: @Composable ColumnScope.() -> Unit,
 ) {
     Surface(
         modifier = modifier
@@ -83,7 +138,7 @@ private fun GlassCard(
 private fun ActionGlassCard(
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
-    content: @Composable RowScope.() -> Unit
+    content: @Composable RowScope.() -> Unit,
 ) {
     Surface(
         modifier = modifier
@@ -161,7 +216,20 @@ private fun IncomeHeader() {
 }
 
 @Composable
-private fun TotalExpectedCard() {
+private fun TotalExpectedCard(
+    totalForMonth: Double,
+    currency: String,
+    monthLabel: String,
+) {
+    val totalText = formatAmount(totalForMonth, currency)
+    val progress = if (totalForMonth > 0.0) 1f else 0f
+    val progressLabel = "${(progress * 100).roundToInt()}%"
+    val receivedLabel = if (totalForMonth > 0.0) {
+        "$totalText received"
+    } else {
+        "No income received"
+    }
+
     GlassCard(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(Spacing.large)
@@ -173,12 +241,12 @@ private fun TotalExpectedCard() {
             ) {
                 Column {
                     Text(
-                        text = "Total expected · May",
+                        text = "Total received · $monthLabel",
                         style = MaterialTheme.typography.bodyMedium,
                         color = RawColors.Slate.Slate500
                     )
                     Text(
-                        text = "LKR 447,120",
+                        text = totalText,
                         style = MaterialTheme.typography.headlineLarge,
                         fontWeight = FontWeight.Bold,
                         color = RawColors.Emerald.Emerald700
@@ -197,13 +265,7 @@ private fun TotalExpectedCard() {
                             .shadow(Elevation.level1, shape = KahavanuShapes.small),
                         contentPadding = PaddingValues(horizontal = Spacing.small, vertical = Spacing.extraSmall)
                     ) {
-                        Text("LKR", style = MaterialTheme.typography.labelMedium, color = RawColors.Slate.Slate900)
-                    }
-                    TextButton(
-                        onClick = { },
-                        contentPadding = PaddingValues(horizontal = Spacing.small, vertical = Spacing.extraSmall)
-                    ) {
-                        Text("USD", style = MaterialTheme.typography.labelMedium, color = RawColors.Slate.Slate500)
+                        Text(currency, style = MaterialTheme.typography.labelMedium, color = RawColors.Slate.Slate900)
                     }
                 }
             }
@@ -216,12 +278,12 @@ private fun TotalExpectedCard() {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "LKR 306,720 received",
+                    text = receivedLabel,
                     style = MaterialTheme.typography.bodySmall,
                     color = RawColors.Slate.Slate500
                 )
                 Text(
-                    text = "69%",
+                    text = progressLabel,
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
                     color = RawColors.Emerald.Emerald600
@@ -229,7 +291,7 @@ private fun TotalExpectedCard() {
             }
             Spacer(modifier = Modifier.height(Spacing.small))
             LinearProgressIndicator(
-                progress = { 0.69f },
+                progress = { progress },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(8.dp)
@@ -242,26 +304,33 @@ private fun TotalExpectedCard() {
 }
 
 @Composable
-private fun IncomeActionButtons() {
+private fun IncomeActionButtons(onLogIncome: () -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.medium)) {
         ActionCard(
             icon = Icons.Outlined.AddCircle,
             title = "Log Income",
-            subtitle = "Track one-time, recurrent, or pending income"
+            subtitle = "Track one-time, recurrent, or pending income",
+            onClick = onLogIncome,
         )
         ActionCard(
             icon = Icons.Outlined.Refresh,
             title = "Recurrent Income",
-            subtitle = "View and manage recurring income streams"
+            subtitle = "View and manage recurring income streams",
+            onClick = { },
         )
     }
 }
 
 @Composable
-private fun ActionCard(icon: ImageVector, title: String, subtitle: String) {
+private fun ActionCard(
+    icon: ImageVector,
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit,
+) {
     ActionGlassCard(
         modifier = Modifier.fillMaxWidth(),
-        onClick = { }
+        onClick = onClick
     ) {
         LiquidEmeraldIconBox(icon = icon)
         Spacer(modifier = Modifier.width(Spacing.medium))
@@ -311,7 +380,7 @@ private fun SectionHeader(title: String, subtitle: String, actionText: String? =
                                         RawColors.Emerald.Emerald400,
                                         RawColors.Emerald.Emerald500
                                     )
-                                ), 
+                                ),
                                 shape = CircleShape
                             )
                             .padding(horizontal = 8.dp, vertical = 2.dp)
@@ -502,9 +571,9 @@ private fun PersistenceItem(title: String, dueText: String, isOverdue: Boolean, 
                 )
                 Text(text = " • ", style = MaterialTheme.typography.bodySmall, color = RawColors.Slate.Slate300)
                 Icon(
-                    Icons.Outlined.Email, 
-                    contentDescription = null, 
-                    modifier = Modifier.size(12.dp), 
+                    Icons.Outlined.Email,
+                    contentDescription = null,
+                    modifier = Modifier.size(12.dp),
                     tint = RawColors.Slate.Slate400
                 )
                 Spacer(modifier = Modifier.width(4.dp))
@@ -580,9 +649,9 @@ private fun CryptoGatewaySection() {
                         Text("$ 380", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = RawColors.Slate.Slate900)
                     }
                 }
-                
+
                 Spacer(modifier = Modifier.height(Spacing.large))
-                
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -611,7 +680,7 @@ private fun CryptoGatewaySection() {
                 Spacer(modifier = Modifier.height(Spacing.large))
                 HorizontalDivider(color = RawColors.Slate.Slate200.copy(alpha = 0.5f))
                 Spacer(modifier = Modifier.height(Spacing.medium))
-                
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -628,7 +697,7 @@ private fun CryptoGatewaySection() {
 }
 
 @Composable
-private fun IncomeLogSection() {
+private fun IncomeLogSection(logs: List<IncomeLogEntry>) {
     Column {
         SectionHeader(
             title = "Income Log",
@@ -636,26 +705,26 @@ private fun IncomeLogSection() {
             actionText = "View all"
         )
         GlassCard(modifier = Modifier.fillMaxWidth()) {
-            LogItem(
-                title = "ACME Corp",
-                type = "Salary",
-                date = "May 1, 2026",
-                amount = "LKR 120,000"
-            )
-            HorizontalDivider(color = RawColors.Slate.Slate200.copy(alpha = 0.5f))
-            LogItem(
-                title = "SME WordPress build",
-                type = "Freelance",
-                date = "May 3, 2026",
-                amount = "LKR 50,000"
-            )
-            HorizontalDivider(color = RawColors.Slate.Slate200.copy(alpha = 0.5f))
-            LogItem(
-                title = "Blog revenue",
-                type = "AdSense",
-                date = "May 2, 2026",
-                amount = "$ 280"
-            )
+            if (logs.isEmpty()) {
+                Text(
+                    text = "No income logged yet.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = RawColors.Slate.Slate500,
+                    modifier = Modifier.padding(Spacing.large),
+                )
+            } else {
+                logs.forEachIndexed { index, log ->
+                    LogItem(
+                        title = log.title,
+                        type = log.note?.takeIf { it.isNotBlank() } ?: "Income",
+                        date = formatDate(log.receivedAtEpochMillis),
+                        amount = formatAmount(log.amount, log.currency),
+                    )
+                    if (index != logs.lastIndex) {
+                        HorizontalDivider(color = RawColors.Slate.Slate200.copy(alpha = 0.5f))
+                    }
+                }
+            }
         }
     }
 }
@@ -684,4 +753,22 @@ private fun LogItem(title: String, type: String, date: String, amount: String) {
         }
         Text(text = amount, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = RawColors.Slate.Slate900)
     }
+}
+
+private fun formatAmount(amount: Double, currency: String): String {
+    val formatted = String.format(Locale.getDefault(), "%,.2f", amount)
+    return "$currency $formatted"
+}
+
+private fun formatDate(epochMillis: Long): String {
+    val date = Instant.ofEpochMilli(epochMillis)
+        .atZone(ZoneId.systemDefault())
+        .toLocalDate()
+    val month = date.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+    return "$month ${date.dayOfMonth}, ${date.year}"
+}
+
+private fun currentMonthLabel(): String {
+    val month = YearMonth.now()
+    return month.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
 }

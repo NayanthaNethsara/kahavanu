@@ -242,8 +242,11 @@ fun textFieldColors() =
         unfocusedTextColor = RawColors.Slate.Slate900,
         focusedPlaceholderColor = RawColors.Slate.Slate500.copy(alpha = 0.7f),
         unfocusedPlaceholderColor = RawColors.Slate.Slate500.copy(alpha = 0.7f),
-        disabledBorderColor = RawColors.Slate.Slate200.copy(alpha = 0.6f),
-        disabledContainerColor = Color.White.copy(alpha = 0.6f),
+        disabledBorderColor = RawColors.Slate.Slate200.copy(alpha = 0.9f),
+        disabledContainerColor = Color.White.copy(alpha = 0.7f),
+        disabledTextColor = RawColors.Slate.Slate900,
+        disabledPlaceholderColor = RawColors.Slate.Slate500.copy(alpha = 0.7f),
+        disabledTrailingIconColor = RawColors.Slate.Slate500,
         errorBorderColor = MaterialTheme.colorScheme.error,
         errorContainerColor = Color.White.copy(alpha = 0.7f),
     )

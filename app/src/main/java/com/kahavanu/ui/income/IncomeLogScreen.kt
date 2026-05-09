@@ -80,7 +80,9 @@ import com.kahavanu.ui.theme.TextPrimaryEmerald
 import com.kahavanu.ui.theme.TextSecondary
 import com.kahavanu.ui.theme.TextSize
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
@@ -124,7 +126,7 @@ fun IncomeLogScreen(
     if (uiState.isDatePickerOpen) {
         val pickerState = androidx.compose.material3.rememberDatePickerState(
             initialSelectedDateMillis = uiState.receivedDate
-                ?.atStartOfDay(ZoneId.systemDefault())
+                ?.atStartOfDay(ZoneOffset.UTC)
                 ?.toInstant()
                 ?.toEpochMilli() ?: System.currentTimeMillis(),
         )
@@ -136,7 +138,7 @@ fun IncomeLogScreen(
                         val millis = pickerState.selectedDateMillis
                         if (millis != null) {
                             val selectedDate = Instant.ofEpochMilli(millis)
-                                .atZone(ZoneId.systemDefault())
+                                .atZone(ZoneOffset.UTC)
                                 .toLocalDate()
                             viewModel.onDateChange(selectedDate)
                         } else {
@@ -575,27 +577,34 @@ private fun DateSection(
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.small)) {
         SectionLabel(label)
-        OutlinedTextField(
-            value = dateLabel,
-            onValueChange = {},
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp)
                 .clip(KahavanuShapes.large)
-                .clickable(onClick = onOpenDatePicker),
-            placeholder = { Text("Select date") },
-            singleLine = true,
-            readOnly = true,
-            shape = KahavanuShapes.large,
-            trailingIcon = {
-                Icon(
-                    imageVector = Icons.Outlined.CalendarMonth,
-                    contentDescription = null,
-                    tint = RawColors.Slate.Slate500,
-                )
-            },
-            colors = textFieldColors(),
-        )
+                .clickable(onClick = onOpenDatePicker)
+        ) {
+            OutlinedTextField(
+                value = dateLabel,
+                onValueChange = {},
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text("Select date") },
+                singleLine = true,
+                readOnly = true,
+                enabled = false,
+                shape = KahavanuShapes.large,
+                trailingIcon = {
+                    Icon(
+                        imageVector = Icons.Outlined.CalendarMonth,
+                        contentDescription = null,
+                        tint = RawColors.Slate.Slate500,
+                    )
+                },
+                colors = textFieldColors(),
+            )
+            // Invisible overlay to ensure clicks are captured by the Box
+            Box(modifier = Modifier.matchParentSize())
+        }
     }
 }
 

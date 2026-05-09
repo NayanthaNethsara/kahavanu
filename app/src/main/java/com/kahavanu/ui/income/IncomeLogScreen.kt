@@ -29,20 +29,13 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.outlined.AccountBalanceWallet
 import androidx.compose.material.icons.outlined.Autorenew
 import androidx.compose.material.icons.outlined.CalendarMonth
-import androidx.compose.material.icons.outlined.CurrencyBitcoin
-import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.icons.outlined.WorkOutline
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import android.provider.ContactsContract
-import android.database.Cursor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material3.DatePicker
@@ -53,7 +46,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -61,10 +53,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -76,14 +65,19 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kahavanu.domain.model.IncomeSource
 import com.kahavanu.domain.model.IncomeSourceType
+import com.kahavanu.ui.income.components.CircularIconButton
+import com.kahavanu.ui.income.components.CurrencyDropdown
+import com.kahavanu.ui.income.components.GradientBlob
+import com.kahavanu.ui.income.components.PrimaryActionButton
+import com.kahavanu.ui.income.components.SectionLabel
+import com.kahavanu.ui.income.components.sourceIconFor
+import com.kahavanu.ui.income.components.textFieldColors
 import com.kahavanu.ui.theme.KahavanuShapes
 import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
 import com.kahavanu.ui.theme.TextPrimaryEmerald
-import com.kahavanu.ui.theme.TextSecondaryEmerald
-import com.kahavanu.ui.theme.TextTertiaryEmerald
 import com.kahavanu.ui.theme.TextSize
 import java.time.Instant
 import java.time.ZoneId
@@ -338,31 +332,6 @@ private fun TopBar(
 }
 
 @Composable
-private fun CircularIconButton(
-    icon: ImageVector,
-    contentDescription: String,
-    onClick: () -> Unit,
-) {
-    Box(
-        modifier = Modifier
-            .size(40.dp)
-            .shadow(6.dp, CircleShape)
-            .background(Color.White.copy(alpha = 0.8f), CircleShape)
-            .border(0.7.dp, RawColors.Slate.Slate200.copy(alpha = 0.7f), CircleShape)
-            .clip(CircleShape)
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = contentDescription,
-            tint = TextSecondary,
-            modifier = Modifier.size(20.dp),
-        )
-    }
-}
-
-@Composable
 private fun IncomeTypeSection(
     selectedType: IncomeSourceType,
     onTypeSelected: (IncomeSourceType) -> Unit,
@@ -574,16 +543,6 @@ private fun SourceChip(
     }
 }
 
-private fun sourceIconFor(name: String): ImageVector {
-    return when (name.trim().lowercase(Locale.getDefault())) {
-        "salary" -> Icons.Outlined.AccountBalanceWallet
-        "freelance" -> Icons.Outlined.WorkOutline
-        "adsense" -> Icons.Outlined.Public
-        "crypto" -> Icons.Outlined.CurrencyBitcoin
-        else -> Icons.Outlined.AccountBalanceWallet
-    }
-}
-
 @Composable
 private fun LabeledTextField(
     label: String,
@@ -633,70 +592,12 @@ private fun AmountSection(
                 ),
                 colors = textFieldColors(),
             )
-            CurrencyToggle(
+            CurrencyDropdown(
                 selected = currency,
                 onSelect = onCurrencyChange,
+                modifier = Modifier.width(110.dp)
             )
         }
-    }
-}
-
-@Composable
-private fun CurrencyToggle(
-    selected: CurrencyOption,
-    onSelect: (CurrencyOption) -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .width(110.dp)
-            .height(52.dp)
-            .background(
-                RawColors.Slate.Slate900.copy(alpha = 0.06f),
-                RoundedCornerShape(14.dp),
-            )
-            .padding(3.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        CurrencyOptionButton(
-            text = CurrencyOption.LKR.code,
-            selected = selected == CurrencyOption.LKR,
-            onClick = { onSelect(CurrencyOption.LKR) },
-            modifier = Modifier.weight(1f),
-        )
-        CurrencyOptionButton(
-            text = CurrencyOption.USD.code,
-            selected = selected == CurrencyOption.USD,
-            onClick = { onSelect(CurrencyOption.USD) },
-            modifier = Modifier.weight(1f),
-        )
-    }
-}
-
-@Composable
-private fun CurrencyOptionButton(
-    text: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(
-                if (selected) RawColors.Emerald.Emerald500 else Color.Transparent,
-                RoundedCornerShape(10.dp),
-            )
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelMedium,
-            fontSize = TextSize.sm,
-            fontWeight = FontWeight.Medium,
-            color = if (selected) Color.White else TextSecondary,
-        )
     }
 }
 
@@ -743,7 +644,7 @@ private fun FrequencySection(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(Spacing.small)
         ) {
-            RecurrenceFrequency.values().forEach { freq ->
+            RecurrenceFrequency.entries.forEach { freq ->
                 FrequencyChip(
                     label = freq.label,
                     selected = selected == freq,
@@ -809,99 +710,6 @@ private fun InfoBanner(text: String) {
         )
     }
 }
-
-@Composable
-private fun PrimaryActionButton(
-    text: String,
-    enabled: Boolean,
-    onClick: () -> Unit,
-) {
-    val gradient = Brush.verticalGradient(
-        colors = listOf(
-            RawColors.Emerald.Emerald500.copy(alpha = 0.9f),
-            RawColors.Emerald.Emerald500.copy(alpha = 0.75f),
-            RawColors.Emerald.Emerald500.copy(alpha = 0.9f)
-        )
-    )
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(54.dp)
-            .shadow(elevation = 18.dp, spotColor = Color.Black.copy(alpha = 0.25f), shape = KahavanuShapes.large)
-            .background(
-                if (enabled) gradient else Brush.verticalGradient(listOf(Color.Gray, Color.DarkGray)),
-                KahavanuShapes.large
-            )
-            .border(
-                width = 0.5.dp,
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        Color.White.copy(alpha = 0.9f),
-                        Color.White.copy(alpha = 0.1f)
-                    )
-                ),
-                shape = KahavanuShapes.large
-            )
-            .clip(KahavanuShapes.large)
-            .clickable(enabled = enabled, onClick = onClick),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.titleSmall,
-            fontSize = TextSize.base,
-            fontWeight = FontWeight.Bold,
-            color = Color.White,
-            letterSpacing = (-0.23).sp,
-        )
-    }
-}
-
-@Composable
-private fun SectionLabel(text: String) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.bodySmall,
-        fontSize = TextSize.sm,
-        fontWeight = FontWeight.Medium,
-        color = TextSecondary,
-    )
-}
-
-@Composable
-private fun GradientBlob(
-    modifier: Modifier,
-    size: androidx.compose.ui.unit.Dp,
-    colors: List<Color>,
-) {
-    Box(
-        modifier = modifier
-            .size(size)
-            .blur(80.dp)
-            .background(
-                brush = Brush.radialGradient(colors = colors),
-                shape = CircleShape,
-            ),
-    )
-}
-
-@Composable
-private fun textFieldColors() =
-    OutlinedTextFieldDefaults.colors(
-        focusedContainerColor = Color.White.copy(alpha = 0.7f),
-        unfocusedContainerColor = Color.White.copy(alpha = 0.7f),
-        focusedBorderColor = RawColors.Slate.Slate200.copy(alpha = 0.9f),
-        unfocusedBorderColor = RawColors.Slate.Slate200.copy(alpha = 0.9f),
-        focusedTextColor = RawColors.Slate.Slate900,
-        unfocusedTextColor = RawColors.Slate.Slate900,
-        focusedPlaceholderColor = RawColors.Slate.Slate500.copy(alpha = 0.7f),
-        unfocusedPlaceholderColor = RawColors.Slate.Slate500.copy(alpha = 0.7f),
-        disabledBorderColor = RawColors.Slate.Slate200.copy(alpha = 0.6f),
-        disabledContainerColor = Color.White.copy(alpha = 0.6f),
-        errorBorderColor = MaterialTheme.colorScheme.error,
-        errorContainerColor = Color.White.copy(alpha = 0.7f),
-    )
 
 private fun infoTextFor(type: IncomeSourceType): String = when (type) {
     IncomeSourceType.ONE_TIME ->

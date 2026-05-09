@@ -26,4 +26,19 @@ object IncomeDatabaseMigrations {
             )
         }
     }
+
+    val MIGRATION_2_3 = object : Migration(2, 3) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            database.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS user_settings (
+                    userId TEXT PRIMARY KEY NOT NULL,
+                    primaryCurrency TEXT NOT NULL,
+                    secondaryCurrency TEXT NOT NULL,
+                    updatedAtEpochMillis INTEGER NOT NULL
+                )
+                """.trimIndent()
+            )
+        }
+    }
 }

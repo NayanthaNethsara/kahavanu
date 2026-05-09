@@ -104,12 +104,32 @@ fun IncomeLogScreen(
         contract = ActivityResultContracts.PickContact()
     ) { uri ->
         uri?.let {
-            val projection = arrayOf(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)
+            val projection = arrayOf(
+                ContactsContract.Contacts.DISPLAY_NAME,
+                ContactsContract.Contacts.HAS_PHONE_NUMBER,
+                ContactsContract.Contacts._ID
+            )
             context.contentResolver.query(it, projection, null, null, null)?.use { cursor ->
                 if (cursor.moveToFirst()) {
-                    val nameIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)
-                    val name = cursor.getString(nameIndex)
-                    viewModel.onContactSelected(name)
+                    val id = cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.Contacts._ID))
+                    val name = cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.Contacts.DISPLAY_NAME))
+                    val hasPhone = cursor.getInt(cursor.getColumnIndexOrThrow(ContactsContract.Contacts.HAS_PHONE_NUMBER)) > 0
+                    
+                    var phoneNumber: String? = null
+                    if (hasPhone) {
+                        context.contentResolver.query(
+                            ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                            arrayOf(ContactsContract.CommonDataKinds.Phone.NUMBER),
+                            "${ContactsContract.CommonDataKinds.Phone.CONTACT_ID} = ?",
+                            arrayOf(id),
+                            null
+                        )?.use { phoneCursor ->
+                            if (phoneCursor.moveToFirst()) {
+                                phoneNumber = phoneCursor.getString(0)
+                            }
+                        }
+                    }
+                    viewModel.onContactSaved(name, phoneNumber)
                 }
             }
         }
@@ -120,7 +140,7 @@ fun IncomeLogScreen(
             initialSelectedDateMillis = uiState.receivedDate
                 ?.atStartOfDay(ZoneId.systemDefault())
                 ?.toInstant()
-                ?.toEpochMilli(),
+                ?.toEpochMilli() ?: System.currentTimeMillis(),
         )
         DatePickerDialog(
             onDismissRequest = { viewModel.onDatePickerOpenChange(false) },
@@ -212,24 +232,18 @@ fun IncomeLogScreen(
                     onSourceSelected = viewModel::onSourceChange,
                 )
 
+                ContactSelectionSection(
+                    contacts = uiState.contacts,
+                    onContactSelected = viewModel::onContactSelected,
+                    onPickContact = { contactPickerLauncher.launch(null) }
+                )
+
                 LabeledTextField(
                     label = "Client / Description",
                     value = uiState.clientDescription,
                     placeholder = "e.g., ACME Corp, Freelance project",
                     onValueChange = viewModel::onClientDescriptionChange,
-                    trailingIcon = if (uiState.incomeType == IncomeSourceType.ONE_TIME) {
-                        {
-                            Icon(
-                                imageVector = Icons.Outlined.PersonAdd,
-                                contentDescription = "Tag Contact",
-                                tint = RawColors.Slate.Slate500,
-                                modifier = Modifier
-                                    .clip(CircleShape)
-                                    .clickable { contactPickerLauncher.launch(null) }
-                                    .padding(8.dp)
-                            )
-                        }
-                    } else null
+                    trailingIcon = null
                 )
 
                 AmountSection(
@@ -237,6 +251,7 @@ fun IncomeLogScreen(
                     currency = uiState.currency,
                     onAmountChange = viewModel::onAmountChange,
                     onCurrencyChange = viewModel::onCurrencyChange,
+                    currencyOptions = uiState.availableCurrencies,
                 )
 
                 if (uiState.incomeType == IncomeSourceType.RECURRENT) {
@@ -246,8 +261,14 @@ fun IncomeLogScreen(
                     )
                 }
 
+                val dateLabelText = when (uiState.incomeType) {
+                    IncomeSourceType.RECURRENT -> "Recurrence Start"
+                    IncomeSourceType.PENDING -> "Date Expected"
+                    else -> "Date Received"
+                }
+
                 DateSection(
-                    label = if (uiState.incomeType == IncomeSourceType.RECURRENT) "Recurrence Start" else "Date Received",
+                    label = dateLabelText,
                     dateLabel = dateLabel,
                     onOpenDatePicker = { viewModel.onDatePickerOpenChange(true) },
                 )
@@ -526,6 +547,7 @@ private fun AmountSection(
     currency: CurrencyOption,
     onAmountChange: (String) -> Unit,
     onCurrencyChange: (CurrencyOption) -> Unit,
+    currencyOptions: List<CurrencyOption>,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.small)) {
         SectionLabel("Amount")
@@ -549,7 +571,8 @@ private fun AmountSection(
             CurrencyDropdown(
                 selected = currency,
                 onSelect = onCurrencyChange,
-                modifier = Modifier.width(110.dp)
+                modifier = Modifier.width(110.dp),
+                options = currencyOptions
             )
         }
     }
@@ -672,4 +695,74 @@ private fun infoTextFor(type: IncomeSourceType): String = when (type) {
         "Recurrent income tracks regular payments. Keep it updated to forecast monthly earnings."
     IncomeSourceType.PENDING ->
         "Pending income is expected in the future. It will show up once you mark it as received."
+}
+
+@Composable
+private fun ContactSelectionSection(
+    contacts: List<com.kahavanu.domain.model.Contact>,
+    onContactSelected: (com.kahavanu.domain.model.Contact) -> Unit,
+    onPickContact: () -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.small)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            SectionLabel("Client / Contact")
+            Text(
+                text = "Pick from phone",
+                style = MaterialTheme.typography.labelSmall,
+                color = RawColors.Emerald.Emerald600,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.clickable { onPickContact() }
+            )
+        }
+        
+        if (contacts.isNotEmpty()) {
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(Spacing.small),
+                contentPadding = PaddingValues(horizontal = 2.dp)
+            ) {
+                items(contacts) { contact ->
+                    ContactChip(
+                        contact = contact,
+                        onClick = { onContactSelected(contact) }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ContactChip(
+    contact: com.kahavanu.domain.model.Contact,
+    onClick: () -> Unit,
+) {
+    Surface(
+        onClick = onClick,
+        color = RawColors.Slate.Slate900.copy(alpha = 0.04f),
+        shape = CircleShape,
+        border = androidx.compose.foundation.BorderStroke(0.5.dp, RawColors.Slate.Slate200.copy(alpha = 0.5f))
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = Spacing.medium, vertical = Spacing.extraSmall),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Spacing.extraSmall)
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.PersonAdd,
+                contentDescription = null,
+                modifier = Modifier.size(14.dp),
+                tint = RawColors.Slate.Slate500
+            )
+            Text(
+                text = contact.name,
+                style = MaterialTheme.typography.labelMedium,
+                fontSize = TextSize.xs,
+                color = TextPrimary
+            )
+        }
+    }
 }

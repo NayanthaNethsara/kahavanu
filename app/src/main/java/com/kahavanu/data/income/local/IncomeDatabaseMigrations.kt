@@ -41,4 +41,23 @@ object IncomeDatabaseMigrations {
             )
         }
     }
+
+    val MIGRATION_3_4 = object : Migration(3, 4) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            database.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS contacts (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    name TEXT NOT NULL,
+                    phoneNumber TEXT,
+                    userId TEXT NOT NULL,
+                    lastUsedAt INTEGER NOT NULL
+                )
+                """.trimIndent()
+            )
+            database.execSQL(
+                "CREATE INDEX IF NOT EXISTS index_contacts_userId ON contacts(userId)"
+            )
+        }
+    }
 }

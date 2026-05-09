@@ -311,7 +311,8 @@ fun CurrencyOptionButton(
 fun CurrencyDropdown(
     selected: CurrencyOption,
     onSelect: (CurrencyOption) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    options: List<CurrencyOption> = CurrencyOption.values().toList()
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -346,7 +347,7 @@ fun CurrencyDropdown(
                 .background(Color.White)
                 .width(160.dp)
         ) {
-            CurrencyOption.values().forEach { option ->
+            options.forEach { option ->
                 DropdownMenuItem(
                     text = {
                         Text(

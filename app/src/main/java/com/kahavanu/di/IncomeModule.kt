@@ -9,6 +9,7 @@ import com.kahavanu.data.income.local.IncomeDatabaseMigrations
 import com.kahavanu.data.income.local.IncomeLogDao
 import com.kahavanu.data.income.local.IncomeSourceDao
 import com.kahavanu.data.income.local.UserSettingsDao
+import com.kahavanu.data.income.local.ContactDao
 import com.kahavanu.data.income.sync.IncomeSyncScheduler
 import com.kahavanu.domain.repository.IncomeRepository
 import dagger.Binds
@@ -45,7 +46,8 @@ abstract class IncomeModule {
         )
             .addMigrations(
                 IncomeDatabaseMigrations.MIGRATION_1_2,
-                IncomeDatabaseMigrations.MIGRATION_2_3
+                IncomeDatabaseMigrations.MIGRATION_2_3,
+                IncomeDatabaseMigrations.MIGRATION_3_4
             )
             .build()
 
@@ -63,6 +65,11 @@ abstract class IncomeModule {
         fun provideUserSettingsDao(
             database: IncomeDatabase,
         ): UserSettingsDao = database.userSettingsDao()
+
+        @Provides
+        fun provideContactDao(
+            database: IncomeDatabase,
+        ): ContactDao = database.contactDao()
 
         @Provides
         @Singleton

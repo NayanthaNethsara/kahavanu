@@ -43,6 +43,25 @@ class IncomeViewModel @Inject constructor(
                 }
             }
         }
+
+        viewModelScope.launch {
+            repository.observeCurrencySettings().collect { (primary, secondary) ->
+                _uiState.update { current ->
+                    val available = listOf(primary, secondary)
+                    val newCurrency = if (current.currency !in available) primary else current.currency
+                    current.copy(
+                        availableCurrencies = available,
+                        currency = newCurrency
+                    )
+                }
+            }
+        }
+
+        viewModelScope.launch {
+            repository.observeContacts().collect { contacts ->
+                _uiState.update { it.copy(contacts = contacts) }
+            }
+        }
     }
 
     fun onAmountChange(value: String) {
@@ -84,14 +103,16 @@ class IncomeViewModel @Inject constructor(
         updateState { it.copy(frequency = frequency) }
     }
 
-    fun onContactSelected(name: String) {
-        updateState { current ->
-            val newDescription = if (current.clientDescription.isBlank()) {
-                name
-            } else {
-                "${current.clientDescription} ($name)"
+    fun onContactSelected(contact: com.kahavanu.domain.model.Contact) {
+        updateState { it.copy(clientDescription = contact.name) }
+    }
+
+    fun onContactSaved(name: String, phoneNumber: String?) {
+        viewModelScope.launch {
+            val contactId = repository.saveContact(name, phoneNumber)
+            if (contactId != 0L) {
+                updateState { it.copy(clientDescription = name) }
             }
-            current.copy(clientDescription = newDescription)
         }
     }
 

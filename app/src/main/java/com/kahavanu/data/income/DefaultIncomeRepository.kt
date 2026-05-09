@@ -7,6 +7,7 @@ import com.kahavanu.data.income.local.IncomeLogDao
 import com.kahavanu.data.income.local.IncomeSourceDao
 import com.kahavanu.data.income.local.IncomeSourceEntity
 import com.kahavanu.data.income.local.UserSettingsDao
+import com.kahavanu.data.income.local.ContactDao
 import com.kahavanu.data.income.local.UserSettingsEntity
 import com.kahavanu.data.income.sync.IncomeSyncScheduler
 import com.kahavanu.domain.model.IncomeLogEntry
@@ -34,6 +35,7 @@ class DefaultIncomeRepository @Inject constructor(
     private val incomeLogDao: IncomeLogDao,
     private val incomeSourceDao: IncomeSourceDao,
     private val userSettingsDao: UserSettingsDao,
+    private val contactDao: ContactDao,
     private val syncScheduler: IncomeSyncScheduler,
 ) : IncomeRepository {
     private val repositoryScope = CoroutineScope(Dispatchers.IO)
@@ -240,9 +242,40 @@ class DefaultIncomeRepository @Inject constructor(
             .document(CONFIG_DOCUMENT)
             .set(data, SetOptions.merge())
             .awaitResult()
-            .map { Unit }
+            .map { }
+    }
+
+    override fun observeContacts(): Flow<List<com.kahavanu.domain.model.Contact>> {
+        val uid = auth.currentUser?.uid ?: return flowOf(emptyList())
+        return contactDao.observeContacts(uid).map { entities ->
+            entities.map { it.toDomain() }
+        }
+    }
+
+    override suspend fun saveContact(name: String, phoneNumber: String?): Long {
+        val uid = auth.currentUser?.uid ?: return 0L
+        val existing = contactDao.getContact(uid, name, phoneNumber)
+        return if (existing != null) {
+            val now = System.currentTimeMillis()
+            contactDao.updateLastUsed(existing.id, now)
+            existing.id
+        } else {
+            contactDao.upsert(
+                com.kahavanu.data.income.local.ContactEntity(
+                    name = name,
+                    phoneNumber = phoneNumber,
+                    userId = uid
+                )
+            )
+        }
     }
 }
+
+private fun com.kahavanu.data.income.local.ContactEntity.toDomain() = com.kahavanu.domain.model.Contact(
+    id = id,
+    name = name,
+    phoneNumber = phoneNumber
+)
 
 private const val USERS_COLLECTION = "users"
 private const val SETTINGS_COLLECTION = "settings"
@@ -267,10 +300,10 @@ private suspend fun <T> com.google.android.gms.tasks.Task<T>.awaitResult(): Resu
         addOnCompleteListener { task ->
             if (!continuation.isActive) return@addOnCompleteListener
             if (task.isSuccessful) {
-                continuation.resumeWith(kotlin.Result.success(Result.success(task.result)))
+                continuation.resumeWith(Result.success(Result.success(task.result)))
             } else {
                 continuation.resumeWith(
-                    kotlin.Result.success(
+                    Result.success(
                         Result.failure(task.exception ?: Exception("Unknown error"))
                     )
                 )

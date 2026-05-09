@@ -388,7 +388,7 @@ private fun IncomeTypeCard(
     
     Box(
         modifier = modifier
-            .height(123.dp)
+            .height(72.dp)
             .background(backgroundColor, KahavanuShapes.large)
             .border(1.dp, borderColor, KahavanuShapes.large)
             .clip(KahavanuShapes.large)
@@ -396,50 +396,25 @@ private fun IncomeTypeCard(
         contentAlignment = Alignment.Center
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(Spacing.medium),
+            modifier = Modifier.padding(Spacing.small),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(Spacing.small),
+            verticalArrangement = Arrangement.Center,
         ) {
-            // Icon Container
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .background(
-                        if (selected) RawColors.Emerald.Emerald500 else RawColors.Slate.Slate900.copy(alpha = 0.06f),
-                        KahavanuShapes.medium,
-                    ),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = if (selected) Color.White else RawColors.Slate.Slate500,
-                    modifier = Modifier.size(20.dp),
-                )
-            }
-            
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(2.dp)
-            ) {
-                Text(
-                    text = type.label,
-                    style = MaterialTheme.typography.labelMedium,
-                    fontSize = TextSize.sm,
-                    fontWeight = FontWeight.Bold,
-                    color = if (selected) RawColors.Emerald.Emerald600 else TextPrimary,
-                )
-                Text(
-                    text = type.description,
-                    style = MaterialTheme.typography.labelSmall,
-                    fontSize = TextSize.xs,
-                    color = TextSecondary,
-                    lineHeight = 14.sp,
-                    textAlign = TextAlign.Center,
-                )
-            }
+            Text(
+                text = type.label,
+                style = MaterialTheme.typography.labelMedium,
+                fontSize = TextSize.sm,
+                fontWeight = FontWeight.Bold,
+                color = if (selected) RawColors.Emerald.Emerald600 else TextPrimary,
+            )
+            Text(
+                text = type.description,
+                style = MaterialTheme.typography.labelSmall,
+                fontSize = TextSize.xs,
+                color = TextSecondary,
+                lineHeight = 14.sp,
+                textAlign = TextAlign.Center,
+            )
         }
     }
 }
@@ -470,7 +445,6 @@ private fun IncomeSourceSection(
                     val isEnabled = source.types.contains(selectedType)
                     SourceChip(
                         source = source,
-                        icon = sourceIconFor(source.name),
                         selected = isSelected,
                         enabled = isEnabled,
                         onClick = { if (isEnabled) onSourceSelected(source.id) },
@@ -484,7 +458,6 @@ private fun IncomeSourceSection(
 @Composable
 private fun SourceChip(
     source: IncomeSource,
-    icon: ImageVector,
     selected: Boolean,
     enabled: Boolean,
     onClick: () -> Unit,
@@ -502,8 +475,8 @@ private fun SourceChip(
 
     Box(
         modifier = Modifier
-            .height(84.dp)
-            .width(100.dp)
+            .height(56.dp)
+            .width(110.dp)
             .alpha(if (enabled) 1f else 0.4f)
             .background(backgroundColor, KahavanuShapes.large)
             .border(1.dp, borderColor, KahavanuShapes.large)
@@ -511,35 +484,16 @@ private fun SourceChip(
             .clickable(enabled = enabled, onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .background(
-                        if (selected) RawColors.Emerald.Emerald500 else RawColors.Slate.Slate900.copy(alpha = 0.06f),
-                        KahavanuShapes.medium,
-                    ),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = if (selected) Color.White else RawColors.Slate.Slate500,
-                    modifier = Modifier.size(16.dp),
-                )
-            }
-            Spacer(modifier = Modifier.height(Spacing.small))
-            Text(
-                text = source.name,
-                style = MaterialTheme.typography.labelSmall,
-                fontSize = TextSize.xs,
-                fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
-                color = if (selected) RawColors.Emerald.Emerald700 else TextSecondary,
-            )
-        }
+        Text(
+            text = source.name,
+            style = MaterialTheme.typography.labelMedium,
+            fontSize = TextSize.sm,
+            fontWeight = FontWeight.Bold,
+            color = if (selected) RawColors.Emerald.Emerald600 else TextPrimary,
+            textAlign = TextAlign.Center,
+            maxLines = 2,
+            modifier = Modifier.padding(horizontal = Spacing.small)
+        )
     }
 }
 

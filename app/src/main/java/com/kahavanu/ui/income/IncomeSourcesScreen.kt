@@ -1,11 +1,17 @@
 package com.kahavanu.ui.income
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -19,22 +25,37 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Autorenew
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -50,15 +71,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kahavanu.domain.model.IncomeSource
 import com.kahavanu.domain.model.IncomeSourceType
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.runtime.rememberCoroutineScope
 import com.kahavanu.ui.income.components.CircularIconButton
 import com.kahavanu.ui.income.components.CurrencyDropdown
 import com.kahavanu.ui.income.components.CurrencyToggle
@@ -67,12 +79,14 @@ import com.kahavanu.ui.income.components.PrimaryActionButton
 import com.kahavanu.ui.income.components.SectionLabel
 import com.kahavanu.ui.income.components.sourceIconFor
 import com.kahavanu.ui.income.components.textFieldColors
+import com.kahavanu.ui.theme.CornerRadius
 import com.kahavanu.ui.theme.KahavanuShapes
 import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
 import com.kahavanu.ui.theme.TextSize
+import com.kahavanu.ui.theme.TextTertiary
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -280,26 +294,10 @@ private fun IncomeSourceRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White.copy(alpha = 0.5f), KahavanuShapes.large)
-            .border(1.dp, RawColors.Slate.Slate200.copy(alpha = 0.6f), KahavanuShapes.large)
-            .padding(Spacing.medium),
+            .padding(vertical = Spacing.small),
         horizontalArrangement = Arrangement.spacedBy(Spacing.medium),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(
-            modifier = Modifier
-                .size(44.dp)
-                .background(RawColors.Slate.Slate100, KahavanuShapes.medium),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                imageVector = sourceIconFor(source.name),
-                contentDescription = null,
-                tint = RawColors.Slate.Slate600,
-                modifier = Modifier.size(24.dp),
-            )
-        }
-
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = source.name,
@@ -462,95 +460,159 @@ private fun CurrencySetup(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            SectionLabel("Currency settings")
-            if (!isEditing) {
-                TextButton(onClick = onStartEdit) {
-                    Text(
-                        text = "Edit",
-                        color = RawColors.Emerald.Emerald600,
-                        style = MaterialTheme.typography.labelLarge,
-                        fontSize = TextSize.sm,
-                    )
-                }
-            } else {
-                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.small)) {
-                    TextButton(onClick = onCancelEdit) {
+            SectionLabel("Currency configuration")
+            
+            AnimatedContent(
+                targetState = isEditing,
+                transitionSpec = { fadeIn() togetherWith fadeOut() },
+                label = "CurrencyActions"
+            ) { editing ->
+                if (!editing) {
+                    TextButton(
+                        onClick = onStartEdit,
+                        modifier = Modifier.height(32.dp),
+                        contentPadding = PaddingValues(horizontal = Spacing.medium, vertical = 0.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = null,
+                            modifier = Modifier.size(14.dp),
+                            tint = RawColors.Emerald.Emerald600
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "Cancel",
-                            color = TextSecondary,
+                            text = "Manage",
+                            color = RawColors.Emerald.Emerald600,
                             style = MaterialTheme.typography.labelLarge,
                             fontSize = TextSize.sm,
                         )
                     }
-                    TextButton(onClick = onSave) {
-                        Text(
-                            text = "Save",
-                            color = RawColors.Emerald.Emerald600,
-                            style = MaterialTheme.typography.labelLarge,
-                            fontSize = TextSize.sm,
-                            fontWeight = FontWeight.Bold,
-                        )
+                } else {
+                    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.extraSmall)) {
+                        TextButton(onClick = onCancelEdit) {
+                            Text(
+                                text = "Cancel",
+                                color = TextSecondary,
+                                style = MaterialTheme.typography.labelLarge,
+                                fontSize = TextSize.sm,
+                            )
+                        }
+                        Button(
+                            onClick = onSave,
+                            colors = ButtonDefaults.buttonColors(containerColor = RawColors.Emerald.Emerald500),
+                            shape = RoundedCornerShape(CornerRadius.medium),
+                            modifier = Modifier.height(32.dp),
+                            contentPadding = PaddingValues(horizontal = Spacing.medium, vertical = 0.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Done,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "Save",
+                                color = Color.White,
+                                style = MaterialTheme.typography.labelLarge,
+                                fontSize = TextSize.sm,
+                            )
+                        }
                     }
                 }
             }
         }
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.White.copy(alpha = 0.5f), KahavanuShapes.large)
-                .border(1.dp, RawColors.Slate.Slate200.copy(alpha = 0.6f), KahavanuShapes.large)
-                .padding(Spacing.medium),
-            horizontalArrangement = Arrangement.spacedBy(Spacing.large),
-            verticalAlignment = Alignment.CenterVertically
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = KahavanuShapes.large,
+            color = Color.White.copy(alpha = 0.4f),
+            border = BorderStroke(0.5.dp, RawColors.Slate.Slate200.copy(alpha = 0.6f))
         ) {
-            if (!isEditing) {
-                Column(verticalArrangement = Arrangement.spacedBy(Spacing.extraSmall)) {
-                    Text(
-                        text = "Active configuration",
-                        style = MaterialTheme.typography.labelMedium,
-                        fontSize = TextSize.xs,
-                        color = TextSecondary,
-                        fontWeight = FontWeight.Medium
-                    )
-                    Text(
-                        text = "Primary is ${primaryCurrency.code} (${primaryCurrency.symbol}) and secondary is ${secondaryCurrency.code} (${secondaryCurrency.symbol})",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontSize = TextSize.sm,
-                        color = TextPrimary,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-            } else {
-                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.extraSmall)) {
-                    Text(
-                        text = "Primary",
-                        style = MaterialTheme.typography.labelMedium,
-                        fontSize = TextSize.xs,
-                        color = TextSecondary,
-                        fontWeight = FontWeight.Medium
-                    )
-                    CurrencyDropdown(
-                        selected = primaryDraft,
-                        onSelect = onPrimaryChange
-                    )
-                }
-                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.extraSmall)) {
-                    Text(
-                        text = "Secondary",
-                        style = MaterialTheme.typography.labelMedium,
-                        fontSize = TextSize.xs,
-                        color = TextSecondary,
-                        fontWeight = FontWeight.Medium
-                    )
-                    CurrencyDropdown(
-                        selected = secondaryDraft,
-                        onSelect = onSecondaryChange
-                    )
+            AnimatedContent(
+                targetState = isEditing,
+                transitionSpec = { fadeIn() togetherWith fadeOut() },
+                label = "CurrencyContent"
+            ) { editing ->
+                if (!editing) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(Spacing.medium),
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.large),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.extraSmall)) {
+                            Text(
+                                text = "Primary",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = TextSecondary,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 0.5.sp
+                            )
+                            CurrencyPill(primaryCurrency)
+                        }
+                        
+                        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.extraSmall)) {
+                            Text(
+                                text = "Secondary",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = TextSecondary,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 0.5.sp
+                            )
+                            CurrencyPill(secondaryCurrency)
+                        }
+                    }
+                } else {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(Spacing.medium),
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.medium),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.extraSmall)) {
+                            Text(
+                                text = "Primary",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontSize = TextSize.xs,
+                                color = TextSecondary,
+                                fontWeight = FontWeight.Medium
+                            )
+                            CurrencyDropdown(
+                                selected = primaryDraft,
+                                onSelect = onPrimaryChange
+                            )
+                        }
+                        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.extraSmall)) {
+                            Text(
+                                text = "Secondary",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontSize = TextSize.xs,
+                                color = TextSecondary,
+                                fontWeight = FontWeight.Medium
+                            )
+                            CurrencyDropdown(
+                                selected = secondaryDraft,
+                                onSelect = onSecondaryChange
+                            )
+                        }
+                    }
                 }
             }
         }
     }
+}
+
+@Composable
+private fun CurrencyPill(currency: CurrencyOption) {
+    Text(
+        text = "${currency.code} (${currency.symbol})",
+        style = MaterialTheme.typography.titleMedium,
+        fontSize = TextSize.base,
+        color = TextPrimary,
+        fontWeight = FontWeight.SemiBold
+    )
 }
 
 @Composable
@@ -596,39 +658,20 @@ private fun TypeToggleChip(
 
     Box(
         modifier = modifier
-            .height(84.dp)
+            .height(56.dp)
             .background(backgroundColor, KahavanuShapes.large)
             .border(1.dp, borderColor, KahavanuShapes.large)
             .clip(KahavanuShapes.large)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(Spacing.small),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
-            Icon(
-                imageVector = when (type) {
-                    IncomeSourceType.ONE_TIME -> Icons.Outlined.CalendarMonth
-                    IncomeSourceType.RECURRENT -> Icons.Outlined.Autorenew
-                    IncomeSourceType.PENDING -> Icons.Outlined.Schedule
-                },
-                contentDescription = null,
-                tint = if (selected) RawColors.Emerald.Emerald600 else RawColors.Slate.Slate400,
-                modifier = Modifier.size(20.dp),
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                text = type.label,
-                style = MaterialTheme.typography.labelMedium,
-                fontSize = TextSize.xs,
-                fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
-                color = if (selected) RawColors.Emerald.Emerald700 else TextSecondary,
-                textAlign = TextAlign.Center,
-            )
-        }
+        Text(
+            text = type.label,
+            style = MaterialTheme.typography.labelMedium,
+            fontSize = TextSize.xs,
+            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+            color = if (selected) RawColors.Emerald.Emerald700 else TextSecondary,
+            textAlign = TextAlign.Center,
+        )
     }
 }

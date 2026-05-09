@@ -1,5 +1,9 @@
 package com.kahavanu.ui.income
 
+import android.content.Intent
+import android.provider.ContactsContract
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -25,19 +29,15 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Autorenew
 import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Settings
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import android.provider.ContactsContract
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.Icon
@@ -56,6 +56,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -70,14 +71,13 @@ import com.kahavanu.ui.income.components.CurrencyDropdown
 import com.kahavanu.ui.income.components.GradientBlob
 import com.kahavanu.ui.income.components.PrimaryActionButton
 import com.kahavanu.ui.income.components.SectionLabel
-import com.kahavanu.ui.income.components.sourceIconFor
 import com.kahavanu.ui.income.components.textFieldColors
 import com.kahavanu.ui.theme.KahavanuShapes
 import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
-import com.kahavanu.ui.theme.TextSecondary
 import com.kahavanu.ui.theme.TextPrimaryEmerald
+import com.kahavanu.ui.theme.TextSecondary
 import com.kahavanu.ui.theme.TextSize
 import java.time.Instant
 import java.time.ZoneId
@@ -101,35 +101,21 @@ fun IncomeLogScreen(
 
     val context = LocalContext.current
     val contactPickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickContact()
-    ) { uri ->
-        uri?.let {
-            val projection = arrayOf(
-                ContactsContract.Contacts.DISPLAY_NAME,
-                ContactsContract.Contacts.HAS_PHONE_NUMBER,
-                ContactsContract.Contacts._ID
-            )
-            context.contentResolver.query(it, projection, null, null, null)?.use { cursor ->
-                if (cursor.moveToFirst()) {
-                    val id = cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.Contacts._ID))
-                    val name = cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.Contacts.DISPLAY_NAME))
-                    val hasPhone = cursor.getInt(cursor.getColumnIndexOrThrow(ContactsContract.Contacts.HAS_PHONE_NUMBER)) > 0
-                    
-                    var phoneNumber: String? = null
-                    if (hasPhone) {
-                        context.contentResolver.query(
-                            ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-                            arrayOf(ContactsContract.CommonDataKinds.Phone.NUMBER),
-                            "${ContactsContract.CommonDataKinds.Phone.CONTACT_ID} = ?",
-                            arrayOf(id),
-                            null
-                        )?.use { phoneCursor ->
-                            if (phoneCursor.moveToFirst()) {
-                                phoneNumber = phoneCursor.getString(0)
-                            }
-                        }
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == android.app.Activity.RESULT_OK) {
+            val uri = result.data?.data
+            uri?.let { contactUri ->
+                val projection = arrayOf(
+                    ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+                    ContactsContract.CommonDataKinds.Phone.NUMBER
+                )
+                context.contentResolver.query(contactUri, projection, null, null, null)?.use { cursor ->
+                    if (cursor.moveToFirst()) {
+                        val name = cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME))
+                        val phoneNumber = cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.NUMBER))
+                        viewModel.onContactSaved(name, phoneNumber)
                     }
-                    viewModel.onContactSaved(name, phoneNumber)
                 }
             }
         }
@@ -235,7 +221,10 @@ fun IncomeLogScreen(
                 ContactSelectionSection(
                     contacts = uiState.contacts,
                     onContactSelected = viewModel::onContactSelected,
-                    onPickContact = { contactPickerLauncher.launch(null) }
+                    onPickContact = {
+                        val intent = Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI)
+                        contactPickerLauncher.launch(intent)
+                    }
                 )
 
                 LabeledTextField(
@@ -406,7 +395,7 @@ private fun IncomeTypeCard(
     } else {
         RawColors.Slate.Slate900.copy(alpha = 0.08f)
     }
-    
+
     Box(
         modifier = modifier
             .height(72.dp)
@@ -644,7 +633,9 @@ private fun FrequencyChip(
         modifier = modifier
             .height(44.dp)
             .background(
-                if (selected) RawColors.Emerald.Emerald500.copy(alpha = 0.12f) else RawColors.Slate.Slate900.copy(alpha = 0.04f),
+                if (selected) RawColors.Emerald.Emerald500.copy(alpha = 0.12f) else RawColors.Slate.Slate900.copy(
+                    alpha = 0.04f
+                ),
                 KahavanuShapes.medium
             )
             .border(
@@ -691,8 +682,10 @@ private fun InfoBanner(text: String) {
 private fun infoTextFor(type: IncomeSourceType): String = when (type) {
     IncomeSourceType.ONE_TIME ->
         "One-time income is for single payments you've already received. It will appear in your income log immediately."
+
     IncomeSourceType.RECURRENT ->
         "Recurrent income tracks regular payments. Keep it updated to forecast monthly earnings."
+
     IncomeSourceType.PENDING ->
         "Pending income is expected in the future. It will show up once you mark it as received."
 }
@@ -718,7 +711,7 @@ private fun ContactSelectionSection(
                 modifier = Modifier.clickable { onPickContact() }
             )
         }
-        
+
         if (contacts.isNotEmpty()) {
             LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(Spacing.small),
@@ -744,7 +737,10 @@ private fun ContactChip(
         onClick = onClick,
         color = RawColors.Slate.Slate900.copy(alpha = 0.04f),
         shape = CircleShape,
-        border = androidx.compose.foundation.BorderStroke(0.5.dp, RawColors.Slate.Slate200.copy(alpha = 0.5f))
+        border = androidx.compose.foundation.BorderStroke(
+            0.5.dp,
+            RawColors.Slate.Slate200.copy(alpha = 0.5f)
+        )
     ) {
         Row(
             modifier = Modifier.padding(horizontal = Spacing.medium, vertical = Spacing.extraSmall),

@@ -1,9 +1,3 @@
 <resources>
     <string name="app_name">kahavanu</string>
-    <string name="email_label">Email</string>
-    <string name="password_label">Password</string>
-    <string name="sign_in">Sign In</string>
-    <string name="sign_out">Sign Out</string>
-    <string name="dashboard_title">Dashboard</string>
-    <string name="login_title">Welcome Back</string>
 </resources>

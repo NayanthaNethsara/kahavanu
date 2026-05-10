@@ -26,4 +26,46 @@ object IncomeDatabaseMigrations {
             )
         }
     }
+
+    val MIGRATION_2_3 = object : Migration(2, 3) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            database.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS user_settings (
+                    userId TEXT PRIMARY KEY NOT NULL,
+                    primaryCurrency TEXT NOT NULL,
+                    secondaryCurrency TEXT NOT NULL,
+                    updatedAtEpochMillis INTEGER NOT NULL
+                )
+                """.trimIndent()
+            )
+        }
+    }
+
+    val MIGRATION_3_4 = object : Migration(3, 4) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            database.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS contacts (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    name TEXT NOT NULL,
+                    phoneNumber TEXT,
+                    userId TEXT NOT NULL,
+                    lastUsedAt INTEGER NOT NULL
+                )
+                """.trimIndent()
+            )
+            database.execSQL(
+                "CREATE INDEX IF NOT EXISTS index_contacts_userId ON contacts(userId)"
+            )
+        }
+    }
+
+    val MIGRATION_4_5 = object : Migration(4, 5) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            database.execSQL("ALTER TABLE income_logs ADD COLUMN contactName TEXT")
+            database.execSQL("ALTER TABLE income_logs ADD COLUMN contactNumber TEXT")
+            database.execSQL("DROP TABLE IF EXISTS contacts")
+        }
+    }
 }

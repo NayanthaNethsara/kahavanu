@@ -1,5 +1,11 @@
 package com.kahavanu.ui.income.components
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AccountBalanceWallet
+import androidx.compose.material.icons.outlined.CurrencyBitcoin
+import androidx.compose.material.icons.outlined.Public
+import androidx.compose.material.icons.outlined.WorkOutline
+import androidx.compose.ui.graphics.vector.ImageVector
 import java.time.Instant
 import java.time.YearMonth
 import java.time.ZoneId
@@ -22,4 +28,14 @@ fun formatDate(epochMillis: Long): String {
 fun currentMonthLabel(): String {
     val month = YearMonth.now()
     return month.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+}
+
+fun sourceIconFor(name: String): ImageVector {
+    return when (name.trim().lowercase(Locale.getDefault())) {
+        "salary" -> Icons.Outlined.AccountBalanceWallet
+        "freelance" -> Icons.Outlined.WorkOutline
+        "adsense" -> Icons.Outlined.Public
+        "crypto" -> Icons.Outlined.CurrencyBitcoin
+        else -> Icons.Outlined.AccountBalanceWallet
+    }
 }

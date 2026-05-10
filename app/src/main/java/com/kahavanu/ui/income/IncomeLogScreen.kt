@@ -1,5 +1,10 @@
 package com.kahavanu.ui.income
 
+import android.content.Intent
+import android.provider.ContactsContract
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -25,35 +30,25 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.outlined.AccountBalanceWallet
 import androidx.compose.material.icons.outlined.Autorenew
 import androidx.compose.material.icons.outlined.CalendarMonth
-import androidx.compose.material.icons.outlined.CurrencyBitcoin
-import androidx.compose.material.icons.outlined.Public
+import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.icons.outlined.WorkOutline
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import android.provider.ContactsContract
-import android.database.Cursor
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.material.icons.outlined.PersonAdd
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -61,14 +56,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.OffsetMapping
+import androidx.compose.ui.text.input.TransformedText
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -76,17 +73,23 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kahavanu.domain.model.IncomeSource
 import com.kahavanu.domain.model.IncomeSourceType
+import com.kahavanu.ui.income.components.CircularIconButton
+import com.kahavanu.ui.income.components.CurrencyDropdown
+import com.kahavanu.ui.income.components.GradientBlob
+import com.kahavanu.ui.income.components.PrimaryActionButton
+import com.kahavanu.ui.income.components.SectionLabel
+import com.kahavanu.ui.income.components.textFieldColors
 import com.kahavanu.ui.theme.KahavanuShapes
 import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
-import com.kahavanu.ui.theme.TextSecondary
 import com.kahavanu.ui.theme.TextPrimaryEmerald
-import com.kahavanu.ui.theme.TextSecondaryEmerald
-import com.kahavanu.ui.theme.TextTertiaryEmerald
+import com.kahavanu.ui.theme.TextSecondary
 import com.kahavanu.ui.theme.TextSize
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
@@ -107,15 +110,21 @@ fun IncomeLogScreen(
 
     val context = LocalContext.current
     val contactPickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickContact()
-    ) { uri ->
-        uri?.let {
-            val projection = arrayOf(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)
-            context.contentResolver.query(it, projection, null, null, null)?.use { cursor ->
-                if (cursor.moveToFirst()) {
-                    val nameIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)
-                    val name = cursor.getString(nameIndex)
-                    viewModel.onContactSelected(name)
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == android.app.Activity.RESULT_OK) {
+            val uri = result.data?.data
+            uri?.let { contactUri ->
+                val projection = arrayOf(
+                    ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+                    ContactsContract.CommonDataKinds.Phone.NUMBER
+                )
+                context.contentResolver.query(contactUri, projection, null, null, null)?.use { cursor ->
+                    if (cursor.moveToFirst()) {
+                        val name = cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME))
+                        val phoneNumber = cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.NUMBER))
+                        viewModel.onContactSaved(name, phoneNumber)
+                    }
                 }
             }
         }
@@ -124,9 +133,9 @@ fun IncomeLogScreen(
     if (uiState.isDatePickerOpen) {
         val pickerState = androidx.compose.material3.rememberDatePickerState(
             initialSelectedDateMillis = uiState.receivedDate
-                ?.atStartOfDay(ZoneId.systemDefault())
+                ?.atStartOfDay(ZoneOffset.UTC)
                 ?.toInstant()
-                ?.toEpochMilli(),
+                ?.toEpochMilli() ?: System.currentTimeMillis(),
         )
         DatePickerDialog(
             onDismissRequest = { viewModel.onDatePickerOpenChange(false) },
@@ -136,7 +145,7 @@ fun IncomeLogScreen(
                         val millis = pickerState.selectedDateMillis
                         if (millis != null) {
                             val selectedDate = Instant.ofEpochMilli(millis)
-                                .atZone(ZoneId.systemDefault())
+                                .atZone(ZoneOffset.UTC)
                                 .toLocalDate()
                             viewModel.onDateChange(selectedDate)
                         } else {
@@ -218,31 +227,54 @@ fun IncomeLogScreen(
                     onSourceSelected = viewModel::onSourceChange,
                 )
 
-                LabeledTextField(
-                    label = "Client / Description",
-                    value = uiState.clientDescription,
-                    placeholder = "e.g., ACME Corp, Freelance project",
-                    onValueChange = viewModel::onClientDescriptionChange,
-                    trailingIcon = if (uiState.incomeType == IncomeSourceType.ONE_TIME) {
-                        {
-                            Icon(
-                                imageVector = Icons.Outlined.PersonAdd,
-                                contentDescription = "Tag Contact",
-                                tint = RawColors.Slate.Slate500,
-                                modifier = Modifier
-                                    .clip(CircleShape)
-                                    .clickable { contactPickerLauncher.launch(null) }
-                                    .padding(8.dp)
-                            )
+                Column(verticalArrangement = Arrangement.spacedBy(Spacing.small)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            SectionLabel("Client / Description")
+                            if (uiState.contactName != null) {
+                                Spacer(modifier = Modifier.width(Spacing.small))
+                                SelectedContactBadge(
+                                    name = uiState.contactName!!,
+                                    onClear = viewModel::onClearContact
+                                )
+                            }
                         }
-                    } else null
-                )
+                    }
+
+                    OutlinedTextField(
+                        value = uiState.clientDescription,
+                        onValueChange = viewModel::onClientDescriptionChange,
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = { Text("e.g., ACME Corp, Freelance project") },
+                        singleLine = true,
+                        shape = KahavanuShapes.large,
+                        trailingIcon = {
+                            if (uiState.contactName == null) {
+                                Icon(
+                                    imageVector = Icons.Outlined.PersonAdd,
+                                    contentDescription = "Pick from contacts",
+                                    modifier = Modifier.clickable {
+                                        val intent = Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI)
+                                        contactPickerLauncher.launch(intent)
+                                    },
+                                    tint = RawColors.Emerald.Emerald600
+                                )
+                            }
+                        },
+                        colors = textFieldColors(),
+                    )
+                }
 
                 AmountSection(
                     amount = uiState.amount,
                     currency = uiState.currency,
                     onAmountChange = viewModel::onAmountChange,
                     onCurrencyChange = viewModel::onCurrencyChange,
+                    currencyOptions = uiState.availableCurrencies,
                 )
 
                 if (uiState.incomeType == IncomeSourceType.RECURRENT) {
@@ -252,8 +284,14 @@ fun IncomeLogScreen(
                     )
                 }
 
+                val dateLabelText = when (uiState.incomeType) {
+                    IncomeSourceType.RECURRENT -> "Recurrence Start"
+                    IncomeSourceType.PENDING -> "Date Expected"
+                    else -> "Date Received"
+                }
+
                 DateSection(
-                    label = if (uiState.incomeType == IncomeSourceType.RECURRENT) "Recurrence Start" else "Date Received",
+                    label = dateLabelText,
                     dateLabel = dateLabel,
                     onOpenDatePicker = { viewModel.onDatePickerOpenChange(true) },
                 )
@@ -338,31 +376,6 @@ private fun TopBar(
 }
 
 @Composable
-private fun CircularIconButton(
-    icon: ImageVector,
-    contentDescription: String,
-    onClick: () -> Unit,
-) {
-    Box(
-        modifier = Modifier
-            .size(40.dp)
-            .shadow(6.dp, CircleShape)
-            .background(Color.White.copy(alpha = 0.8f), CircleShape)
-            .border(0.7.dp, RawColors.Slate.Slate200.copy(alpha = 0.7f), CircleShape)
-            .clip(CircleShape)
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = contentDescription,
-            tint = TextSecondary,
-            modifier = Modifier.size(20.dp),
-        )
-    }
-}
-
-@Composable
 private fun IncomeTypeSection(
     selectedType: IncomeSourceType,
     onTypeSelected: (IncomeSourceType) -> Unit,
@@ -416,10 +429,10 @@ private fun IncomeTypeCard(
     } else {
         RawColors.Slate.Slate900.copy(alpha = 0.08f)
     }
-    
+
     Box(
         modifier = modifier
-            .height(123.dp)
+            .height(72.dp)
             .background(backgroundColor, KahavanuShapes.large)
             .border(1.dp, borderColor, KahavanuShapes.large)
             .clip(KahavanuShapes.large)
@@ -427,50 +440,25 @@ private fun IncomeTypeCard(
         contentAlignment = Alignment.Center
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(Spacing.medium),
+            modifier = Modifier.padding(Spacing.small),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(Spacing.small),
+            verticalArrangement = Arrangement.Center,
         ) {
-            // Icon Container
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .background(
-                        if (selected) RawColors.Emerald.Emerald500 else RawColors.Slate.Slate900.copy(alpha = 0.06f),
-                        KahavanuShapes.medium,
-                    ),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = if (selected) Color.White else RawColors.Slate.Slate500,
-                    modifier = Modifier.size(20.dp),
-                )
-            }
-            
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(2.dp)
-            ) {
-                Text(
-                    text = type.label,
-                    style = MaterialTheme.typography.labelMedium,
-                    fontSize = TextSize.sm,
-                    fontWeight = FontWeight.Bold,
-                    color = if (selected) RawColors.Emerald.Emerald600 else TextPrimary,
-                )
-                Text(
-                    text = type.description,
-                    style = MaterialTheme.typography.labelSmall,
-                    fontSize = TextSize.xs,
-                    color = TextSecondary,
-                    lineHeight = 14.sp,
-                    textAlign = TextAlign.Center,
-                )
-            }
+            Text(
+                text = type.label,
+                style = MaterialTheme.typography.labelMedium,
+                fontSize = TextSize.sm,
+                fontWeight = FontWeight.Bold,
+                color = if (selected) RawColors.Emerald.Emerald600 else TextPrimary,
+            )
+            Text(
+                text = type.description,
+                style = MaterialTheme.typography.labelSmall,
+                fontSize = TextSize.xs,
+                color = TextSecondary,
+                lineHeight = 14.sp,
+                textAlign = TextAlign.Center,
+            )
         }
     }
 }
@@ -501,7 +489,6 @@ private fun IncomeSourceSection(
                     val isEnabled = source.types.contains(selectedType)
                     SourceChip(
                         source = source,
-                        icon = sourceIconFor(source.name),
                         selected = isSelected,
                         enabled = isEnabled,
                         onClick = { if (isEnabled) onSourceSelected(source.id) },
@@ -515,7 +502,6 @@ private fun IncomeSourceSection(
 @Composable
 private fun SourceChip(
     source: IncomeSource,
-    icon: ImageVector,
     selected: Boolean,
     enabled: Boolean,
     onClick: () -> Unit,
@@ -533,8 +519,8 @@ private fun SourceChip(
 
     Box(
         modifier = Modifier
-            .height(84.dp)
-            .width(100.dp)
+            .height(56.dp)
+            .width(110.dp)
             .alpha(if (enabled) 1f else 0.4f)
             .background(backgroundColor, KahavanuShapes.large)
             .border(1.dp, borderColor, KahavanuShapes.large)
@@ -542,45 +528,16 @@ private fun SourceChip(
             .clickable(enabled = enabled, onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .background(
-                        if (selected) RawColors.Emerald.Emerald500 else RawColors.Slate.Slate900.copy(alpha = 0.06f),
-                        KahavanuShapes.medium,
-                    ),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = if (selected) Color.White else RawColors.Slate.Slate500,
-                    modifier = Modifier.size(16.dp),
-                )
-            }
-            Spacer(modifier = Modifier.height(Spacing.small))
-            Text(
-                text = source.name,
-                style = MaterialTheme.typography.labelSmall,
-                fontSize = TextSize.xs,
-                fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
-                color = if (selected) RawColors.Emerald.Emerald700 else TextSecondary,
-            )
-        }
-    }
-}
-
-private fun sourceIconFor(name: String): ImageVector {
-    return when (name.trim().lowercase(Locale.getDefault())) {
-        "salary" -> Icons.Outlined.AccountBalanceWallet
-        "freelance" -> Icons.Outlined.WorkOutline
-        "adsense" -> Icons.Outlined.Public
-        "crypto" -> Icons.Outlined.CurrencyBitcoin
-        else -> Icons.Outlined.AccountBalanceWallet
+        Text(
+            text = source.name,
+            style = MaterialTheme.typography.labelMedium,
+            fontSize = TextSize.sm,
+            fontWeight = FontWeight.Bold,
+            color = if (selected) RawColors.Emerald.Emerald600 else TextPrimary,
+            textAlign = TextAlign.Center,
+            maxLines = 2,
+            modifier = Modifier.padding(horizontal = Spacing.small)
+        )
     }
 }
 
@@ -613,6 +570,7 @@ private fun AmountSection(
     currency: CurrencyOption,
     onAmountChange: (String) -> Unit,
     onCurrencyChange: (CurrencyOption) -> Unit,
+    currencyOptions: List<CurrencyOption>,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.small)) {
         SectionLabel("Amount")
@@ -631,72 +589,16 @@ private fun AmountSection(
                     fontWeight = FontWeight.Medium,
                     fontSize = TextSize.lg,
                 ),
+                visualTransformation = NumberCommaTransformation(),
                 colors = textFieldColors(),
             )
-            CurrencyToggle(
+            CurrencyDropdown(
                 selected = currency,
                 onSelect = onCurrencyChange,
+                modifier = Modifier.width(110.dp),
+                options = currencyOptions
             )
         }
-    }
-}
-
-@Composable
-private fun CurrencyToggle(
-    selected: CurrencyOption,
-    onSelect: (CurrencyOption) -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .width(110.dp)
-            .height(52.dp)
-            .background(
-                RawColors.Slate.Slate900.copy(alpha = 0.06f),
-                RoundedCornerShape(14.dp),
-            )
-            .padding(3.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        CurrencyOptionButton(
-            text = CurrencyOption.LKR.code,
-            selected = selected == CurrencyOption.LKR,
-            onClick = { onSelect(CurrencyOption.LKR) },
-            modifier = Modifier.weight(1f),
-        )
-        CurrencyOptionButton(
-            text = CurrencyOption.USD.code,
-            selected = selected == CurrencyOption.USD,
-            onClick = { onSelect(CurrencyOption.USD) },
-            modifier = Modifier.weight(1f),
-        )
-    }
-}
-
-@Composable
-private fun CurrencyOptionButton(
-    text: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(
-                if (selected) RawColors.Emerald.Emerald500 else Color.Transparent,
-                RoundedCornerShape(10.dp),
-            )
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelMedium,
-            fontSize = TextSize.sm,
-            fontWeight = FontWeight.Medium,
-            color = if (selected) Color.White else TextSecondary,
-        )
     }
 }
 
@@ -708,27 +610,34 @@ private fun DateSection(
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.small)) {
         SectionLabel(label)
-        OutlinedTextField(
-            value = dateLabel,
-            onValueChange = {},
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp)
                 .clip(KahavanuShapes.large)
-                .clickable(onClick = onOpenDatePicker),
-            placeholder = { Text("Select date") },
-            singleLine = true,
-            readOnly = true,
-            shape = KahavanuShapes.large,
-            trailingIcon = {
-                Icon(
-                    imageVector = Icons.Outlined.CalendarMonth,
-                    contentDescription = null,
-                    tint = RawColors.Slate.Slate500,
-                )
-            },
-            colors = textFieldColors(),
-        )
+                .clickable(onClick = onOpenDatePicker)
+        ) {
+            OutlinedTextField(
+                value = dateLabel,
+                onValueChange = {},
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text("Select date") },
+                singleLine = true,
+                readOnly = true,
+                enabled = false,
+                shape = KahavanuShapes.large,
+                trailingIcon = {
+                    Icon(
+                        imageVector = Icons.Outlined.CalendarMonth,
+                        contentDescription = null,
+                        tint = RawColors.Slate.Slate500,
+                    )
+                },
+                colors = textFieldColors(),
+            )
+            // Invisible overlay to ensure clicks are captured by the Box
+            Box(modifier = Modifier.matchParentSize())
+        }
     }
 }
 
@@ -743,7 +652,7 @@ private fun FrequencySection(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(Spacing.small)
         ) {
-            RecurrenceFrequency.values().forEach { freq ->
+            RecurrenceFrequency.entries.forEach { freq ->
                 FrequencyChip(
                     label = freq.label,
                     selected = selected == freq,
@@ -766,7 +675,9 @@ private fun FrequencyChip(
         modifier = modifier
             .height(44.dp)
             .background(
-                if (selected) RawColors.Emerald.Emerald500.copy(alpha = 0.12f) else RawColors.Slate.Slate900.copy(alpha = 0.04f),
+                if (selected) RawColors.Emerald.Emerald500.copy(alpha = 0.12f) else RawColors.Slate.Slate900.copy(
+                    alpha = 0.04f
+                ),
                 KahavanuShapes.medium
             )
             .border(
@@ -810,104 +721,104 @@ private fun InfoBanner(text: String) {
     }
 }
 
-@Composable
-private fun PrimaryActionButton(
-    text: String,
-    enabled: Boolean,
-    onClick: () -> Unit,
-) {
-    val gradient = Brush.verticalGradient(
-        colors = listOf(
-            RawColors.Emerald.Emerald500.copy(alpha = 0.9f),
-            RawColors.Emerald.Emerald500.copy(alpha = 0.75f),
-            RawColors.Emerald.Emerald500.copy(alpha = 0.9f)
-        )
-    )
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(54.dp)
-            .shadow(elevation = 18.dp, spotColor = Color.Black.copy(alpha = 0.25f), shape = KahavanuShapes.large)
-            .background(
-                if (enabled) gradient else Brush.verticalGradient(listOf(Color.Gray, Color.DarkGray)),
-                KahavanuShapes.large
-            )
-            .border(
-                width = 0.5.dp,
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        Color.White.copy(alpha = 0.9f),
-                        Color.White.copy(alpha = 0.1f)
-                    )
-                ),
-                shape = KahavanuShapes.large
-            )
-            .clip(KahavanuShapes.large)
-            .clickable(enabled = enabled, onClick = onClick),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.titleSmall,
-            fontSize = TextSize.base,
-            fontWeight = FontWeight.Bold,
-            color = Color.White,
-            letterSpacing = (-0.23).sp,
-        )
-    }
-}
-
-@Composable
-private fun SectionLabel(text: String) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.bodySmall,
-        fontSize = TextSize.sm,
-        fontWeight = FontWeight.Medium,
-        color = TextSecondary,
-    )
-}
-
-@Composable
-private fun GradientBlob(
-    modifier: Modifier,
-    size: androidx.compose.ui.unit.Dp,
-    colors: List<Color>,
-) {
-    Box(
-        modifier = modifier
-            .size(size)
-            .blur(80.dp)
-            .background(
-                brush = Brush.radialGradient(colors = colors),
-                shape = CircleShape,
-            ),
-    )
-}
-
-@Composable
-private fun textFieldColors() =
-    OutlinedTextFieldDefaults.colors(
-        focusedContainerColor = Color.White.copy(alpha = 0.7f),
-        unfocusedContainerColor = Color.White.copy(alpha = 0.7f),
-        focusedBorderColor = RawColors.Slate.Slate200.copy(alpha = 0.9f),
-        unfocusedBorderColor = RawColors.Slate.Slate200.copy(alpha = 0.9f),
-        focusedTextColor = RawColors.Slate.Slate900,
-        unfocusedTextColor = RawColors.Slate.Slate900,
-        focusedPlaceholderColor = RawColors.Slate.Slate500.copy(alpha = 0.7f),
-        unfocusedPlaceholderColor = RawColors.Slate.Slate500.copy(alpha = 0.7f),
-        disabledBorderColor = RawColors.Slate.Slate200.copy(alpha = 0.6f),
-        disabledContainerColor = Color.White.copy(alpha = 0.6f),
-        errorBorderColor = MaterialTheme.colorScheme.error,
-        errorContainerColor = Color.White.copy(alpha = 0.7f),
-    )
-
 private fun infoTextFor(type: IncomeSourceType): String = when (type) {
     IncomeSourceType.ONE_TIME ->
         "One-time income is for single payments you've already received. It will appear in your income log immediately."
+
     IncomeSourceType.RECURRENT ->
         "Recurrent income tracks regular payments. Keep it updated to forecast monthly earnings."
+
     IncomeSourceType.PENDING ->
         "Pending income is expected in the future. It will show up once you mark it as received."
 }
+
+@Composable
+private fun SelectedContactBadge(
+    name: String,
+    onClear: () -> Unit
+) {
+    Surface(
+        color = RawColors.Emerald.Emerald500.copy(alpha = 0.08f),
+        shape = CircleShape,
+        border = BorderStroke(1.dp, RawColors.Emerald.Emerald500.copy(alpha = 0.2f)),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.PersonAdd,
+                contentDescription = null,
+                modifier = Modifier.size(14.dp),
+                tint = RawColors.Emerald.Emerald600
+            )
+            Text(
+                text = name,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = RawColors.Emerald.Emerald700
+            )
+            Icon(
+                imageVector = androidx.compose.material.icons.Icons.Default.Close,
+                contentDescription = "Remove",
+                modifier = Modifier
+                    .size(14.dp)
+                    .clickable { onClear() },
+                tint = RawColors.Emerald.Emerald600
+            )
+        }
+    }
+}
+
+private class NumberCommaTransformation : VisualTransformation {
+    override fun filter(text: AnnotatedString): TransformedText {
+        val originalText = text.text
+        if (originalText.isEmpty()) return TransformedText(text, OffsetMapping.Identity)
+
+        val parts = originalText.split('.')
+        val integerPart = parts[0]
+        val decimalPart = if (parts.size > 1) "." + parts[1] else ""
+
+        val formattedInteger = integerPart.reversed()
+            .chunked(3)
+            .joinToString(",")
+            .reversed()
+
+        val out = formattedInteger + decimalPart
+
+        val offsetMapping = object : OffsetMapping {
+            override fun originalToTransformed(offset: Int): Int {
+                if (offset <= 0) return 0
+                var currentOriginal = 0
+                var currentTransformed = 0
+                while (currentOriginal < offset && currentTransformed < out.length) {
+                    if (out[currentTransformed] == ',') {
+                        currentTransformed++
+                    } else {
+                        currentOriginal++
+                        currentTransformed++
+                    }
+                }
+                return currentTransformed
+            }
+
+            override fun transformedToOriginal(offset: Int): Int {
+                var currentOriginal = 0
+                var currentTransformed = 0
+                while (currentTransformed < offset && currentTransformed < out.length) {
+                    if (out[currentTransformed] == ',') {
+                        currentTransformed++
+                    } else {
+                        currentOriginal++
+                        currentTransformed++
+                    }
+                }
+                return currentOriginal
+            }
+        }
+
+        return TransformedText(AnnotatedString(out), offsetMapping)
+    }
+}
+

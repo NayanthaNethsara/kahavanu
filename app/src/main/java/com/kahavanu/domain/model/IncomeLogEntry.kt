@@ -6,4 +6,6 @@ data class IncomeLogEntry(
     val currency: String,
     val note: String?,
     val receivedAtEpochMillis: Long,
+    val contactName: String? = null,
+    val contactNumber: String? = null,
 )

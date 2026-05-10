@@ -43,10 +43,31 @@ class IncomeViewModel @Inject constructor(
                 }
             }
         }
+
+        viewModelScope.launch {
+            repository.observeCurrencySettings().collect { (primary, secondary) ->
+                _uiState.update { current ->
+                    val available = listOf(primary, secondary)
+                    val newCurrency = if (current.currency !in available) primary else current.currency
+                    current.copy(
+                        availableCurrencies = available,
+                        currency = newCurrency
+                    )
+                }
+            }
+        }
+
     }
 
     fun onAmountChange(value: String) {
-        updateState { it.copy(amount = value) }
+        val sanitized = value.filter { it.isDigit() || it == '.' }
+        val parts = sanitized.split('.')
+        val finalValue = if (parts.size > 2) {
+            parts[0] + "." + parts[1]
+        } else {
+            sanitized
+        }
+        updateState { it.copy(amount = finalValue) }
     }
 
     fun onClientDescriptionChange(value: String) {
@@ -84,21 +105,28 @@ class IncomeViewModel @Inject constructor(
         updateState { it.copy(frequency = frequency) }
     }
 
-    fun onContactSelected(name: String) {
-        updateState { current ->
-            val newDescription = if (current.clientDescription.isBlank()) {
-                name
-            } else {
-                "${current.clientDescription} ($name)"
-            }
-            current.copy(clientDescription = newDescription)
+    fun onContactSaved(name: String, phoneNumber: String?) {
+        updateState { 
+            it.copy(
+                contactName = name,
+                contactNumber = phoneNumber
+            ) 
+        }
+    }
+
+    fun onClearContact() {
+        updateState { 
+            it.copy(
+                contactName = null, 
+                contactNumber = null
+            ) 
         }
     }
 
     fun logIncome() {
         viewModelScope.launch {
             val current = _uiState.value
-            val clientDescription = current.clientDescription.trim()
+            val clientDescription = current.clientDescription.ifBlank { current.contactName ?: "" }.trim()
             val amountValue = current.amount.trim().toDoubleOrNull()
             val currency = current.currency.code
             val receivedDate = current.receivedDate ?: LocalDate.now()
@@ -134,6 +162,8 @@ class IncomeViewModel @Inject constructor(
                     note
                 },
                 receivedAtEpochMillis = receivedAtEpochMillis,
+                contactName = current.contactName,
+                contactNumber = current.contactNumber,
             )
 
             val result = repository.logIncome(entry)

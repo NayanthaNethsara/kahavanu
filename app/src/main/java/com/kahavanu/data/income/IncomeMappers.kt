@@ -12,6 +12,8 @@ fun IncomeLogEntity.toDomain(): IncomeLogEntry = IncomeLogEntry(
     currency = currency,
     note = note,
     receivedAtEpochMillis = receivedAtEpochMillis,
+    contactName = contactName,
+    contactNumber = contactNumber,
 )
 
 fun IncomeLogEntry.toEntity(
@@ -25,6 +27,8 @@ fun IncomeLogEntry.toEntity(
     note = note,
     receivedAtEpochMillis = receivedAtEpochMillis,
     createdAtEpochMillis = createdAtEpochMillis,
+    contactName = contactName,
+    contactNumber = contactNumber,
 )
 
 fun IncomeSourceEntity.toDomain(): IncomeSource {

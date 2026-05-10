@@ -46,12 +46,16 @@ import com.kahavanu.ui.income.components.isOverdue
 import com.kahavanu.ui.income.components.formatAmount
 
 @Composable
-fun PersistenceSection(pendingLogs: List<IncomeLogEntry>) {
+fun PersistenceSection(
+    pendingLogs: List<IncomeLogEntry>,
+    onViewAll: () -> Unit
+) {
     Column {
         SectionHeader(
             title = "Persistence",
             subtitle = "Pending & overdue payments",
-            actionText = "View all"
+            actionText = "View all",
+            onActionClick = onViewAll
         )
         GlassCard(modifier = Modifier.fillMaxWidth()) {
             if (pendingLogs.isEmpty()) {

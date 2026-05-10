@@ -19,6 +19,7 @@ import com.kahavanu.ui.home.HomeScreen
 import com.kahavanu.ui.income.IncomeLogScreen
 import com.kahavanu.ui.income.IncomeScreen
 import com.kahavanu.ui.income.IncomeSourcesScreen
+import com.kahavanu.ui.income.PersistenceListScreen
 import com.kahavanu.ui.navigation.AppDestination
 import com.kahavanu.ui.profile.ProfileScreen
 
@@ -76,6 +77,7 @@ fun MainTabsScreen(
             composable(AppDestination.Income.route) {
                 IncomeScreen(
                     onLogIncome = { navController.navigate(AppDestination.IncomeLog.route) },
+                    onViewPersistence = { navController.navigate(AppDestination.PersistenceList.route) },
                 )
             }
             composable(AppDestination.IncomeLog.route) {
@@ -98,6 +100,11 @@ fun MainTabsScreen(
             }
             composable(AppDestination.Profile.route) {
                 ProfileScreen()
+            }
+            composable(AppDestination.PersistenceList.route) {
+                PersistenceListScreen(
+                    onBack = { navController.popBackStack() }
+                )
             }
         }
     }

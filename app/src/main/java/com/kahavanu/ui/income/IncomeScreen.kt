@@ -31,6 +31,7 @@ import com.kahavanu.ui.theme.Spacing
 @Composable
 fun IncomeScreen(
     onLogIncome: () -> Unit,
+    onViewPersistence: () -> Unit,
     viewModel: IncomeOverviewViewModel = hiltViewModel(),
 ) {
     val logs by viewModel.incomeLogs.collectAsStateWithLifecycle()
@@ -71,11 +72,19 @@ fun IncomeScreen(
                     monthLabel = monthLabel,
                     breakdowns = breakdowns,
                 )
-                IncomeActionButtons(onLogIncome = onLogIncome)
+                IncomeActionButtons(
+                    onLogIncome = onLogIncome,
+                    onViewPending = onViewPersistence
+                )
             }
         }
         item { MatchAndCatchSection() }
-        item { PersistenceSection(pendingLogs = pendingLogs) }
+        item { 
+            PersistenceSection(
+                pendingLogs = pendingLogs,
+                onViewAll = onViewPersistence
+            ) 
+        }
         item { IncomeLogSection(logs = logs) }
     }
 }

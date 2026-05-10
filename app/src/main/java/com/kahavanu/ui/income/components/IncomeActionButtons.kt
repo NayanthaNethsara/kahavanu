@@ -34,7 +34,10 @@ import com.kahavanu.ui.theme.TextSecondary
 import com.kahavanu.ui.theme.TextSize
 
 @Composable
-fun IncomeActionButtons(onLogIncome: () -> Unit) {
+fun IncomeActionButtons(
+    onLogIncome: () -> Unit,
+    onViewPending: () -> Unit,
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceEvenly
@@ -52,7 +55,7 @@ fun IncomeActionButtons(onLogIncome: () -> Unit) {
         QuickActionButton(
             icon = Icons.Outlined.PendingActions,
             label = "Pending",
-            onClick = { }
+            onClick = onViewPending
         )
         QuickActionButton(
             icon = Icons.Outlined.History,

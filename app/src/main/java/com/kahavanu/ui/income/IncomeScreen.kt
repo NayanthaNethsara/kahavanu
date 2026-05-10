@@ -27,9 +27,6 @@ import com.kahavanu.ui.income.components.currentMonthLabel
 import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 
-enum class IncomeFilter {
-    ALL, PENDING
-}
 
 @Composable
 fun IncomeScreen(
@@ -38,11 +35,11 @@ fun IncomeScreen(
 ) {
     val logs by viewModel.incomeLogs.collectAsStateWithLifecycle()
     val pendingLogs by viewModel.pendingLogs.collectAsStateWithLifecycle()
-    val totalForMonth by viewModel.monthlyTotal.collectAsStateWithLifecycle()
+    val totalIncome by viewModel.totalIncome.collectAsStateWithLifecycle()
+    val totalReceived by viewModel.totalReceived.collectAsStateWithLifecycle()
     val breakdowns by viewModel.breakdowns.collectAsStateWithLifecycle()
     val currency by viewModel.currency.collectAsStateWithLifecycle()
     val monthLabel = currentMonthLabel()
-    var selectedFilter by remember { mutableStateOf(IncomeFilter.ALL) }
 
     LazyColumn(
         modifier = Modifier
@@ -68,12 +65,11 @@ fun IncomeScreen(
         item {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.large)) {
                 TotalExpectedCard(
-                    totalForMonth = totalForMonth,
+                    totalIncome = totalIncome,
+                    totalReceived = totalReceived,
                     currency = currency,
                     monthLabel = monthLabel,
                     breakdowns = breakdowns,
-                    selectedFilter = selectedFilter,
-                    onFilterSelected = { selectedFilter = it }
                 )
                 IncomeActionButtons(onLogIncome = onLogIncome)
             }

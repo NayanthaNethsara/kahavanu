@@ -34,10 +34,22 @@ class IncomeOverviewViewModel @Inject constructor(
             initialValue = emptyList(),
         )
 
-    val monthlyTotal: StateFlow<Double> = incomeLogs
+    val totalIncome: StateFlow<Double> = incomeLogs
         .map { logs ->
             val month = YearMonth.now()
             logs.filter { isInMonth(it.receivedAtEpochMillis, month) }
+                .sumOf { it.amount }
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = 0.0,
+        )
+
+    val totalReceived: StateFlow<Double> = incomeLogs
+        .map { logs ->
+            val month = YearMonth.now()
+            logs.filter { isInMonth(it.receivedAtEpochMillis, month) && !isPending(it.note) }
                 .sumOf { it.amount }
         }
         .stateIn(

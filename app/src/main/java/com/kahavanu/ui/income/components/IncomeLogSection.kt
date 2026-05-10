@@ -60,10 +60,17 @@ fun IncomeLogSection(logs: List<IncomeLogEntry>) {
                         else -> Icons.Outlined.AccountBalanceWallet
                     }
                     
+                    val subtitle = buildString {
+                        if (!log.sourceName.isNullOrBlank()) {
+                            append(log.sourceName)
+                            append(" • ")
+                        }
+                        append(formatDate(log.receivedAtEpochMillis))
+                    }
+
                     LogItem(
                         title = log.title,
-                        type = log.note?.takeIf { it.isNotBlank() } ?: "Income",
-                        date = formatDate(log.receivedAtEpochMillis),
+                        subtitle = subtitle,
                         amount = formatAmount(log.amount, log.currency),
                         icon = icon
                     )
@@ -82,8 +89,7 @@ fun IncomeLogSection(logs: List<IncomeLogEntry>) {
 @Composable
 private fun LogItem(
     title: String,
-    type: String,
-    date: String,
+    subtitle: String,
     amount: String,
     icon: ImageVector
 ) {
@@ -125,7 +131,7 @@ private fun LogItem(
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
-                text = "$type • $date",
+                text = subtitle,
                 style = MaterialTheme.typography.bodySmall,
                 fontSize = TextSize.xs,
                 color = TextSecondary,

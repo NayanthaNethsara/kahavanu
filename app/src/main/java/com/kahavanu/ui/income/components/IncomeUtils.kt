@@ -42,8 +42,16 @@ fun sourceIconFor(name: String): ImageVector {
     }
 }
 
-fun isPending(note: String?): Boolean {
-    return note?.startsWith("Pending", ignoreCase = true) == true
+fun isPending(sourceType: String?): Boolean {
+    return sourceType == "pending"
+}
+
+fun isRecurrent(sourceType: String?): Boolean {
+    return sourceType == "recurrent"
+}
+
+fun isPersistent(sourceType: String?): Boolean {
+    return isPending(sourceType) || isRecurrent(sourceType)
 }
 
 fun isOverdue(epochMillis: Long): Boolean {

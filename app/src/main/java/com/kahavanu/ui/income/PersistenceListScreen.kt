@@ -22,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.outlined.Send
+import androidx.compose.material.icons.filled.Autorenew
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Search
@@ -58,6 +59,8 @@ import com.kahavanu.ui.income.components.formatAmount
 import com.kahavanu.ui.income.components.getDueText
 import com.kahavanu.ui.income.components.isOverdue
 import com.kahavanu.ui.income.components.isPending
+import com.kahavanu.ui.income.components.isRecurrent
+import com.kahavanu.ui.income.components.isPersistent
 import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
@@ -75,11 +78,14 @@ fun PersistenceListScreen(
     val filteredLogs = allLogs.filter { log ->
         val matchesSearch = log.title.contains(searchQuery, ignoreCase = true) || 
                           log.amount.toString().contains(searchQuery)
+        val isLogPersistent = isPersistent(log.sourceType)
+        
         val matchesFilter = when (selectedFilter) {
-            PersistenceFilter.ALL -> true
-            PersistenceFilter.OVERDUE -> isOverdue(log.receivedAtEpochMillis) && isPending(log.note)
-            PersistenceFilter.PENDING -> !isOverdue(log.receivedAtEpochMillis) && isPending(log.note)
-            PersistenceFilter.COMPLETED -> !isPending(log.note)
+            PersistenceFilter.ALL -> isLogPersistent
+            PersistenceFilter.OVERDUE -> isLogPersistent && isOverdue(log.receivedAtEpochMillis) && isPending(log.sourceType)
+            PersistenceFilter.PENDING -> isLogPersistent && isPending(log.sourceType)
+            PersistenceFilter.RECURRENT -> isRecurrent(log.sourceType)
+            PersistenceFilter.COMPLETED -> !isLogPersistent
         }
         matchesSearch && matchesFilter
     }
@@ -215,16 +221,16 @@ fun PersistenceListScreen(
                     onClick = { selectedFilter = PersistenceFilter.OVERDUE }
                 )
                 FilterChip(
+                    label = "Recurrent",
+                    icon = Icons.Default.Autorenew,
+                    selected = selectedFilter == PersistenceFilter.RECURRENT,
+                    onClick = { selectedFilter = PersistenceFilter.RECURRENT }
+                )
+                FilterChip(
                     label = "Pending",
                     icon = Icons.Outlined.Schedule,
                     selected = selectedFilter == PersistenceFilter.PENDING,
                     onClick = { selectedFilter = PersistenceFilter.PENDING }
-                )
-                FilterChip(
-                    label = "Completed",
-                    icon = Icons.Default.CheckCircle,
-                    selected = selectedFilter == PersistenceFilter.COMPLETED,
-                    onClick = { selectedFilter = PersistenceFilter.COMPLETED }
                 )
             }
 
@@ -243,14 +249,15 @@ fun PersistenceListScreen(
                 } else {
                     LazyColumn {
                         itemsIndexed(filteredLogs) { index, log ->
-                            val isOverdue = isOverdue(log.receivedAtEpochMillis) && isPending(log.note)
+                            val isOverdue = isOverdue(log.receivedAtEpochMillis) && isPending(log.sourceType)
                             PersistenceListItem(
                                 title = log.title,
                                 dueText = getDueText(log.receivedAtEpochMillis),
                                 isOverdue = isOverdue,
-                                isPending = isPending(log.note),
+                                isPending = isPending(log.sourceType),
+                                isRecurrent = isRecurrent(log.sourceType),
                                 amount = formatAmount(log.amount, log.currency),
-                                isInvoiceSent = log.note?.contains("Invoice", ignoreCase = true) == true
+                                isInvoiceSent = log.isInvoiceSent
                             )
                             if (index < filteredLogs.size - 1) {
                                 HorizontalDivider(color = RawColors.Slate.Slate900.copy(alpha = 0.06f))
@@ -349,6 +356,7 @@ private fun PersistenceListItem(
     dueText: String,
     isOverdue: Boolean,
     isPending: Boolean,
+    isRecurrent: Boolean,
     amount: String,
     isInvoiceSent: Boolean
 ) {
@@ -365,6 +373,7 @@ private fun PersistenceListItem(
                 .background(
                     color = when {
                         isOverdue -> RawColors.Red.Red500.copy(alpha = 0.1f)
+                        isRecurrent -> RawColors.Emerald.Emerald500.copy(alpha = 0.14f)
                         !isPending -> RawColors.Emerald.Emerald500.copy(alpha = 0.14f)
                         else -> RawColors.Amber.Amber500.copy(alpha = 0.12f)
                     },
@@ -375,6 +384,7 @@ private fun PersistenceListItem(
             Icon(
                 imageVector = when {
                     isOverdue -> Icons.Outlined.ErrorOutline
+                    isRecurrent -> Icons.Default.Autorenew
                     !isPending -> Icons.Default.CheckCircle
                     else -> Icons.Outlined.Schedule
                 },
@@ -382,6 +392,7 @@ private fun PersistenceListItem(
                 modifier = Modifier.size(16.dp),
                 tint = when {
                     isOverdue -> RawColors.Red.Red600
+                    isRecurrent -> RawColors.Emerald.Emerald600
                     !isPending -> RawColors.Emerald.Emerald600
                     else -> RawColors.Amber.Amber600
                 }
@@ -497,5 +508,5 @@ private fun PersistenceListItem(
 }
 
 private enum class PersistenceFilter {
-    ALL, OVERDUE, PENDING, COMPLETED
+    ALL, OVERDUE, RECURRENT, PENDING, COMPLETED
 }

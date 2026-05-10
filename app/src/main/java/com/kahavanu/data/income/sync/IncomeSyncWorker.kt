@@ -22,7 +22,15 @@ class IncomeSyncWorker(
             IncomeDatabase::class.java,
             IncomeDatabase.DB_NAME,
         )
-            .addMigrations(IncomeDatabaseMigrations.MIGRATION_1_2)
+            .addMigrations(
+                IncomeDatabaseMigrations.MIGRATION_1_2,
+                IncomeDatabaseMigrations.MIGRATION_2_3,
+                IncomeDatabaseMigrations.MIGRATION_3_4,
+                IncomeDatabaseMigrations.MIGRATION_4_5,
+                IncomeDatabaseMigrations.MIGRATION_5_6,
+                IncomeDatabaseMigrations.MIGRATION_6_7,
+                IncomeDatabaseMigrations.MIGRATION_7_8
+            )
             .build()
 
         return try {
@@ -56,10 +64,16 @@ class IncomeSyncWorker(
                 "title" to entry.title,
                 "amount" to entry.amount,
                 "currency" to entry.currency,
-                "note" to entry.note,
                 "receivedAt" to entry.receivedAtEpochMillis,
                 "createdAt" to entry.createdAtEpochMillis,
                 "userId" to uid,
+                "sourceId" to entry.sourceId,
+                "sourceName" to entry.sourceName,
+                "sourceType" to entry.sourceType,
+                "isInvoiceSent" to entry.isInvoiceSent,
+                "frequency" to entry.frequency,
+                "contactName" to entry.contactName,
+                "contactNumber" to entry.contactNumber,
             )
 
             val result = firestore

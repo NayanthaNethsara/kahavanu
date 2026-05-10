@@ -72,10 +72,10 @@ fun PersistenceSection(
                         title = log.title,
                         dueText = getDueText(log.receivedAtEpochMillis),
                         isOverdue = isOverdue(log.receivedAtEpochMillis),
-                        statusText = if (log.note?.contains("Invoice", ignoreCase = true) == true) "Invoice sent" else "Expected",
+                        statusText = if (log.isInvoiceSent) "Invoice sent" else "Expected",
                         amount = formatAmount(log.amount, log.currency),
                         hasNudge = isOverdue(log.receivedAtEpochMillis),
-                        isInvoiceSent = log.note?.contains("Invoice", ignoreCase = true) == true
+                        isInvoiceSent = log.isInvoiceSent
                     )
                     if (index < pendingLogs.size - 1) {
                         HorizontalDivider(color = RawColors.Slate.Slate900.copy(alpha = 0.06f))

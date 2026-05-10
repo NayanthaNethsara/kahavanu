@@ -36,10 +36,10 @@ fun IncomeScreen(
 ) {
     val logs by viewModel.incomeLogs.collectAsStateWithLifecycle()
     val pendingLogs by viewModel.pendingLogs.collectAsStateWithLifecycle()
-    val totalIncome by viewModel.totalIncome.collectAsStateWithLifecycle()
-    val totalReceived by viewModel.totalReceived.collectAsStateWithLifecycle()
-    val breakdowns by viewModel.breakdowns.collectAsStateWithLifecycle()
-    val currency by viewModel.currency.collectAsStateWithLifecycle()
+    val totalIncomeByCurrency by viewModel.totalIncomeByCurrency.collectAsStateWithLifecycle()
+    val totalReceivedByCurrency by viewModel.totalReceivedByCurrency.collectAsStateWithLifecycle()
+    val breakdownsByCurrency by viewModel.breakdownsByCurrency.collectAsStateWithLifecycle()
+    val primaryCurrency by viewModel.primaryCurrency.collectAsStateWithLifecycle()
     val monthLabel = currentMonthLabel()
 
     LazyColumn(
@@ -66,11 +66,11 @@ fun IncomeScreen(
         item {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.large)) {
                 TotalExpectedCard(
-                    totalIncome = totalIncome,
-                    totalReceived = totalReceived,
-                    currency = currency,
+                    totalIncomeByCurrency = totalIncomeByCurrency,
+                    totalReceivedByCurrency = totalReceivedByCurrency,
+                    primaryCurrency = primaryCurrency,
                     monthLabel = monthLabel,
-                    breakdowns = breakdowns,
+                    breakdownsByCurrency = breakdownsByCurrency,
                 )
                 IncomeActionButtons(
                     onLogIncome = onLogIncome,

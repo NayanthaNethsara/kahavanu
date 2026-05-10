@@ -129,9 +129,8 @@ class IncomeViewModel @Inject constructor(
             val clientDescription = current.clientDescription.ifBlank { current.contactName ?: "" }.trim()
             val amountValue = current.amount.trim().toDoubleOrNull()
             val currency = current.currency.code
-            val receivedDate = current.receivedDate ?: LocalDate.now()
+            val receivedDate = current.receivedDate
             val selectedSource = current.sources.firstOrNull { it.id == current.selectedSourceId }
-            val note = "${current.incomeType.label} - ${selectedSource?.name ?: "Source"}"
 
             if (clientDescription.isBlank() || amountValue == null || amountValue <= 0.0) {
                 _uiState.update {
@@ -156,12 +155,13 @@ class IncomeViewModel @Inject constructor(
                 title = clientDescription,
                 amount = amountValue,
                 currency = currency,
-                note = if (current.incomeType == IncomeSourceType.RECURRENT) {
-                    "$note (Frequency: ${current.frequency.label})"
-                } else {
-                    note
-                },
                 receivedAtEpochMillis = receivedAtEpochMillis,
+                sourceId = current.selectedSourceId,
+                sourceName = selectedSource?.name,
+                sourceType = current.incomeType.id,
+                frequency = if (current.incomeType == IncomeSourceType.RECURRENT) {
+                    current.frequency.label
+                } else null,
                 contactName = current.contactName,
                 contactNumber = current.contactNumber,
             )
@@ -177,7 +177,7 @@ class IncomeViewModel @Inject constructor(
                         clientDescription = "",
                         amount = "",
                         currency = current.currency,
-                        receivedDate = null,
+                        receivedDate = LocalDate.now(),
                         isSaving = false,
                         successMessage = successMessage,
                     )

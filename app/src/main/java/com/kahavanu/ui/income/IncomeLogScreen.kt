@@ -4,6 +4,7 @@ import android.content.Intent
 import android.provider.ContactsContract
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -38,10 +39,12 @@ import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -220,22 +223,47 @@ fun IncomeLogScreen(
                     onSourceSelected = viewModel::onSourceChange,
                 )
 
-                ContactSelectionSection(
-                    contacts = uiState.contacts,
-                    onContactSelected = viewModel::onContactSelected,
-                    onPickContact = {
-                        val intent = Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI)
-                        contactPickerLauncher.launch(intent)
+                Column(verticalArrangement = Arrangement.spacedBy(Spacing.small)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            SectionLabel("Client / Description")
+                            if (uiState.contactName != null) {
+                                Spacer(modifier = Modifier.width(Spacing.small))
+                                SelectedContactBadge(
+                                    name = uiState.contactName!!,
+                                    onClear = viewModel::onClearContact
+                                )
+                            }
+                        }
                     }
-                )
 
-                LabeledTextField(
-                    label = "Client / Description",
-                    value = uiState.clientDescription,
-                    placeholder = "e.g., ACME Corp, Freelance project",
-                    onValueChange = viewModel::onClientDescriptionChange,
-                    trailingIcon = null
-                )
+                    OutlinedTextField(
+                        value = uiState.clientDescription,
+                        onValueChange = viewModel::onClientDescriptionChange,
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = { Text("e.g., ACME Corp, Freelance project") },
+                        singleLine = true,
+                        shape = KahavanuShapes.large,
+                        trailingIcon = {
+                            if (uiState.contactName == null) {
+                                Icon(
+                                    imageVector = Icons.Outlined.PersonAdd,
+                                    contentDescription = "Pick from contacts",
+                                    modifier = Modifier.clickable {
+                                        val intent = Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI)
+                                        contactPickerLauncher.launch(intent)
+                                    },
+                                    tint = RawColors.Emerald.Emerald600
+                                )
+                            }
+                        },
+                        colors = textFieldColors(),
+                    )
+                }
 
                 AmountSection(
                     amount = uiState.amount,
@@ -700,74 +728,41 @@ private fun infoTextFor(type: IncomeSourceType): String = when (type) {
 }
 
 @Composable
-private fun ContactSelectionSection(
-    contacts: List<com.kahavanu.domain.model.Contact>,
-    onContactSelected: (com.kahavanu.domain.model.Contact) -> Unit,
-    onPickContact: () -> Unit,
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(Spacing.small)) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            SectionLabel("Client / Contact")
-            Text(
-                text = "Pick from phone",
-                style = MaterialTheme.typography.labelSmall,
-                color = RawColors.Emerald.Emerald600,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.clickable { onPickContact() }
-            )
-        }
-
-        if (contacts.isNotEmpty()) {
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(Spacing.small),
-                contentPadding = PaddingValues(horizontal = 2.dp)
-            ) {
-                items(contacts) { contact ->
-                    ContactChip(
-                        contact = contact,
-                        onClick = { onContactSelected(contact) }
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun ContactChip(
-    contact: com.kahavanu.domain.model.Contact,
-    onClick: () -> Unit,
+private fun SelectedContactBadge(
+    name: String,
+    onClear: () -> Unit
 ) {
     Surface(
-        onClick = onClick,
-        color = RawColors.Slate.Slate900.copy(alpha = 0.04f),
+        color = RawColors.Emerald.Emerald500.copy(alpha = 0.08f),
         shape = CircleShape,
-        border = androidx.compose.foundation.BorderStroke(
-            0.5.dp,
-            RawColors.Slate.Slate200.copy(alpha = 0.5f)
-        )
+        border = BorderStroke(1.dp, RawColors.Emerald.Emerald500.copy(alpha = 0.2f)),
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = Spacing.medium, vertical = Spacing.extraSmall),
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(Spacing.extraSmall)
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Icon(
                 imageVector = Icons.Outlined.PersonAdd,
                 contentDescription = null,
                 modifier = Modifier.size(14.dp),
-                tint = RawColors.Slate.Slate500
+                tint = RawColors.Emerald.Emerald600
             )
             Text(
-                text = contact.name,
+                text = name,
                 style = MaterialTheme.typography.labelMedium,
-                fontSize = TextSize.xs,
-                color = TextPrimary
+                fontWeight = FontWeight.SemiBold,
+                color = RawColors.Emerald.Emerald700
+            )
+            Icon(
+                imageVector = androidx.compose.material.icons.Icons.Default.Close,
+                contentDescription = "Remove",
+                modifier = Modifier
+                    .size(14.dp)
+                    .clickable { onClear() },
+                tint = RawColors.Emerald.Emerald600
             )
         }
     }
 }
+

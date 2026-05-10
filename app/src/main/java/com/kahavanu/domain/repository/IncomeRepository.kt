@@ -17,7 +17,4 @@ interface IncomeRepository {
 
     fun observeCurrencySettings(): Flow<Pair<CurrencyOption, CurrencyOption>>
     suspend fun updateCurrencySettings(primary: CurrencyOption, secondary: CurrencyOption): Result<Unit>
-
-    fun observeContacts(): Flow<List<com.kahavanu.domain.model.Contact>>
-    suspend fun saveContact(name: String, phoneNumber: String?): Long
 }

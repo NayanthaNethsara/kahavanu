@@ -57,11 +57,6 @@ class IncomeViewModel @Inject constructor(
             }
         }
 
-        viewModelScope.launch {
-            repository.observeContacts().collect { contacts ->
-                _uiState.update { it.copy(contacts = contacts) }
-            }
-        }
     }
 
     fun onAmountChange(value: String) {
@@ -103,23 +98,28 @@ class IncomeViewModel @Inject constructor(
         updateState { it.copy(frequency = frequency) }
     }
 
-    fun onContactSelected(contact: com.kahavanu.domain.model.Contact) {
-        updateState { it.copy(clientDescription = contact.name) }
+    fun onContactSaved(name: String, phoneNumber: String?) {
+        updateState { 
+            it.copy(
+                contactName = name,
+                contactNumber = phoneNumber
+            ) 
+        }
     }
 
-    fun onContactSaved(name: String, phoneNumber: String?) {
-        viewModelScope.launch {
-            val contactId = repository.saveContact(name, phoneNumber)
-            if (contactId != 0L) {
-                updateState { it.copy(clientDescription = name) }
-            }
+    fun onClearContact() {
+        updateState { 
+            it.copy(
+                contactName = null, 
+                contactNumber = null
+            ) 
         }
     }
 
     fun logIncome() {
         viewModelScope.launch {
             val current = _uiState.value
-            val clientDescription = current.clientDescription.trim()
+            val clientDescription = current.clientDescription.ifBlank { current.contactName ?: "" }.trim()
             val amountValue = current.amount.trim().toDoubleOrNull()
             val currency = current.currency.code
             val receivedDate = current.receivedDate ?: LocalDate.now()
@@ -155,6 +155,8 @@ class IncomeViewModel @Inject constructor(
                     note
                 },
                 receivedAtEpochMillis = receivedAtEpochMillis,
+                contactName = current.contactName,
+                contactNumber = current.contactNumber,
             )
 
             val result = repository.logIncome(entry)

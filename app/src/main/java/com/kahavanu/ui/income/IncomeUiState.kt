@@ -36,5 +36,6 @@ data class IncomeUiState(
     val errorMessage: String? = null,
     val successMessage: String? = null,
     val availableCurrencies: List<CurrencyOption> = listOf(CurrencyOption.LKR, CurrencyOption.USD),
-    val contacts: List<com.kahavanu.domain.model.Contact> = emptyList(),
+    val contactName: String? = null,
+    val contactNumber: String? = null,
 )

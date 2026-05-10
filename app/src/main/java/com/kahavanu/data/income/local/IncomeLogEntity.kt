@@ -18,6 +18,8 @@ data class IncomeLogEntity(
     val note: String?,
     val receivedAtEpochMillis: Long,
     val createdAtEpochMillis: Long,
+    val contactName: String? = null,
+    val contactNumber: String? = null,
     val remoteId: String? = null,
     val isSynced: Boolean = false,
 )

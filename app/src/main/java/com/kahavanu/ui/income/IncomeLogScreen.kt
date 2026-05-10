@@ -60,8 +60,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.OffsetMapping
+import androidx.compose.ui.text.input.TransformedText
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -585,6 +589,7 @@ private fun AmountSection(
                     fontWeight = FontWeight.Medium,
                     fontSize = TextSize.lg,
                 ),
+                visualTransformation = NumberCommaTransformation(),
                 colors = textFieldColors(),
             )
             CurrencyDropdown(
@@ -763,6 +768,57 @@ private fun SelectedContactBadge(
                 tint = RawColors.Emerald.Emerald600
             )
         }
+    }
+}
+
+private class NumberCommaTransformation : VisualTransformation {
+    override fun filter(text: AnnotatedString): TransformedText {
+        val originalText = text.text
+        if (originalText.isEmpty()) return TransformedText(text, OffsetMapping.Identity)
+
+        val parts = originalText.split('.')
+        val integerPart = parts[0]
+        val decimalPart = if (parts.size > 1) "." + parts[1] else ""
+
+        val formattedInteger = integerPart.reversed()
+            .chunked(3)
+            .joinToString(",")
+            .reversed()
+
+        val out = formattedInteger + decimalPart
+
+        val offsetMapping = object : OffsetMapping {
+            override fun originalToTransformed(offset: Int): Int {
+                if (offset <= 0) return 0
+                var currentOriginal = 0
+                var currentTransformed = 0
+                while (currentOriginal < offset && currentTransformed < out.length) {
+                    if (out[currentTransformed] == ',') {
+                        currentTransformed++
+                    } else {
+                        currentOriginal++
+                        currentTransformed++
+                    }
+                }
+                return currentTransformed
+            }
+
+            override fun transformedToOriginal(offset: Int): Int {
+                var currentOriginal = 0
+                var currentTransformed = 0
+                while (currentTransformed < offset && currentTransformed < out.length) {
+                    if (out[currentTransformed] == ',') {
+                        currentTransformed++
+                    } else {
+                        currentOriginal++
+                        currentTransformed++
+                    }
+                }
+                return currentOriginal
+            }
+        }
+
+        return TransformedText(AnnotatedString(out), offsetMapping)
     }
 }
 

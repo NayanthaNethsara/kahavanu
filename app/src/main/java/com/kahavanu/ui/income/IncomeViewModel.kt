@@ -60,7 +60,14 @@ class IncomeViewModel @Inject constructor(
     }
 
     fun onAmountChange(value: String) {
-        updateState { it.copy(amount = value) }
+        val sanitized = value.filter { it.isDigit() || it == '.' }
+        val parts = sanitized.split('.')
+        val finalValue = if (parts.size > 2) {
+            parts[0] + "." + parts[1]
+        } else {
+            sanitized
+        }
+        updateState { it.copy(amount = finalValue) }
     }
 
     fun onClientDescriptionChange(value: String) {

@@ -331,7 +331,7 @@ fun CurrencyDropdown(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = "${selected.code} (${selected.symbol})",
+                text = selected.code,
                 style = MaterialTheme.typography.bodyMedium,
                 fontSize = TextSize.sm,
                 color = TextPrimary
@@ -354,7 +354,7 @@ fun CurrencyDropdown(
                 DropdownMenuItem(
                     text = {
                         Text(
-                            text = "${option.code} (${option.symbol})",
+                            text = option.code,
                             style = MaterialTheme.typography.bodyMedium,
                             fontSize = TextSize.sm,
                             color = TextPrimary

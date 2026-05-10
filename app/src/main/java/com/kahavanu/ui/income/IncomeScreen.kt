@@ -8,15 +8,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.kahavanu.ui.income.components.CryptoGatewaySection
 import com.kahavanu.ui.income.components.IncomeActionButtons
 import com.kahavanu.ui.income.components.IncomeHeader
 import com.kahavanu.ui.income.components.IncomeLogSection
@@ -57,7 +53,7 @@ fun IncomeScreen(
         contentPadding = PaddingValues(
             start = Spacing.large,
             end = Spacing.large,
-            top = 120.dp,
+            top = 140.dp,
             bottom = 140.dp
         ),
         verticalArrangement = Arrangement.spacedBy(Spacing.extraLarge)

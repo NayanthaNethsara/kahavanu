@@ -3,6 +3,8 @@ package com.kahavanu.ui.income
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +13,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -51,10 +54,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kahavanu.ui.income.components.CircularIconButton
 import com.kahavanu.ui.income.components.GlassCard
+import com.kahavanu.ui.income.components.GradientBlob
 import com.kahavanu.ui.income.components.formatAmount
 import com.kahavanu.ui.income.components.getDueText
 import com.kahavanu.ui.income.components.isOverdue
@@ -93,16 +97,30 @@ fun PersistenceListScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        RawColors.Slate.Slate50,
-                        RawColors.Emerald.Emerald50.copy(alpha = 0.3f),
-                        RawColors.Slate.Slate100
-                    )
-                )
-            )
+            .background(Color.White)
     ) {
+        // Background Blobs
+        GradientBlob(
+            modifier = Modifier.offset(x = (-96).dp, y = (-128).dp),
+            size = 360.dp,
+            colors = listOf(
+                RawColors.Emerald.Emerald400.copy(alpha = 0.16f),
+                RawColors.Emerald.Emerald800.copy(alpha = 0.08f),
+                Color.Transparent,
+            ),
+        )
+        GradientBlob(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .offset(x = 128.dp, y = 128.dp),
+            size = 420.dp,
+            colors = listOf(
+                RawColors.Emerald.Emerald400.copy(alpha = 0.1f),
+                RawColors.Emerald.Emerald600.copy(alpha = 0.04f),
+                Color.Transparent,
+            ),
+        )
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -205,7 +223,9 @@ fun PersistenceListScreen(
 
             // Filter Chips
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(Spacing.small)
             ) {
                 FilterChip(

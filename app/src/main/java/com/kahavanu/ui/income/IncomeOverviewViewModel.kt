@@ -7,6 +7,7 @@ import com.kahavanu.domain.model.IncomeLogEntry
 import com.kahavanu.domain.repository.IncomeRepository
 import com.kahavanu.ui.theme.RawColors
 import dagger.hilt.android.lifecycle.HiltViewModel
+import com.kahavanu.ui.income.components.isPending
 import java.time.Instant
 import java.time.YearMonth
 import java.time.ZoneId
@@ -43,6 +44,16 @@ class IncomeOverviewViewModel @Inject constructor(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = 0.0,
+        )
+
+    val pendingLogs: StateFlow<List<IncomeLogEntry>> = incomeLogs
+        .map { logs ->
+            logs.filter { isPending(it.note) }
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = emptyList(),
         )
 
     val breakdowns: StateFlow<List<IncomeBreakdownItem>> = incomeLogs

@@ -37,6 +37,7 @@ fun IncomeScreen(
     viewModel: IncomeOverviewViewModel = hiltViewModel(),
 ) {
     val logs by viewModel.incomeLogs.collectAsStateWithLifecycle()
+    val pendingLogs by viewModel.pendingLogs.collectAsStateWithLifecycle()
     val totalForMonth by viewModel.monthlyTotal.collectAsStateWithLifecycle()
     val breakdowns by viewModel.breakdowns.collectAsStateWithLifecycle()
     val currency by viewModel.currency.collectAsStateWithLifecycle()
@@ -78,7 +79,7 @@ fun IncomeScreen(
             }
         }
         item { MatchAndCatchSection() }
-        item { PersistenceSection() }
+        item { PersistenceSection(pendingLogs = pendingLogs) }
         item { IncomeLogSection(logs = logs) }
     }
 }

@@ -40,9 +40,13 @@ import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextSize
+import com.kahavanu.domain.model.IncomeLogEntry
+import com.kahavanu.ui.income.components.getDueText
+import com.kahavanu.ui.income.components.isOverdue
+import com.kahavanu.ui.income.components.formatAmount
 
 @Composable
-fun PersistenceSection() {
+fun PersistenceSection(pendingLogs: List<IncomeLogEntry>) {
     Column {
         SectionHeader(
             title = "Persistence",
@@ -50,35 +54,30 @@ fun PersistenceSection() {
             actionText = "View all"
         )
         GlassCard(modifier = Modifier.fillMaxWidth()) {
-            PersistenceItem(
-                title = "Nimal — React build",
-                dueText = "Due 3 days ago",
-                isOverdue = true,
-                statusText = "Invoice sent",
-                amount = "LKR 40,000",
-                hasNudge = true,
-                isInvoiceSent = true
-            )
-            HorizontalDivider(color = RawColors.Slate.Slate900.copy(alpha = 0.06f))
-            PersistenceItem(
-                title = "Aprco — Logo retainer",
-                dueText = "Due in 4 days",
-                isOverdue = false,
-                statusText = "Invoice sent",
-                amount = "LKR 18,500",
-                hasNudge = false,
-                isInvoiceSent = true
-            )
-            HorizontalDivider(color = RawColors.Slate.Slate900.copy(alpha = 0.06f))
-            PersistenceItem(
-                title = "BlogX — Article batch",
-                dueText = "Due in 8 days",
-                isOverdue = false,
-                statusText = "No invoice",
-                amount = "$ 120",
-                hasNudge = false,
-                isInvoiceSent = false
-            )
+            if (pendingLogs.isEmpty()) {
+                Text(
+                    text = "No pending payments found",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = TextSecondary,
+                    modifier = Modifier.padding(Spacing.large),
+                    textAlign = TextAlign.Center
+                )
+            } else {
+                pendingLogs.forEachIndexed { index, log ->
+                    PersistenceItem(
+                        title = log.title,
+                        dueText = getDueText(log.receivedAtEpochMillis),
+                        isOverdue = isOverdue(log.receivedAtEpochMillis),
+                        statusText = if (log.note?.contains("Invoice", ignoreCase = true) == true) "Invoice sent" else "Expected",
+                        amount = formatAmount(log.amount, log.currency),
+                        hasNudge = isOverdue(log.receivedAtEpochMillis),
+                        isInvoiceSent = log.note?.contains("Invoice", ignoreCase = true) == true
+                    )
+                    if (index < pendingLogs.size - 1) {
+                        HorizontalDivider(color = RawColors.Slate.Slate900.copy(alpha = 0.06f))
+                    }
+                }
+            }
         }
     }
 }

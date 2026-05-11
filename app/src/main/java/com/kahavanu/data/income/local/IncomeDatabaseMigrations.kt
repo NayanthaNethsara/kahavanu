@@ -157,4 +157,32 @@ object IncomeDatabaseMigrations {
             }
         }
     }
+
+    val MIGRATION_10_11 = object : Migration(10, 11) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE income_logs ADD COLUMN clientId TEXT NOT NULL DEFAULT ''")
+            db.execSQL(
+                "UPDATE income_logs SET clientId = CASE " +
+                    "WHEN remoteId IS NOT NULL THEN remoteId " +
+                    "ELSE 'local-' || localId END " +
+                    "WHERE clientId = ''"
+            )
+
+            db.execSQL("ALTER TABLE income_sources ADD COLUMN clientId TEXT NOT NULL DEFAULT ''")
+            db.execSQL(
+                "UPDATE income_sources SET clientId = CASE " +
+                    "WHEN remoteId IS NOT NULL THEN remoteId " +
+                    "ELSE 'local-' || localId END " +
+                    "WHERE clientId = ''"
+            )
+
+            db.execSQL("ALTER TABLE scheduled_income ADD COLUMN clientId TEXT NOT NULL DEFAULT ''")
+            db.execSQL(
+                "UPDATE scheduled_income SET clientId = CASE " +
+                    "WHEN remoteId IS NOT NULL THEN remoteId " +
+                    "ELSE 'local-' || localId END " +
+                    "WHERE clientId = ''"
+            )
+        }
+    }
 }

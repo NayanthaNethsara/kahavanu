@@ -29,6 +29,9 @@ interface ScheduledIncomeDao {
     @Query("SELECT * FROM scheduled_income WHERE remoteId = :remoteId LIMIT 1")
     suspend fun getByRemoteId(remoteId: String): ScheduledIncomeEntity?
 
+    @Query("SELECT * FROM scheduled_income WHERE clientId = :clientId LIMIT 1")
+    suspend fun getByClientId(clientId: String): ScheduledIncomeEntity?
+
     @Query("UPDATE scheduled_income SET remoteId = :remoteId, isSynced = 1 WHERE localId = :localId")
     suspend fun markSynced(localId: Long, remoteId: String?)
 

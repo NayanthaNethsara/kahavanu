@@ -27,6 +27,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import android.util.Log
 import com.kahavanu.domain.model.ScheduledIncome
+import com.kahavanu.data.income.generateClientId
+import com.kahavanu.data.income.logKey
+import com.kahavanu.data.income.normalizeTypesCsv
 import javax.inject.Inject
 import javax.inject.Singleton
 import android.content.Context
@@ -57,6 +60,10 @@ class DefaultIncomeRepository @Inject constructor(
             stopRealtimeListeners()
             return@AuthStateListener
         }
+        repositoryScope.launch {
+            dedupeLocalLogs(uid)
+            dedupeLocalSources(uid)
+        }
         startRealtimeListeners(uid)
         syncScheduler.enqueue()
     }
@@ -65,6 +72,10 @@ class DefaultIncomeRepository @Inject constructor(
         syncScheduler.enqueue()
         syncScheduler.scheduleIncomeProcessing()
         repositoryScope.launch {
+            auth.currentUser?.uid?.let { uid ->
+                dedupeLocalLogs(uid)
+                dedupeLocalSources(uid)
+            }
             processScheduledIncomes()
         }
         auth.addAuthStateListener(authStateListener)
@@ -82,7 +93,8 @@ class DefaultIncomeRepository @Inject constructor(
             ?: return Result.failure(IllegalStateException("User not authenticated"))
 
         val createdAt = System.currentTimeMillis()
-        val localId = incomeLogDao.insert(entry.toEntity(uid, createdAt))
+        val localEntity = entry.toEntity(uid, createdAt)
+        val localId = incomeLogDao.insert(localEntity)
 
         // If offline, persist locally and enqueue sync without attempting network write.
         if (!isOnline()) {
@@ -104,17 +116,20 @@ class DefaultIncomeRepository @Inject constructor(
             "frequency" to entry.frequency,
             "contactName" to entry.contactName,
             "contactNumber" to entry.contactNumber,
+            "clientId" to localEntity.clientId,
+            "updatedAt" to System.currentTimeMillis(),
         )
 
         val remoteResult = firestore
             .collection(USERS_COLLECTION)
             .document(uid)
             .collection(INCOME_LOGS_COLLECTION)
-            .add(data)
+            .document(localEntity.clientId)
+            .set(data)
             .awaitResult()
 
         return if (remoteResult.isSuccess) {
-            incomeLogDao.markSynced(localId, remoteResult.getOrThrow().id)
+            incomeLogDao.markSynced(localId, localEntity.clientId)
             Result.success(IncomeLogResult.SYNCED)
         } else {
             syncScheduler.enqueue()
@@ -128,6 +143,61 @@ class DefaultIncomeRepository @Inject constructor(
         val network = cm.activeNetwork ?: return false
         val caps = cm.getNetworkCapabilities(network) ?: return false
         return caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+    }
+
+    private suspend fun dedupeLocalLogs(uid: String) {
+        val logs = incomeLogDao.getLogsForUser(uid)
+        if (logs.size < 2) return
+
+        val keepByKey = LinkedHashMap<String, IncomeLogEntity>()
+        val duplicates = mutableListOf<Long>()
+
+        for (log in logs) {
+            val key = log.logKey()
+            val existing = keepByKey[key]
+            if (existing == null) {
+                keepByKey[key] = log
+            } else {
+                val keep = when {
+                    existing.remoteId != null && log.remoteId == null -> existing
+                    existing.remoteId == null && log.remoteId != null -> log
+                    existing.updatedAtEpochMillis >= log.updatedAtEpochMillis -> existing
+                    else -> log
+                }
+                val drop = if (keep === existing) log else existing
+                keepByKey[key] = keep
+                duplicates.add(drop.localId)
+            }
+        }
+
+        if (duplicates.isNotEmpty()) {
+            incomeLogDao.deleteByLocalIds(duplicates)
+        }
+    }
+
+    private suspend fun dedupeLocalSources(uid: String) {
+        val sources = incomeSourceDao.getActiveSources(uid)
+        if (sources.size < 2) return
+
+        val keepByKey = LinkedHashMap<String, IncomeSourceEntity>()
+        val duplicates = mutableListOf<Long>()
+
+        for (source in sources) {
+            val key = source.name.trim().lowercase() + "|" + normalizeTypesCsv(source.typesCsv)
+            val existing = keepByKey[key]
+            if (existing == null) {
+                keepByKey[key] = source
+            } else {
+                val keep = if (existing.updatedAtEpochMillis >= source.updatedAtEpochMillis) existing else source
+                val drop = if (keep === existing) source else existing
+                keepByKey[key] = keep
+                duplicates.add(drop.localId)
+            }
+        }
+
+        if (duplicates.isNotEmpty()) {
+            incomeSourceDao.deleteByLocalIds(duplicates)
+        }
     }
 
     override fun observeIncomeSources(): Flow<List<IncomeSource>> {
@@ -146,9 +216,10 @@ class DefaultIncomeRepository @Inject constructor(
             val entity = IncomeSourceEntity(
                 userId = uid,
                 name = seed.name,
-                typesCsv = seed.types.joinToString(",") { it.id },
+                typesCsv = normalizeTypesCsv(seed.types.map { it.id }),
                 createdAtEpochMillis = now,
                 updatedAtEpochMillis = now,
+                clientId = generateClientId(),
                 isSynced = false,
                 isDeleted = false,
             )
@@ -175,9 +246,10 @@ class DefaultIncomeRepository @Inject constructor(
             localId = existing?.localId ?: 0L,
             userId = uid,
             name = trimmedName,
-            typesCsv = source.types.joinToString(",") { it.id },
+            typesCsv = normalizeTypesCsv(source.types.map { it.id }),
             createdAtEpochMillis = existing?.createdAtEpochMillis ?: now,
             updatedAtEpochMillis = now,
+            clientId = existing?.clientId ?: generateClientId(),
             remoteId = existing?.remoteId,
             isSynced = false,
             isDeleted = false,
@@ -228,12 +300,14 @@ class DefaultIncomeRepository @Inject constructor(
         val uid = auth.currentUser?.uid
             ?: return Result.failure(IllegalStateException("User not authenticated"))
 
-        val localId = scheduledIncomeDao.upsert(scheduled.toEntity(uid))
-        val existing = scheduledIncomeDao.getById(localId) ?: return Result.failure(Exception("Failed to save locally"))
+        val existing = if (scheduled.id != 0L) scheduledIncomeDao.getById(scheduled.id) else null
+        val entity = scheduled.toEntity(uid, clientId = existing?.clientId ?: generateClientId())
+        val localId = scheduledIncomeDao.upsert(entity)
+        val saved = scheduledIncomeDao.getById(localId) ?: return Result.failure(Exception("Failed to save locally"))
 
-        val remoteResult = upsertRemoteScheduled(uid, existing)
+        val remoteResult = upsertRemoteScheduled(uid, saved)
         return if (remoteResult.isSuccess) {
-            scheduledIncomeDao.upsert(existing.copy(remoteId = remoteResult.getOrThrow(), isSynced = true))
+            scheduledIncomeDao.upsert(saved.copy(remoteId = remoteResult.getOrThrow(), isSynced = true))
             Result.success(Unit)
         } else {
             syncScheduler.enqueue()
@@ -424,10 +498,24 @@ class DefaultIncomeRepository @Inject constructor(
     private suspend fun handleIncomeLogChange(uid: String, change: DocumentChange) {
         val doc = change.document
         val remoteId = doc.id
+        val clientId = doc.getString("clientId") ?: remoteId
         when (change.type) {
             DocumentChange.Type.ADDED, DocumentChange.Type.MODIFIED -> {
-                val local = incomeLogDao.getByRemoteId(remoteId)
-                val entity = doc.toIncomeLogEntity(uid, remoteId, local?.localId ?: 0L)
+                val localByRemote = incomeLogDao.getByRemoteId(remoteId)
+                val localByClientId = if (localByRemote == null) {
+                    incomeLogDao.getByClientId(clientId)
+                } else {
+                    null
+                }
+                val remoteEntity = doc.toIncomeLogEntity(uid, remoteId, 0L)
+                val localByKey = if (localByRemote == null && localByClientId == null) {
+                    incomeLogDao.getUnsynced(uid)
+                        .firstOrNull { it.logKey() == remoteEntity.logKey() }
+                } else {
+                    null
+                }
+                val local = localByRemote ?: localByClientId ?: localByKey
+                val entity = remoteEntity.copy(localId = local?.localId ?: 0L)
                 if (local == null || entity.updatedAtEpochMillis > local.updatedAtEpochMillis) {
                     incomeLogDao.upsert(entity)
                 }
@@ -441,10 +529,26 @@ class DefaultIncomeRepository @Inject constructor(
     private suspend fun handleIncomeSourceChange(uid: String, change: DocumentChange) {
         val doc = change.document
         val remoteId = doc.id
+        val clientId = doc.getString("clientId") ?: remoteId
         when (change.type) {
             DocumentChange.Type.ADDED, DocumentChange.Type.MODIFIED -> {
-                val local = incomeSourceDao.getByRemoteId(remoteId)
-                val entity = doc.toIncomeSourceEntity(uid, remoteId, local?.localId ?: 0L)
+                val remoteEntity = doc.toIncomeSourceEntity(uid, remoteId, 0L)
+                val localByRemote = incomeSourceDao.getByRemoteId(remoteId)
+                val localByClientId = if (localByRemote == null) {
+                    incomeSourceDao.getByClientId(clientId)
+                } else {
+                    null
+                }
+                val localByKey = if (localByRemote == null && localByClientId == null) {
+                    incomeSourceDao.getActiveSources(uid).firstOrNull {
+                        it.name.equals(remoteEntity.name, ignoreCase = true) &&
+                            normalizeTypesCsv(it.typesCsv) == normalizeTypesCsv(remoteEntity.typesCsv)
+                    }
+                } else {
+                    null
+                }
+                val local = localByRemote ?: localByClientId ?: localByKey
+                val entity = remoteEntity.copy(localId = local?.localId ?: 0L)
                 if (local == null || entity.updatedAtEpochMillis > local.updatedAtEpochMillis) {
                     incomeSourceDao.upsert(entity)
                 }
@@ -458,9 +562,16 @@ class DefaultIncomeRepository @Inject constructor(
     private suspend fun handleScheduledIncomeChange(uid: String, change: DocumentChange) {
         val doc = change.document
         val remoteId = doc.id
+        val clientId = doc.getString("clientId") ?: remoteId
         when (change.type) {
             DocumentChange.Type.ADDED, DocumentChange.Type.MODIFIED -> {
-                val local = scheduledIncomeDao.getByRemoteId(remoteId)
+                val localByRemote = scheduledIncomeDao.getByRemoteId(remoteId)
+                val localByClientId = if (localByRemote == null) {
+                    scheduledIncomeDao.getByClientId(clientId)
+                } else {
+                    null
+                }
+                val local = localByRemote ?: localByClientId
                 val entity = doc.toScheduledIncomeEntity(uid, remoteId, local?.localId ?: 0L)
                 if (local == null || entity.updatedAtEpochMillis > local.updatedAtEpochMillis) {
                     scheduledIncomeDao.upsert(entity)
@@ -481,32 +592,25 @@ class DefaultIncomeRepository @Inject constructor(
             "types" to source.typesCsv.split(',').filter { it.isNotBlank() },
             "createdAt" to source.createdAtEpochMillis,
             "updatedAt" to source.updatedAtEpochMillis,
+            "clientId" to source.clientId,
             "userId" to uid,
         )
 
-        return if (source.remoteId != null) {
-            firestore.collection(USERS_COLLECTION)
-                .document(uid)
-                .collection(INCOME_SOURCES_COLLECTION)
-                .document(source.remoteId)
-                .set(data)
-                .awaitResult()
-                .map { source.remoteId }
-        } else {
-            firestore.collection(USERS_COLLECTION)
-                .document(uid)
-                .collection(INCOME_SOURCES_COLLECTION)
-                .add(data)
-                .awaitResult()
-                .map { it.id }
-        }
+        val docId = source.remoteId ?: source.clientId
+        return firestore.collection(USERS_COLLECTION)
+            .document(uid)
+            .collection(INCOME_SOURCES_COLLECTION)
+            .document(docId)
+            .set(data)
+            .awaitResult()
+            .map { docId }
     }
 
     private suspend fun deleteRemoteSource(
         uid: String,
         source: IncomeSourceEntity,
     ): Result<String?> {
-        val remoteId = source.remoteId ?: return Result.success(null)
+        val remoteId = source.remoteId ?: source.clientId
         return firestore.collection(USERS_COLLECTION)
             .document(uid)
             .collection(INCOME_SOURCES_COLLECTION)
@@ -551,25 +655,18 @@ class DefaultIncomeRepository @Inject constructor(
             "contactNumber" to scheduled.contactNumber,
             "status" to status,
             "updatedAt" to System.currentTimeMillis(),
+            "clientId" to scheduled.clientId,
             "userId" to uid,
         )
 
-        return if (scheduled.remoteId != null) {
-            firestore.collection(USERS_COLLECTION)
-                .document(uid)
-                .collection(SCHEDULED_COLLECTION)
-                .document(scheduled.remoteId)
-                .set(data)
-                .awaitResult()
-                .map { scheduled.remoteId }
-        } else {
-            firestore.collection(USERS_COLLECTION)
-                .document(uid)
-                .collection(SCHEDULED_COLLECTION)
-                .add(data)
-                .awaitResult()
-                .map { it.id }
-        }
+        val docId = scheduled.remoteId ?: scheduled.clientId
+        return firestore.collection(USERS_COLLECTION)
+            .document(uid)
+            .collection(SCHEDULED_COLLECTION)
+            .document(docId)
+            .set(data)
+            .awaitResult()
+            .map { docId }
     }
 
     private suspend fun ensureScheduledCollection(uid: String): Result<Unit> {
@@ -593,7 +690,7 @@ class DefaultIncomeRepository @Inject constructor(
         uid: String,
         scheduled: ScheduledIncomeEntity,
     ): Result<String?> {
-        val remoteId = scheduled.remoteId ?: return Result.success(null)
+        val remoteId = scheduled.remoteId ?: scheduled.clientId
         return firestore.collection(USERS_COLLECTION)
             .document(uid)
             .collection(SCHEDULED_COLLECTION)
@@ -628,6 +725,7 @@ private fun DocumentSnapshot.toIncomeLogEntity(
 ): IncomeLogEntity {
     val createdAt = getLong("createdAt") ?: System.currentTimeMillis()
     val updatedAt = getLong("updatedAt") ?: createdAt
+    val clientId = getString("clientId") ?: remoteId
     return IncomeLogEntity(
         localId = localId,
         userId = uid,
@@ -643,6 +741,7 @@ private fun DocumentSnapshot.toIncomeLogEntity(
         frequency = getString("frequency"),
         contactName = getString("contactName"),
         contactNumber = getString("contactNumber"),
+        clientId = clientId,
         remoteId = remoteId,
         isSynced = true,
         isDeleted = false,
@@ -661,13 +760,15 @@ private fun DocumentSnapshot.toIncomeSourceEntity(
         ?: emptyList()
     val createdAt = getLong("createdAt") ?: System.currentTimeMillis()
     val updatedAt = getLong("updatedAt") ?: createdAt
+    val clientId = getString("clientId") ?: remoteId
     return IncomeSourceEntity(
         localId = localId,
         userId = uid,
         name = getString("name") ?: "",
-        typesCsv = typesList.joinToString(","),
+        typesCsv = normalizeTypesCsv(typesList),
         createdAtEpochMillis = createdAt,
         updatedAtEpochMillis = updatedAt,
+        clientId = clientId,
         remoteId = remoteId,
         isSynced = true,
         isDeleted = false,
@@ -680,6 +781,7 @@ private fun DocumentSnapshot.toScheduledIncomeEntity(
     localId: Long,
 ): ScheduledIncomeEntity {
     val updatedAt = getLong("updatedAt") ?: System.currentTimeMillis()
+    val clientId = getString("clientId") ?: remoteId
     return ScheduledIncomeEntity(
         localId = localId,
         userId = uid,
@@ -695,6 +797,7 @@ private fun DocumentSnapshot.toScheduledIncomeEntity(
         isInvoiceSent = getBoolean("isInvoiceSent") ?: false,
         contactName = getString("contactName"),
         contactNumber = getString("contactNumber"),
+        clientId = clientId,
         remoteId = remoteId,
         isSynced = true,
         isDeleted = false,

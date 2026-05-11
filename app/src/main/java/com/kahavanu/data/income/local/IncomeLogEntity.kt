@@ -25,6 +25,7 @@ data class IncomeLogEntity(
     val frequency: String? = null,
     val contactName: String? = null,
     val contactNumber: String? = null,
+    val clientId: String,
     override val remoteId: String? = null,
     override val isSynced: Boolean = false,
     override val isDeleted: Boolean = false,
@@ -43,6 +44,7 @@ data class IncomeLogEntity(
         "frequency" to frequency,
         "contactName" to contactName,
         "contactNumber" to contactNumber,
+        "clientId" to clientId,
         "userId" to userId,
         "updatedAt" to updatedAtEpochMillis,
     )

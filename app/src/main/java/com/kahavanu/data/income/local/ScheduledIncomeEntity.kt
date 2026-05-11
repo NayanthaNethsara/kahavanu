@@ -20,6 +20,7 @@ data class ScheduledIncomeEntity(
     val isInvoiceSent: Boolean = false,
     val contactName: String? = null,
     val contactNumber: String? = null,
+    val clientId: String,
     override val remoteId: String? = null,
     override val isSynced: Boolean = false,
     override val isDeleted: Boolean = false,
@@ -38,6 +39,7 @@ data class ScheduledIncomeEntity(
         "isInvoiceSent" to isInvoiceSent,
         "contactName" to contactName,
         "contactNumber" to contactNumber,
+        "clientId" to clientId,
         "userId" to userId,
         "updatedAt" to updatedAtEpochMillis,
     )

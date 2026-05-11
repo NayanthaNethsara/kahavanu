@@ -10,6 +10,8 @@ import com.kahavanu.data.income.local.IncomeLogEntity
 import com.kahavanu.data.income.local.IncomeSourceEntity
 import com.kahavanu.data.income.local.ScheduledIncomeEntity
 import com.kahavanu.data.sync.FirebaseSyncManager
+import com.kahavanu.data.income.logKey
+import com.kahavanu.data.income.normalizeTypesCsv
 import com.kahavanu.data.sync.SyncState
 import com.kahavanu.data.sync.awaitResultVoid
 import com.kahavanu.data.sync.awaitResultDocRef
@@ -67,25 +69,16 @@ class IncomeSyncManager @Inject constructor(
         for (log in pending) {
             try {
                 val data = log.toFirestoreMap()
-                val ref = if (log.remoteId != null) {
-                    firestore
-                        .collection(USERS_COLLECTION)
-                        .document(uid)
-                        .collection(INCOME_LOGS_COLLECTION)
-                        .document(log.remoteId!!)
-                        .set(data)
-                        .awaitResultVoid()
-                        .getOrThrow()
-                    log.remoteId!!
-                } else {
-                    firestore
-                        .collection(USERS_COLLECTION)
-                        .document(uid)
-                        .collection(INCOME_LOGS_COLLECTION)
-                        .add(data)
-                        .awaitResultDocRef()
-                        .getOrThrow().id
-                }
+                val docId = log.remoteId ?: log.clientId
+                firestore
+                    .collection(USERS_COLLECTION)
+                    .document(uid)
+                    .collection(INCOME_LOGS_COLLECTION)
+                    .document(docId)
+                    .set(data)
+                    .awaitResultVoid()
+                    .getOrThrow()
+                val ref = docId
                 dao.markSynced(log.localId, ref)
             } catch (e: Exception) {
                 android.util.Log.w("IncomeSyncManager", "Failed to push income log localId=${log.localId}", e)
@@ -115,25 +108,16 @@ class IncomeSyncManager @Inject constructor(
                     }
                 } else {
                     val data = source.toFirestoreMap()
-                    val ref = if (source.remoteId != null) {
-                        firestore
-                            .collection(USERS_COLLECTION)
-                            .document(uid)
-                            .collection(INCOME_SOURCES_COLLECTION)
-                            .document(source.remoteId!!)
-                            .set(data)
-                            .awaitResultVoid()
-                            .getOrThrow()
-                        source.remoteId!!
-                    } else {
-                        firestore
-                            .collection(USERS_COLLECTION)
-                            .document(uid)
-                            .collection(INCOME_SOURCES_COLLECTION)
-                            .add(data)
-                            .awaitResultDocRef()
-                            .getOrThrow().id
-                    }
+                    val docId = source.remoteId ?: source.clientId
+                    firestore
+                        .collection(USERS_COLLECTION)
+                        .document(uid)
+                        .collection(INCOME_SOURCES_COLLECTION)
+                        .document(docId)
+                        .set(data)
+                        .awaitResultVoid()
+                        .getOrThrow()
+                    val ref = docId
                     dao.markSynced(source.localId, ref)
                 }
             } catch (e: Exception) {
@@ -164,25 +148,16 @@ class IncomeSyncManager @Inject constructor(
                     }
                 } else {
                     val data = scheduled.toFirestoreMap()
-                    val ref = if (scheduled.remoteId != null) {
-                        firestore
-                            .collection(USERS_COLLECTION)
-                            .document(uid)
-                            .collection(SCHEDULED_COLLECTION)
-                            .document(scheduled.remoteId!!)
-                            .set(data)
-                            .awaitResultVoid()
-                            .getOrThrow()
-                        scheduled.remoteId!!
-                    } else {
-                        firestore
-                            .collection(USERS_COLLECTION)
-                            .document(uid)
-                            .collection(SCHEDULED_COLLECTION)
-                            .add(data)
-                            .awaitResultDocRef()
-                            .getOrThrow().id
-                    }
+                    val docId = scheduled.remoteId ?: scheduled.clientId
+                    firestore
+                        .collection(USERS_COLLECTION)
+                        .document(uid)
+                        .collection(SCHEDULED_COLLECTION)
+                        .document(docId)
+                        .set(data)
+                        .awaitResultVoid()
+                        .getOrThrow()
+                    val ref = docId
                     dao.markSynced(scheduled.localId, ref)
                 }
             } catch (e: Exception) {
@@ -195,6 +170,7 @@ class IncomeSyncManager @Inject constructor(
     
     private suspend fun pullIncomeLogs(uid: String, lastSyncMs: Long) {
         val dao = database.incomeLogDao()
+        val pendingByKey = dao.getUnsynced(uid).associateBy { it.logKey() }
         val remoteResult = firestore
             .collection(USERS_COLLECTION)
             .document(uid)
@@ -212,16 +188,22 @@ class IncomeSyncManager @Inject constructor(
             if (timestamp <= lastSyncMs) continue
             
             val remote = doc.toIncomeLogEntity(uid, remoteId)
-            val local = dao.getByRemoteId(remoteId)
+            val clientId = doc.getString("clientId") ?: remoteId
+            val localByRemote = dao.getByRemoteId(remoteId)
+            val localByClientId = if (localByRemote == null) dao.getByClientId(clientId) else null
+            val localByKey = if (localByRemote == null && localByClientId == null) pendingByKey[remote.logKey()] else null
+            val local = localByRemote ?: localByClientId ?: localByKey
+            val resolvedRemote = remote.copy(localId = local?.localId ?: 0L)
             
-            if (local == null || remote.updatedAtEpochMillis > local.updatedAtEpochMillis) {
-                dao.upsert(remote)
+            if (local == null || resolvedRemote.updatedAtEpochMillis > local.updatedAtEpochMillis) {
+                dao.upsert(resolvedRemote)
             }
         }
     }
     
     private suspend fun pullIncomeSources(uid: String, lastSyncMs: Long) {
         val dao = database.incomeSourceDao()
+        val localSources = dao.getActiveSources(uid)
         val remoteResult = firestore
             .collection(USERS_COLLECTION)
             .document(uid)
@@ -242,10 +224,22 @@ class IncomeSyncManager @Inject constructor(
             if (timestamp <= lastSyncMs) continue
             
             val remote = doc.toIncomeSourceEntity(uid, remoteId)
-            val local = dao.getByRemoteId(remoteId)
+            val clientId = doc.getString("clientId") ?: remoteId
+            val localByRemote = dao.getByRemoteId(remoteId)
+            val localByClientId = if (localByRemote == null) dao.getByClientId(clientId) else null
+            val localByKey = if (localByRemote == null && localByClientId == null) {
+                localSources.firstOrNull {
+                    it.name.equals(remote.name, ignoreCase = true) &&
+                        normalizeTypesCsv(it.typesCsv) == normalizeTypesCsv(remote.typesCsv)
+                }
+            } else {
+                null
+            }
+            val local = localByRemote ?: localByClientId ?: localByKey
+            val resolvedRemote = remote.copy(localId = local?.localId ?: 0L)
             
-            if (local == null || remote.updatedAtEpochMillis > local.updatedAtEpochMillis) {
-                dao.upsert(remote)
+            if (local == null || resolvedRemote.updatedAtEpochMillis > local.updatedAtEpochMillis) {
+                dao.upsert(resolvedRemote)
             }
         }
         
@@ -278,10 +272,13 @@ class IncomeSyncManager @Inject constructor(
             if (timestamp <= lastSyncMs) continue
             
             val remote = doc.toScheduledIncomeEntity(uid, remoteId)
-            val local = dao.getByRemoteId(remoteId)
+            val clientId = doc.getString("clientId") ?: remoteId
+            val localByRemote = dao.getByRemoteId(remoteId)
+            val localByClientId = if (localByRemote == null) dao.getByClientId(clientId) else null
+            val local = localByRemote ?: localByClientId
             
             if (local == null || remote.updatedAtEpochMillis > local.updatedAtEpochMillis) {
-                dao.upsert(remote)
+                dao.upsert(remote.copy(localId = local?.localId ?: 0L))
             }
         }
         
@@ -315,6 +312,7 @@ private fun com.google.firebase.firestore.DocumentSnapshot.toIncomeLogEntity(uid
         frequency = getString("frequency"),
         contactName = getString("contactName"),
         contactNumber = getString("contactNumber"),
+        clientId = getString("clientId") ?: remoteId,
         remoteId = remoteId,
         isSynced = true,
     )
@@ -325,9 +323,10 @@ private fun com.google.firebase.firestore.DocumentSnapshot.toIncomeSourceEntity(
     return IncomeSourceEntity(
         userId = uid,
         name = getString("name") ?: "",
-        typesCsv = typesList.joinToString(","),
+        typesCsv = normalizeTypesCsv(typesList),
         createdAtEpochMillis = getLong("createdAt") ?: System.currentTimeMillis(),
         updatedAtEpochMillis = getLong("updatedAt") ?: System.currentTimeMillis(),
+        clientId = getString("clientId") ?: remoteId,
         remoteId = remoteId,
         isSynced = true,
         isDeleted = false,
@@ -349,6 +348,7 @@ private fun com.google.firebase.firestore.DocumentSnapshot.toScheduledIncomeEnti
         isInvoiceSent = getBoolean("isInvoiceSent") ?: false,
         contactName = getString("contactName"),
         contactNumber = getString("contactNumber"),
+        clientId = getString("clientId") ?: remoteId,
         remoteId = remoteId,
         isSynced = true,
         isDeleted = false,

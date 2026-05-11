@@ -3,6 +3,7 @@ package com.kahavanu.domain.repository
 import com.kahavanu.domain.model.IncomeLogEntry
 import com.kahavanu.domain.model.IncomeLogResult
 import com.kahavanu.domain.model.IncomeSource
+import com.kahavanu.domain.model.ScheduledIncome
 import com.kahavanu.ui.income.CurrencyOption
 import kotlinx.coroutines.flow.Flow
 
@@ -17,4 +18,11 @@ interface IncomeRepository {
 
     fun observeCurrencySettings(): Flow<Pair<CurrencyOption, CurrencyOption>>
     suspend fun updateCurrencySettings(primary: CurrencyOption, secondary: CurrencyOption): Result<Unit>
+
+    // Scheduled & Recurrent Income
+    fun observeScheduledIncomes(): Flow<List<ScheduledIncome>>
+    suspend fun upsertScheduledIncome(scheduled: ScheduledIncome): Result<Unit>
+    suspend fun deleteScheduledIncome(id: Long): Result<Unit>
+    suspend fun markScheduledAsReceived(id: Long): Result<Unit>
+    suspend fun processScheduledIncomes(): Result<Unit>
 }

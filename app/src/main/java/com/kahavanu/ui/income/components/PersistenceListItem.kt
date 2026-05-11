@@ -1,5 +1,6 @@
 package com.kahavanu.ui.income.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -49,7 +50,9 @@ fun PersistenceListItem(
     isPending: Boolean,
     isRecurrent: Boolean,
     amount: String,
-    isInvoiceSent: Boolean
+    isInvoiceSent: Boolean,
+    onMarkAsReceived: (() -> Unit)? = null,
+    onNudge: (() -> Unit)? = null
 ) {
     Row(
         modifier = Modifier
@@ -147,49 +150,72 @@ fun PersistenceListItem(
                 fontSize = 14.sp
             )
             
-            if (isOverdue) {
-                Spacer(modifier = Modifier.height(Spacing.small))
-                Surface(
-                    onClick = { },
-                    modifier = Modifier
-                        .height(24.dp)
-                        .width(72.dp),
-                    shape = CircleShape,
-                    color = Color.Transparent
-                ) {
-                    Box(
+            Spacer(modifier = Modifier.height(Spacing.small))
+            
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.small)) {
+                if (isPending && onMarkAsReceived != null) {
+                    Surface(
+                        onClick = onMarkAsReceived,
+                        modifier = Modifier.height(24.dp),
+                        shape = CircleShape,
+                        color = RawColors.Emerald.Emerald500.copy(alpha = 0.12f),
+                        border = BorderStroke(0.5.dp, RawColors.Emerald.Emerald500.copy(alpha = 0.4f))
+                    ) {
+                        Box(modifier = Modifier.padding(horizontal = 8.dp), contentAlignment = Alignment.Center) {
+                            Text(
+                                "Receive",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = RawColors.Emerald.Emerald700,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+
+                if (isOverdue) {
+                    Surface(
+                        onClick = { onNudge?.invoke() },
                         modifier = Modifier
-                            .fillMaxSize()
-                            .background(
-                                brush = Brush.verticalGradient(
-                                    colors = listOf(
-                                        RawColors.Emerald.Emerald500.copy(alpha = 0.9f),
-                                        RawColors.Emerald.Emerald500.copy(alpha = 0.75f),
-                                        RawColors.Emerald.Emerald500.copy(alpha = 0.9f)
+                            .height(24.dp)
+                            .width(72.dp),
+                        shape = CircleShape,
+                        color = Color.Transparent
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(
+                                    brush = Brush.verticalGradient(
+                                        colors = listOf(
+                                            RawColors.Emerald.Emerald500.copy(alpha = 0.9f),
+                                            RawColors.Emerald.Emerald500.copy(alpha = 0.75f),
+                                            RawColors.Emerald.Emerald500.copy(alpha = 0.9f)
+                                        )
                                     )
                                 )
-                            )
-                            .border(0.5.dp, Color.White.copy(alpha = 0.5f), CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
+                                .border(0.5.dp, Color.White.copy(alpha = 0.5f), CircleShape),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Outlined.Send,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(12.dp)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                text = "Nudge",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = Color.White,
-                                fontWeight = FontWeight.Medium,
-                                fontSize = 10.sp
-                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Outlined.Send,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(12.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = "Nudge",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Medium,
+                                    fontSize = 10.sp
+                                )
+                            }
                         }
                     }
                 }

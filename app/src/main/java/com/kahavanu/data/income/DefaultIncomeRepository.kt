@@ -6,6 +6,8 @@ import com.google.firebase.firestore.SetOptions
 import com.kahavanu.data.income.local.IncomeLogDao
 import com.kahavanu.data.income.local.IncomeSourceDao
 import com.kahavanu.data.income.local.IncomeSourceEntity
+import com.kahavanu.data.income.local.ScheduledIncomeDao
+import com.kahavanu.data.income.local.ScheduledIncomeEntity
 import com.kahavanu.data.income.local.UserSettingsDao
 import com.kahavanu.data.income.local.UserSettingsEntity
 import com.kahavanu.data.income.sync.IncomeSyncScheduler
@@ -24,6 +26,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
+import com.kahavanu.domain.model.ScheduledIncome
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -34,13 +37,18 @@ class DefaultIncomeRepository @Inject constructor(
     private val incomeLogDao: IncomeLogDao,
     private val incomeSourceDao: IncomeSourceDao,
     private val userSettingsDao: UserSettingsDao,
+    private val scheduledIncomeDao: ScheduledIncomeDao,
     private val syncScheduler: IncomeSyncScheduler,
 ) : IncomeRepository {
     private val repositoryScope = CoroutineScope(Dispatchers.IO)
 
     init {
         syncScheduler.enqueue()
+        syncScheduler.scheduleIncomeProcessing()
         observeRemoteSettings()
+        repositoryScope.launch {
+            processScheduledIncomes()
+        }
     }
 
     private fun observeRemoteSettings() {
@@ -249,6 +257,122 @@ class DefaultIncomeRepository @Inject constructor(
             .map { }
     }
 
+    override fun observeScheduledIncomes(): Flow<List<ScheduledIncome>> {
+        val uid = auth.currentUser?.uid ?: return flowOf(emptyList())
+        return scheduledIncomeDao.observeScheduled(uid)
+            .map { entries -> entries.map { it.toDomain() } }
+    }
+
+    override suspend fun upsertScheduledIncome(scheduled: ScheduledIncome): Result<Unit> {
+        val uid = auth.currentUser?.uid
+            ?: return Result.failure(IllegalStateException("User not authenticated"))
+
+        val localId = scheduledIncomeDao.upsert(scheduled.toEntity(uid))
+        val existing = scheduledIncomeDao.getById(localId) ?: return Result.failure(Exception("Failed to save locally"))
+
+        val remoteResult = upsertRemoteScheduled(uid, existing)
+        return if (remoteResult.isSuccess) {
+            scheduledIncomeDao.upsert(existing.copy(remoteId = remoteResult.getOrThrow(), isSynced = true))
+            Result.success(Unit)
+        } else {
+            syncScheduler.enqueue()
+            Result.success(Unit)
+        }
+    }
+
+    override suspend fun deleteScheduledIncome(id: Long): Result<Unit> {
+        val uid = auth.currentUser?.uid
+            ?: return Result.failure(IllegalStateException("User not authenticated"))
+
+        val existing = scheduledIncomeDao.getById(id) ?: return Result.success(Unit)
+        scheduledIncomeDao.markDeleted(id)
+
+        val remoteResult = deleteRemoteScheduled(uid, existing)
+        return if (remoteResult.isSuccess) {
+            Result.success(Unit)
+        } else {
+            syncScheduler.enqueue()
+            Result.success(Unit)
+        }
+    }
+
+    override suspend fun markScheduledAsReceived(id: Long): Result<Unit> {
+        val uid = auth.currentUser?.uid
+            ?: return Result.failure(IllegalStateException("User not authenticated"))
+
+        val scheduled = scheduledIncomeDao.getById(id) ?: return Result.failure(Exception("Scheduled item not found"))
+        
+        // Log as actual income
+        val entry = IncomeLogEntry(
+            title = scheduled.title,
+            amount = scheduled.amount,
+            currency = scheduled.currency,
+            receivedAtEpochMillis = System.currentTimeMillis(),
+            sourceId = scheduled.sourceId,
+            sourceName = scheduled.sourceName,
+            sourceType = IncomeSourceType.ONE_TIME.id,
+            isInvoiceSent = scheduled.isInvoiceSent,
+            contactName = scheduled.contactName,
+            contactNumber = scheduled.contactNumber
+        )
+        
+        val logResult = logIncome(entry)
+        if (logResult.isSuccess) {
+            // Delete the scheduled item if it's PENDING (one-off)
+            if (scheduled.type == IncomeSourceType.PENDING.id) {
+                deleteScheduledIncome(id)
+            }
+            return Result.success(Unit)
+        }
+        return Result.failure(Exception("Failed to log income"))
+    }
+
+    override suspend fun processScheduledIncomes(): Result<Unit> = runCatching {
+        val uid = auth.currentUser?.uid ?: return@runCatching
+        val now = System.currentTimeMillis()
+        val dueItems = scheduledIncomeDao.getDueScheduled(uid, now)
+        
+        dueItems.filter { it.type == IncomeSourceType.RECURRENT.id }.forEach { item ->
+            // Generate Log
+            val logEntry = IncomeLogEntry(
+                title = item.title,
+                amount = item.amount,
+                currency = item.currency,
+                receivedAtEpochMillis = item.scheduledDateEpochMillis,
+                sourceId = item.sourceId ?: 0,
+                sourceName = item.sourceName,
+                sourceType = IncomeSourceType.ONE_TIME.id,
+                contactName = item.contactName,
+                contactNumber = item.contactNumber
+            )
+            logIncome(logEntry)
+            
+            // Update Scheduled Item for next occurrence
+            val nextDate = calculateNextScheduledDate(item.scheduledDateEpochMillis, item.frequency)
+            val updated = item.copy(
+                scheduledDateEpochMillis = nextDate,
+                lastGeneratedEpochMillis = now,
+                isSynced = false
+            )
+            scheduledIncomeDao.upsert(updated)
+            upsertRemoteScheduled(uid, updated)
+        }
+    }
+
+    private fun calculateNextScheduledDate(currentDate: Long, frequency: String?): Long {
+        val date = java.time.Instant.ofEpochMilli(currentDate)
+            .atZone(java.time.ZoneId.systemDefault())
+            .toLocalDate()
+            
+        val nextDate = when (frequency?.lowercase()) {
+            "daily" -> date.plusDays(1)
+            "weekly" -> date.plusWeeks(1)
+            "monthly" -> date.plusMonths(1)
+            "yearly" -> date.plusYears(1)
+            else -> date.plusMonths(1) // Default to monthly
+        }
+        return nextDate.atStartOfDay(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
+    }
 }
 
 private const val USERS_COLLECTION = "users"
@@ -256,6 +380,7 @@ private const val SETTINGS_COLLECTION = "settings"
 private const val CONFIG_DOCUMENT = "config"
 private const val INCOME_LOGS_COLLECTION = "incomeLogs"
 private const val INCOME_SOURCES_COLLECTION = "incomeSources"
+private const val SCHEDULED_COLLECTION = "scheduledIncome"
 
 private data class IncomeSourceSeed(
     val name: String,
@@ -327,6 +452,62 @@ private suspend fun deleteRemoteSource(
         .collection(USERS_COLLECTION)
         .document(uid)
         .collection(INCOME_SOURCES_COLLECTION)
+        .document(remoteId)
+        .delete()
+        .awaitResult()
+        .map { remoteId }
+}
+
+private suspend fun upsertRemoteScheduled(
+    uid: String,
+    scheduled: ScheduledIncomeEntity,
+): Result<String?> {
+    val data = mapOf(
+        "title" to scheduled.title,
+        "amount" to scheduled.amount,
+        "currency" to scheduled.currency,
+        "type" to scheduled.type,
+        "frequency" to scheduled.frequency,
+        "scheduledDate" to scheduled.scheduledDateEpochMillis,
+        "lastGenerated" to scheduled.lastGeneratedEpochMillis,
+        "sourceId" to scheduled.sourceId,
+        "sourceName" to scheduled.sourceName,
+        "isInvoiceSent" to scheduled.isInvoiceSent,
+        "contactName" to scheduled.contactName,
+        "contactNumber" to scheduled.contactNumber,
+        "updatedAt" to System.currentTimeMillis(),
+        "userId" to uid,
+    )
+
+    return if (scheduled.remoteId != null) {
+        FirebaseFirestore.getInstance()
+            .collection(USERS_COLLECTION)
+            .document(uid)
+            .collection(SCHEDULED_COLLECTION)
+            .document(scheduled.remoteId)
+            .set(data)
+            .awaitResult()
+            .map { scheduled.remoteId }
+    } else {
+        FirebaseFirestore.getInstance()
+            .collection(USERS_COLLECTION)
+            .document(uid)
+            .collection(SCHEDULED_COLLECTION)
+            .add(data)
+            .awaitResult()
+            .map { it.id }
+    }
+}
+
+private suspend fun deleteRemoteScheduled(
+    uid: String,
+    scheduled: ScheduledIncomeEntity,
+): Result<String?> {
+    val remoteId = scheduled.remoteId ?: return Result.success(null)
+    return FirebaseFirestore.getInstance()
+        .collection(USERS_COLLECTION)
+        .document(uid)
+        .collection(SCHEDULED_COLLECTION)
         .document(remoteId)
         .delete()
         .awaitResult()

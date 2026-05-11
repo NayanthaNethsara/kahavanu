@@ -6,6 +6,9 @@ import com.kahavanu.domain.model.IncomeLogEntry
 import com.kahavanu.domain.model.IncomeSource
 import com.kahavanu.domain.model.IncomeSourceType
 
+import com.kahavanu.data.income.local.ScheduledIncomeEntity
+import com.kahavanu.domain.model.ScheduledIncome
+
 fun IncomeLogEntity.toDomain(): IncomeLogEntry = IncomeLogEntry(
     title = title,
     amount = amount,
@@ -50,3 +53,38 @@ fun IncomeSourceEntity.toDomain(): IncomeSource {
         types = types,
     )
 }
+
+fun ScheduledIncomeEntity.toDomain(): ScheduledIncome = ScheduledIncome(
+    id = localId,
+    title = title,
+    amount = amount,
+    currency = currency,
+    type = IncomeSourceType.fromId(type) ?: IncomeSourceType.PENDING,
+    frequency = frequency,
+    scheduledDateEpochMillis = scheduledDateEpochMillis,
+    lastGeneratedEpochMillis = lastGeneratedEpochMillis,
+    sourceId = sourceId,
+    sourceName = sourceName,
+    isInvoiceSent = isInvoiceSent,
+    contactName = contactName,
+    contactNumber = contactNumber,
+)
+
+fun ScheduledIncome.toEntity(
+    userId: String,
+): ScheduledIncomeEntity = ScheduledIncomeEntity(
+    localId = id,
+    userId = userId,
+    title = title,
+    amount = amount,
+    currency = currency,
+    type = type.id,
+    frequency = frequency,
+    scheduledDateEpochMillis = scheduledDateEpochMillis,
+    lastGeneratedEpochMillis = lastGeneratedEpochMillis,
+    sourceId = sourceId,
+    sourceName = sourceName,
+    isInvoiceSent = isInvoiceSent,
+    contactName = contactName,
+    contactNumber = contactNumber,
+)

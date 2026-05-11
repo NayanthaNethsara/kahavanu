@@ -14,6 +14,7 @@ import java.time.Instant
 import java.time.YearMonth
 import java.time.ZoneId
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -27,7 +28,7 @@ data class IncomeBreakdownItem(
 
 @HiltViewModel
 class IncomeOverviewViewModel @Inject constructor(
-    repository: IncomeRepository,
+    private val repository: IncomeRepository,
 ) : ViewModel() {
     val incomeLogs: StateFlow<List<IncomeLogEntry>> = repository.observeIncomeLogs()
         .stateIn(
@@ -35,6 +36,19 @@ class IncomeOverviewViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = emptyList(),
         )
+
+    val scheduledIncomes: StateFlow<List<com.kahavanu.domain.model.ScheduledIncome>> = repository.observeScheduledIncomes()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = emptyList(),
+        )
+
+    fun markAsReceived(id: Long) {
+        viewModelScope.launch {
+            repository.markScheduledAsReceived(id)
+        }
+    }
 
     val totalIncomeByCurrency: StateFlow<Map<String, Double>> = incomeLogs
         .map { logs ->

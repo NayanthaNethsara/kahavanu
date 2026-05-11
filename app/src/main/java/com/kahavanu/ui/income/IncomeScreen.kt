@@ -32,12 +32,17 @@ fun IncomeScreen(
     viewModel: IncomeOverviewViewModel = hiltViewModel()
 ) {
     val logs by viewModel.incomeLogs.collectAsStateWithLifecycle()
-    val pendingLogs by viewModel.pendingLogs.collectAsStateWithLifecycle()
+    val scheduledIncomes by viewModel.scheduledIncomes.collectAsStateWithLifecycle()
     val totalIncomeByCurrency by viewModel.totalIncomeByCurrency.collectAsStateWithLifecycle()
     val totalReceivedByCurrency by viewModel.totalReceivedByCurrency.collectAsStateWithLifecycle()
     val breakdownsByCurrency by viewModel.breakdownsByCurrency.collectAsStateWithLifecycle()
     val primaryCurrency by viewModel.primaryCurrency.collectAsStateWithLifecycle()
     val monthLabel = currentMonthLabel()
+
+    val pendingScheduled = scheduledIncomes.filter { 
+        com.kahavanu.ui.income.components.isOverdue(it.scheduledDateEpochMillis) || 
+        it.type == com.kahavanu.domain.model.IncomeSourceType.PENDING
+    }
 
     LazyColumn(
         modifier = Modifier
@@ -79,8 +84,9 @@ fun IncomeScreen(
         item { MatchAndCatchSection() }
         item { 
             PersistenceSection(
-                pendingLogs = pendingLogs,
-                onViewAll = onViewPersistence
+                scheduledItems = pendingScheduled,
+                onViewAll = onViewPersistence,
+                onMarkAsReceived = viewModel::markAsReceived
             ) 
         }
         item { 

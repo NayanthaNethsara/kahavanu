@@ -31,6 +31,9 @@ import com.kahavanu.ui.theme.TextSecondary
 import java.time.Instant
 import java.time.YearMonth
 import java.time.ZoneId
+import com.kahavanu.domain.model.ScheduledIncome
+import com.kahavanu.domain.model.IncomeSourceType
+import com.kahavanu.domain.model.IncomeLogEntry
 
 @Composable
 fun IncomeHistoryScreen(
@@ -39,24 +42,28 @@ fun IncomeHistoryScreen(
     viewModel: IncomeOverviewViewModel = hiltViewModel()
 ) {
     val allLogs by viewModel.incomeLogs.collectAsStateWithLifecycle()
+    val allScheduled by viewModel.scheduledIncomes.collectAsStateWithLifecycle()
+    
     var searchQuery by remember { mutableStateOf("") }
     var selectedFilter by remember { mutableStateOf(initialFilter) }
 
-    val filteredLogs = allLogs.filter { log ->
-        val matchesSearch = log.title.contains(searchQuery, ignoreCase = true) || 
-                          log.amount.toString().contains(searchQuery)
+    val historyItems = remember(allLogs, allScheduled, selectedFilter, searchQuery) {
+        val logs = allLogs.map { HistoryItem.Log(it) }
+        val scheduled = allScheduled.map { HistoryItem.Scheduled(it) }
         
-        val isLogPersistent = isPersistent(log.sourceType)
-        val isLogOverdue = isOverdue(log.receivedAtEpochMillis) && isPending(log.sourceType)
-        
-        val matchesFilter = when (selectedFilter) {
-            HistoryFilter.ALL -> true
-            HistoryFilter.PENDING -> isLogPersistent
-            HistoryFilter.OVERDUE -> isLogOverdue
-            HistoryFilter.PAID -> !isPending(log.sourceType) && !isRecurrent(log.sourceType)
-        }
-        matchesSearch && matchesFilter
-    }.sortedByDescending { it.receivedAtEpochMillis }
+        (logs + scheduled).filter { item ->
+            val matchesSearch = item.title.contains(searchQuery, ignoreCase = true) || 
+                              item.amount.toString().contains(searchQuery)
+            
+            val matchesFilter = when (selectedFilter) {
+                HistoryFilter.ALL -> true
+                HistoryFilter.PENDING -> item is HistoryItem.Scheduled && item.scheduled.type == IncomeSourceType.PENDING
+                HistoryFilter.OVERDUE -> item is HistoryItem.Scheduled && isOverdue(item.scheduled.scheduledDateEpochMillis)
+                HistoryFilter.PAID -> item is HistoryItem.Log
+            }
+            matchesSearch && matchesFilter
+        }.sortedByDescending { it.timestamp }
+    }
 
     Box(
         modifier = Modifier
@@ -102,7 +109,7 @@ fun IncomeHistoryScreen(
                         fontSize = 11.sp
                     )
                     Text(
-                        text = "${filteredLogs.size} logs",
+                        text = "${historyItems.size} logs",
                         style = MaterialTheme.typography.titleLarge,
                         color = TextPrimary,
                         fontWeight = FontWeight.Medium,
@@ -184,7 +191,7 @@ fun IncomeHistoryScreen(
 
             // List
             GlassCard(modifier = Modifier.weight(1f)) {
-                if (filteredLogs.isEmpty()) {
+                if (historyItems.isEmpty()) {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text(
                             "No income history found",
@@ -194,18 +201,21 @@ fun IncomeHistoryScreen(
                     }
                 } else {
                     LazyColumn {
-                        itemsIndexed(filteredLogs) { index, log ->
-                            val isLogOverdue = isOverdue(log.receivedAtEpochMillis) && isPending(log.sourceType)
+                        itemsIndexed(historyItems) { index, item ->
+                            val isLogOverdue = isOverdue(item.timestamp) && (item is HistoryItem.Scheduled)
                             PersistenceListItem(
-                                title = log.title,
-                                dueText = formatDate(log.receivedAtEpochMillis),
+                                title = item.title,
+                                dueText = formatDate(item.timestamp),
                                 isOverdue = isLogOverdue,
-                                isPending = isPending(log.sourceType),
-                                isRecurrent = isRecurrent(log.sourceType),
-                                amount = formatAmount(log.amount, log.currency),
-                                isInvoiceSent = log.isInvoiceSent
+                                isPending = item is HistoryItem.Scheduled && item.scheduled.type == IncomeSourceType.PENDING,
+                                isRecurrent = item is HistoryItem.Scheduled && item.scheduled.type == IncomeSourceType.RECURRENT,
+                                amount = formatAmount(item.amount, item.currency),
+                                isInvoiceSent = item.isInvoiceSent,
+                                onMarkAsReceived = if (item is HistoryItem.Scheduled) {
+                                    { viewModel.markAsReceived(item.scheduled.id) }
+                                } else null
                             )
-                            if (index < filteredLogs.size - 1) {
+                            if (index < historyItems.size - 1) {
                                 HorizontalDivider(color = RawColors.Slate.Slate900.copy(alpha = 0.06f))
                             }
                         }
@@ -235,7 +245,7 @@ fun IncomeHistoryScreen(
                     )
                     Spacer(modifier = Modifier.width(Spacing.medium))
                     Text(
-                        text = "1 / ${maxOf(1, (filteredLogs.size + 19) / 20)}",
+                        text = "1 / ${maxOf(1, (historyItems.size + 19) / 20)}",
                         style = MaterialTheme.typography.labelSmall,
                         color = TextPrimary
                     )
@@ -249,5 +259,31 @@ fun IncomeHistoryScreen(
                 }
             }
         }
+    }
+}
+
+sealed class HistoryItem {
+    data class Log(val log: IncomeLogEntry) : HistoryItem()
+    data class Scheduled(val scheduled: ScheduledIncome) : HistoryItem()
+    
+    val title: String get() = when(this) {
+        is Log -> log.title
+        is Scheduled -> scheduled.title
+    }
+    val amount: Double get() = when(this) {
+        is Log -> log.amount
+        is Scheduled -> scheduled.amount
+    }
+    val currency: String get() = when(this) {
+        is Log -> log.currency
+        is Scheduled -> scheduled.currency
+    }
+    val timestamp: Long get() = when(this) {
+        is Log -> log.receivedAtEpochMillis
+        is Scheduled -> scheduled.scheduledDateEpochMillis
+    }
+    val isInvoiceSent: Boolean get() = when(this) {
+        is Log -> log.isInvoiceSent
+        is Scheduled -> scheduled.isInvoiceSent
     }
 }

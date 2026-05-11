@@ -63,7 +63,7 @@ class IncomeSyncManager @Inject constructor(
     private suspend fun pushPendingIncomeLogs(uid: String) {
         val dao = database.incomeLogDao()
         val pending = dao.getUnsynced(uid)
-        
+        var hadFailure = false
         for (log in pending) {
             try {
                 val data = log.toFirestoreMap()
@@ -88,15 +88,17 @@ class IncomeSyncManager @Inject constructor(
                 }
                 dao.markSynced(log.localId, ref)
             } catch (e: Exception) {
-                continue
+                android.util.Log.w("IncomeSyncManager", "Failed to push income log localId=${log.localId}", e)
+                hadFailure = true
             }
         }
+        if (hadFailure) throw Exception("Failed to push some income logs")
     }
     
     private suspend fun pushPendingIncomeSources(uid: String) {
         val dao = database.incomeSourceDao()
         val pending = dao.getUnsynced(uid)
-        
+        var hadFailure = false
         for (source in pending) {
             try {
                 if (source.isDeleted) {
@@ -135,15 +137,17 @@ class IncomeSyncManager @Inject constructor(
                     dao.markSynced(source.localId, ref)
                 }
             } catch (e: Exception) {
-                continue
+                android.util.Log.w("IncomeSyncManager", "Failed to push income source localId=${source.localId}", e)
+                hadFailure = true
             }
         }
+        if (hadFailure) throw Exception("Failed to push some income sources")
     }
     
     private suspend fun pushPendingScheduledIncomes(uid: String) {
         val dao = database.scheduledIncomeDao()
         val pending = dao.getUnsynced(uid)
-        
+        var hadFailure = false
         for (scheduled in pending) {
             try {
                 if (scheduled.isDeleted) {
@@ -182,9 +186,11 @@ class IncomeSyncManager @Inject constructor(
                     dao.markSynced(scheduled.localId, ref)
                 }
             } catch (e: Exception) {
-                continue
+                android.util.Log.w("IncomeSyncManager", "Failed to push scheduled income localId=${scheduled.localId}", e)
+                hadFailure = true
             }
         }
+        if (hadFailure) throw Exception("Failed to push some scheduled incomes")
     }
     
     private suspend fun pullIncomeLogs(uid: String, lastSyncMs: Long) {

@@ -29,4 +29,7 @@ interface IncomeLogDao {
 
     @Query("UPDATE income_logs SET remoteId = :remoteId, isSynced = 1 WHERE localId = :localId")
     suspend fun markSynced(localId: Long, remoteId: String)
+
+    @Query("DELETE FROM income_logs WHERE remoteId = :remoteId")
+    suspend fun deleteByRemoteId(remoteId: String)
 }

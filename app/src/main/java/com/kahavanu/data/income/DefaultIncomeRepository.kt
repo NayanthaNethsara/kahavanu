@@ -378,35 +378,46 @@ class DefaultIncomeRepository @Inject constructor(
         val dueItems = scheduledIncomeDao.getDueScheduled(uid, now)
         
         dueItems.filter { it.type == IncomeSourceType.RECURRENT.id }.forEach { item ->
-            // Generate Log
-            val logEntry = IncomeLogEntry(
-                title = item.title,
-                amount = item.amount,
-                currency = item.currency,
-                receivedAtEpochMillis = item.scheduledDateEpochMillis,
-                sourceId = item.sourceId,
-                sourceName = item.sourceName,
-                sourceType = IncomeSourceType.RECURRENT.id,
-                isInvoiceSent = item.isInvoiceSent,
-                frequency = item.frequency,
-                contactName = item.contactName,
-                contactNumber = item.contactNumber
-            )
-            logIncome(logEntry)
-            
-            // Update Scheduled Item for next occurrence
-            val nextDate = calculateNextScheduledDate(item.scheduledDateEpochMillis, item.frequency)
-            val updated = item.copy(
-                scheduledDateEpochMillis = nextDate,
-                lastGeneratedEpochMillis = now,
-                isSynced = false
-            )
-            scheduledIncomeDao.upsert(updated)
-            val remoteResult = upsertRemoteScheduled(uid, updated)
-            if (remoteResult.isSuccess) {
-                scheduledIncomeDao.markSynced(updated.localId, remoteResult.getOrThrow())
-            } else {
-                syncScheduler.enqueue()
+            var nextDate = item.scheduledDateEpochMillis
+            var lastGenerated = item.lastGeneratedEpochMillis ?: item.scheduledDateEpochMillis
+            var generatedCount = 0
+
+            while (nextDate <= now) {
+                val logEntry = IncomeLogEntry(
+                    title = item.title,
+                    amount = item.amount,
+                    currency = item.currency,
+                    receivedAtEpochMillis = nextDate,
+                    sourceId = item.sourceId,
+                    sourceName = item.sourceName,
+                    sourceType = IncomeSourceType.RECURRENT.id,
+                    isInvoiceSent = item.isInvoiceSent,
+                    frequency = item.frequency,
+                    contactName = item.contactName,
+                    contactNumber = item.contactNumber
+                )
+                logIncome(logEntry)
+                generatedCount += 1
+                lastGenerated = nextDate
+
+                val computedNext = calculateNextScheduledDate(nextDate, item.frequency)
+                if (computedNext <= nextDate) break
+                nextDate = computedNext
+            }
+
+            if (generatedCount > 0) {
+                val updated = item.copy(
+                    scheduledDateEpochMillis = nextDate,
+                    lastGeneratedEpochMillis = lastGenerated,
+                    isSynced = false
+                )
+                scheduledIncomeDao.upsert(updated)
+                val remoteResult = upsertRemoteScheduled(uid, updated)
+                if (remoteResult.isSuccess) {
+                    scheduledIncomeDao.markSynced(updated.localId, remoteResult.getOrThrow())
+                } else {
+                    syncScheduler.enqueue()
+                }
             }
         }
     }

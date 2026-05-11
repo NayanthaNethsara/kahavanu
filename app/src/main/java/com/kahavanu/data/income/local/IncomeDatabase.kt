@@ -12,7 +12,7 @@ import com.kahavanu.data.settings.local.UserSettingsEntity
         UserSettingsEntity::class,
         ScheduledIncomeEntity::class
     ],
-    version = 9,
+    version = 10,
     exportSchema = false,
 )
 abstract class IncomeDatabase : RoomDatabase() {

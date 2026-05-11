@@ -88,4 +88,73 @@ object IncomeDatabaseMigrations {
             db.execSQL("ALTER TABLE income_logs ADD COLUMN sourceName TEXT")
         }
     }
+
+    val MIGRATION_9_10 = object : Migration(9, 10) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS scheduled_income (
+                    localId INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    userId TEXT NOT NULL,
+                    title TEXT NOT NULL,
+                    amount REAL NOT NULL,
+                    currency TEXT NOT NULL,
+                    type TEXT NOT NULL,
+                    frequency TEXT,
+                    scheduledDateEpochMillis INTEGER NOT NULL,
+                    lastGeneratedEpochMillis INTEGER,
+                    sourceId INTEGER,
+                    sourceName TEXT,
+                    isInvoiceSent INTEGER NOT NULL DEFAULT 0,
+                    contactName TEXT,
+                    contactNumber TEXT,
+                    remoteId TEXT,
+                    isSynced INTEGER NOT NULL DEFAULT 0,
+                    isDeleted INTEGER NOT NULL DEFAULT 0,
+                    updatedAtEpochMillis INTEGER NOT NULL
+                )
+                """.trimIndent()
+            )
+
+            try {
+                db.execSQL("ALTER TABLE income_logs ADD COLUMN remoteId TEXT")
+            } catch (_: Exception) {
+            }
+            try {
+                db.execSQL("ALTER TABLE income_logs ADD COLUMN isSynced INTEGER NOT NULL DEFAULT 0")
+            } catch (_: Exception) {
+            }
+            try {
+                db.execSQL("ALTER TABLE income_logs ADD COLUMN isDeleted INTEGER NOT NULL DEFAULT 0")
+            } catch (_: Exception) {
+            }
+            try {
+                db.execSQL("ALTER TABLE income_logs ADD COLUMN updatedAtEpochMillis INTEGER NOT NULL DEFAULT 0")
+                db.execSQL(
+                    "UPDATE income_logs SET updatedAtEpochMillis = createdAtEpochMillis WHERE updatedAtEpochMillis = 0"
+                )
+            } catch (_: Exception) {
+            }
+
+            try {
+                db.execSQL("ALTER TABLE scheduled_income ADD COLUMN remoteId TEXT")
+            } catch (_: Exception) {
+            }
+            try {
+                db.execSQL("ALTER TABLE scheduled_income ADD COLUMN isSynced INTEGER NOT NULL DEFAULT 0")
+            } catch (_: Exception) {
+            }
+            try {
+                db.execSQL("ALTER TABLE scheduled_income ADD COLUMN isDeleted INTEGER NOT NULL DEFAULT 0")
+            } catch (_: Exception) {
+            }
+            try {
+                db.execSQL("ALTER TABLE scheduled_income ADD COLUMN updatedAtEpochMillis INTEGER NOT NULL DEFAULT 0")
+                db.execSQL(
+                    "UPDATE scheduled_income SET updatedAtEpochMillis = scheduledDateEpochMillis WHERE updatedAtEpochMillis = 0"
+                )
+            } catch (_: Exception) {
+            }
+        }
+    }
 }

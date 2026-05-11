@@ -3,6 +3,7 @@ package com.kahavanu.data.income.local
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -22,6 +23,9 @@ interface IncomeLogDao {
 
     @Insert
     suspend fun insert(entry: IncomeLogEntity): Long
+
+    @Upsert
+    suspend fun upsert(entity: IncomeLogEntity): Long
 
     @Query("UPDATE income_logs SET remoteId = :remoteId, isSynced = 1 WHERE localId = :localId")
     suspend fun markSynced(localId: Long, remoteId: String)

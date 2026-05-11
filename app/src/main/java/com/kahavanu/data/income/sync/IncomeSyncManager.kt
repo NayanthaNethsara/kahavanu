@@ -343,6 +343,7 @@ private fun com.google.firebase.firestore.DocumentSnapshot.toScheduledIncomeEnti
         frequency = getString("frequency"),
         scheduledDateEpochMillis = getLong("scheduledDate") ?: System.currentTimeMillis(),
         lastGeneratedEpochMillis = getLong("lastGenerated") ?: getLong("receivedAt"),
+        occurrenceCount = (getLong("occurrenceCount") ?: 0L).toInt(),
         sourceId = getLong("sourceId"),
         sourceName = getString("sourceName"),
         isInvoiceSent = getBoolean("isInvoiceSent") ?: false,

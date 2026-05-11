@@ -185,4 +185,10 @@ object IncomeDatabaseMigrations {
             )
         }
     }
+
+    val MIGRATION_11_12 = object : Migration(11, 12) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE scheduled_income ADD COLUMN occurrenceCount INTEGER NOT NULL DEFAULT 0")
+        }
+    }
 }

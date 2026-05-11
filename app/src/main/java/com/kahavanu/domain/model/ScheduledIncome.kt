@@ -9,6 +9,7 @@ data class ScheduledIncome(
     val frequency: String? = null,
     val scheduledDateEpochMillis: Long,
     val lastGeneratedEpochMillis: Long? = null,
+    val occurrenceCount: Int = 0,
     val sourceId: Long? = null,
     val sourceName: String? = null,
     val isInvoiceSent: Boolean = false,

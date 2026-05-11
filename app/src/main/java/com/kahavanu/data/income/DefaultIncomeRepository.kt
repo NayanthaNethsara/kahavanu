@@ -409,6 +409,7 @@ class DefaultIncomeRepository @Inject constructor(
                 val updated = item.copy(
                     scheduledDateEpochMillis = nextDate,
                     lastGeneratedEpochMillis = lastGenerated,
+                    occurrenceCount = item.occurrenceCount + generatedCount,
                     isSynced = false
                 )
                 scheduledIncomeDao.upsert(updated)
@@ -667,6 +668,7 @@ class DefaultIncomeRepository @Inject constructor(
             "status" to status,
             "updatedAt" to System.currentTimeMillis(),
             "clientId" to scheduled.clientId,
+            "occurrenceCount" to scheduled.occurrenceCount,
             "userId" to uid,
         )
 
@@ -803,6 +805,7 @@ private fun DocumentSnapshot.toScheduledIncomeEntity(
         frequency = getString("frequency"),
         scheduledDateEpochMillis = getLong("scheduledDate") ?: System.currentTimeMillis(),
         lastGeneratedEpochMillis = getLong("lastGenerated") ?: getLong("receivedAt"),
+        occurrenceCount = (getLong("occurrenceCount") ?: 0L).toInt(),
         sourceId = getLong("sourceId"),
         sourceName = getString("sourceName"),
         isInvoiceSent = getBoolean("isInvoiceSent") ?: false,

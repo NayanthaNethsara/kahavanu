@@ -21,6 +21,7 @@ import com.kahavanu.ui.home.HomeScreen
 import com.kahavanu.ui.income.IncomeLogScreen
 import com.kahavanu.ui.income.IncomeHistoryScreen
 import com.kahavanu.ui.income.IncomeScreen
+import com.kahavanu.ui.income.RecurringManagerScreen
 import com.kahavanu.ui.income.IncomeSourcesScreen
 import com.kahavanu.ui.income.HistoryFilter
 import com.kahavanu.ui.navigation.AppDestination
@@ -80,8 +81,14 @@ fun MainTabsScreen(
             composable(AppDestination.Income.route) {
                 IncomeScreen(
                     onLogIncome = { navController.navigate(AppDestination.IncomeLog.route) },
+                    onViewRecurrents = { navController.navigate(AppDestination.IncomeRecurrents.route) },
                     onViewPersistence = { navController.navigate(AppDestination.IncomeHistory.createRoute("PENDING")) },
                     onViewHistory = { navController.navigate(AppDestination.IncomeHistory.createRoute("ALL")) }
+                )
+            }
+            composable(AppDestination.IncomeRecurrents.route) {
+                RecurringManagerScreen(
+                    onBack = { navController.popBackStack() }
                 )
             }
             composable(AppDestination.IncomeLog.route) {

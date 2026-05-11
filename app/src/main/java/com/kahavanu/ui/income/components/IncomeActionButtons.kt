@@ -36,6 +36,7 @@ import com.kahavanu.ui.theme.TextSize
 @Composable
 fun IncomeActionButtons(
     onLogIncome: () -> Unit,
+    onViewRecurrents: () -> Unit,
     onViewPending: () -> Unit,
     onViewHistory: () -> Unit,
 ) {
@@ -51,7 +52,7 @@ fun IncomeActionButtons(
         QuickActionButton(
             icon = Icons.Outlined.Repeat,
             label = "View Recurrents",
-            onClick = { }
+            onClick = onViewRecurrents
         )
         QuickActionButton(
             icon = Icons.Outlined.PendingActions,

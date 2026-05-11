@@ -52,6 +52,12 @@ class IncomeOverviewViewModel @Inject constructor(
         }
     }
 
+    fun disableScheduled(id: Long) {
+        viewModelScope.launch {
+            incomeRepository.deleteScheduledIncome(id)
+        }
+    }
+
     val totalIncomeByCurrency: StateFlow<Map<String, Double>> = incomeLogs
         .map { logs ->
             val month = YearMonth.now()

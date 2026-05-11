@@ -44,6 +44,9 @@ import com.kahavanu.domain.model.IncomeLogEntry
 import com.kahavanu.ui.income.components.getDueText
 import com.kahavanu.ui.income.components.isOverdue
 import com.kahavanu.ui.income.components.formatAmount
+import com.kahavanu.ui.income.components.isPending
+import com.kahavanu.ui.income.components.isRecurrent
+import com.kahavanu.ui.income.components.PersistenceListItem
 
 @Composable
 fun PersistenceSection(
@@ -68,162 +71,17 @@ fun PersistenceSection(
                 )
             } else {
                 pendingLogs.forEachIndexed { index, log ->
-                    PersistenceItem(
+                    PersistenceListItem(
                         title = log.title,
                         dueText = getDueText(log.receivedAtEpochMillis),
                         isOverdue = isOverdue(log.receivedAtEpochMillis),
-                        statusText = if (log.isInvoiceSent) "Invoice sent" else "Expected",
+                        isPending = isPending(log.sourceType),
+                        isRecurrent = isRecurrent(log.sourceType),
                         amount = formatAmount(log.amount, log.currency),
-                        hasNudge = isOverdue(log.receivedAtEpochMillis),
                         isInvoiceSent = log.isInvoiceSent
                     )
                     if (index < pendingLogs.size - 1) {
                         HorizontalDivider(color = RawColors.Slate.Slate900.copy(alpha = 0.06f))
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun PersistenceItem(
-    title: String,
-    dueText: String,
-    isOverdue: Boolean,
-    statusText: String,
-    amount: String,
-    hasNudge: Boolean,
-    isInvoiceSent: Boolean
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(Spacing.large),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // Icon Box
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .background(
-                    color = if (isOverdue) RawColors.Red.Red500.copy(alpha = 0.1f) 
-                            else RawColors.Amber.Amber500.copy(alpha = 0.12f),
-                    shape = RoundedCornerShape(14.dp)
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = if (isOverdue) Icons.Outlined.ErrorOutline else Icons.Outlined.Schedule,
-                contentDescription = null,
-                modifier = Modifier.size(16.dp),
-                tint = if (isOverdue) RawColors.Red.Red600 else RawColors.Amber.Amber600
-            )
-        }
-        
-        Spacer(modifier = Modifier.width(Spacing.medium))
-        
-        // Info Column
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium,
-                color = TextPrimary,
-                fontSize = 15.sp,
-                letterSpacing = (-0.15).sp
-            )
-            Spacer(modifier = Modifier.height(2.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = dueText,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = if (isOverdue) RawColors.Red.Red600 else RawColors.Amber.Amber600,
-                    fontSize = 12.sp
-                )
-                Spacer(modifier = Modifier.width(Spacing.small))
-                Icon(
-                    imageVector = Icons.Outlined.Description,
-                    contentDescription = null,
-                    modifier = Modifier.size(12.dp),
-                    tint = if (isInvoiceSent) TextSecondary else RawColors.Red.Red600
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = statusText,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = if (isInvoiceSent) TextSecondary else RawColors.Red.Red600,
-                    fontSize = 12.sp
-                )
-            }
-        }
-        
-        // Amount and Action Column
-        Column(horizontalAlignment = Alignment.End) {
-            Text(
-                text = amount,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium,
-                color = TextPrimary,
-                fontSize = 15.sp,
-                letterSpacing = (-0.15).sp
-            )
-            
-            if (hasNudge) {
-                Spacer(modifier = Modifier.height(Spacing.small))
-                Surface(
-                    onClick = { },
-                    modifier = Modifier
-                        .height(24.dp)
-                        .width(72.dp),
-                    shape = CircleShape,
-                    color = Color.Transparent
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(
-                                brush = Brush.verticalGradient(
-                                    colors = listOf(
-                                        RawColors.Emerald.Emerald500.copy(alpha = 0.9f),
-                                        RawColors.Emerald.Emerald500.copy(alpha = 0.75f),
-                                        RawColors.Emerald.Emerald500.copy(alpha = 0.9f)
-                                    )
-                                )
-                            )
-                            .border(
-                                width = 0.5.dp,
-                                brush = Brush.verticalGradient(
-                                    colors = listOf(
-                                        Color.White.copy(alpha = 0.9f),
-                                        Color.White.copy(alpha = 0.1f)
-                                    )
-                                ),
-                                shape = CircleShape
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center,
-                            modifier = Modifier.padding(horizontal = 8.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Outlined.Send,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(12.dp)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                text = "Nudge",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = Color.White,
-                                fontWeight = FontWeight.Medium,
-                                fontSize = TextSize.xs,
-                                textAlign = TextAlign.Center
-                            )
-                        }
                     }
                 }
             }

@@ -3,8 +3,6 @@ package com.kahavanu.ui.income
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,19 +22,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.automirrored.outlined.Send
-import androidx.compose.material.icons.filled.Autorenew
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Tune
-import androidx.compose.material.icons.outlined.Description
-import androidx.compose.material.icons.outlined.ErrorOutline
-import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -48,9 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -59,6 +47,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kahavanu.ui.income.components.CircularIconButton
 import com.kahavanu.ui.income.components.GlassCard
 import com.kahavanu.ui.income.components.GradientBlob
+import com.kahavanu.ui.income.components.PersistenceFilterToggle
+import com.kahavanu.ui.income.components.PersistenceListItem
 import com.kahavanu.ui.income.components.formatAmount
 import com.kahavanu.ui.income.components.getDueText
 import com.kahavanu.ui.income.components.isOverdue
@@ -88,8 +78,7 @@ fun PersistenceListScreen(
             PersistenceFilter.ALL -> isLogPersistent
             PersistenceFilter.OVERDUE -> isLogPersistent && isOverdue(log.receivedAtEpochMillis) && isPending(log.sourceType)
             PersistenceFilter.PENDING -> isLogPersistent && isPending(log.sourceType)
-            PersistenceFilter.RECURRENT -> isRecurrent(log.sourceType)
-            PersistenceFilter.COMPLETED -> !isLogPersistent
+            PersistenceFilter.PAID -> !isPending(log.sourceType) && !isRecurrent(log.sourceType)
         }
         matchesSearch && matchesFilter
     }
@@ -221,38 +210,11 @@ fun PersistenceListScreen(
 
             Spacer(modifier = Modifier.height(Spacing.large))
 
-            // Filter Chips
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(Spacing.small)
-            ) {
-                FilterChip(
-                    label = "All",
-                    icon = Icons.Default.FilterList,
-                    selected = selectedFilter == PersistenceFilter.ALL,
-                    onClick = { selectedFilter = PersistenceFilter.ALL }
-                )
-                FilterChip(
-                    label = "Overdue",
-                    icon = Icons.Outlined.ErrorOutline,
-                    selected = selectedFilter == PersistenceFilter.OVERDUE,
-                    onClick = { selectedFilter = PersistenceFilter.OVERDUE }
-                )
-                FilterChip(
-                    label = "Recurrent",
-                    icon = Icons.Default.Autorenew,
-                    selected = selectedFilter == PersistenceFilter.RECURRENT,
-                    onClick = { selectedFilter = PersistenceFilter.RECURRENT }
-                )
-                FilterChip(
-                    label = "Pending",
-                    icon = Icons.Outlined.Schedule,
-                    selected = selectedFilter == PersistenceFilter.PENDING,
-                    onClick = { selectedFilter = PersistenceFilter.PENDING }
-                )
-            }
+            // Filter Tabs
+            PersistenceFilterToggle(
+                selectedFilter = selectedFilter,
+                onFilterSelected = { selectedFilter = it }
+            )
 
             Spacer(modifier = Modifier.height(Spacing.large))
 
@@ -324,209 +286,4 @@ fun PersistenceListScreen(
             }
         }
     }
-}
-
-@Composable
-private fun FilterChip(
-    label: String,
-    icon: ImageVector,
-    selected: Boolean,
-    onClick: () -> Unit
-) {
-    val backgroundColor = if (selected) RawColors.Emerald.Emerald500 else Color.White.copy(alpha = 0.7f)
-    val contentColor = if (selected) Color.White else TextPrimary
-    
-    Surface(
-        onClick = onClick,
-        shape = CircleShape,
-        color = backgroundColor,
-        modifier = Modifier
-            .height(36.dp)
-            .shadow(if (selected) 8.dp else 4.dp, CircleShape)
-            .border(
-                0.5.dp, 
-                if (selected) Color.Transparent else RawColors.Slate.Slate200.copy(alpha = 0.9f), 
-                CircleShape
-            )
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                modifier = Modifier.size(14.dp),
-                tint = contentColor
-            )
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelMedium,
-                color = contentColor,
-                fontSize = 13.sp
-            )
-        }
-    }
-}
-
-@Composable
-private fun PersistenceListItem(
-    title: String,
-    dueText: String,
-    isOverdue: Boolean,
-    isPending: Boolean,
-    isRecurrent: Boolean,
-    amount: String,
-    isInvoiceSent: Boolean
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(Spacing.large),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // Icon Box
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .background(
-                    color = when {
-                        isOverdue -> RawColors.Red.Red500.copy(alpha = 0.1f)
-                        isRecurrent -> RawColors.Emerald.Emerald500.copy(alpha = 0.14f)
-                        !isPending -> RawColors.Emerald.Emerald500.copy(alpha = 0.14f)
-                        else -> RawColors.Amber.Amber500.copy(alpha = 0.12f)
-                    },
-                    shape = RoundedCornerShape(14.dp)
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = when {
-                    isOverdue -> Icons.Outlined.ErrorOutline
-                    isRecurrent -> Icons.Default.Autorenew
-                    !isPending -> Icons.Default.CheckCircle
-                    else -> Icons.Outlined.Schedule
-                },
-                contentDescription = null,
-                modifier = Modifier.size(16.dp),
-                tint = when {
-                    isOverdue -> RawColors.Red.Red600
-                    isRecurrent -> RawColors.Emerald.Emerald600
-                    !isPending -> RawColors.Emerald.Emerald600
-                    else -> RawColors.Amber.Amber600
-                }
-            )
-        }
-        
-        Spacer(modifier = Modifier.width(Spacing.medium))
-        
-        // Info Column
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium,
-                color = TextPrimary,
-                fontSize = 14.sp
-            )
-            Spacer(modifier = Modifier.height(2.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = dueText,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = when {
-                        isOverdue -> RawColors.Red.Red600
-                        !isPending -> RawColors.Emerald.Emerald600
-                        else -> RawColors.Amber.Amber600
-                    },
-                    fontSize = 11.sp
-                )
-                Spacer(modifier = Modifier.width(Spacing.small))
-                Text(
-                    text = "•",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = TextSecondary,
-                    fontSize = 11.sp
-                )
-                Spacer(modifier = Modifier.width(Spacing.small))
-                Icon(
-                    imageVector = Icons.Outlined.Description,
-                    contentDescription = null,
-                    modifier = Modifier.size(12.dp),
-                    tint = if (isInvoiceSent) TextSecondary else RawColors.Red.Red600
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = if (isInvoiceSent) "Invoice sent" else "No invoice",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = if (isInvoiceSent) TextSecondary else RawColors.Red.Red600,
-                    fontSize = 10.sp
-                )
-            }
-        }
-        
-        // Amount and Action Column
-        Column(horizontalAlignment = Alignment.End) {
-            Text(
-                text = amount,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium,
-                color = TextPrimary,
-                fontSize = 14.sp
-            )
-            
-            if (isOverdue) {
-                Spacer(modifier = Modifier.height(Spacing.small))
-                Surface(
-                    onClick = { },
-                    modifier = Modifier
-                        .height(24.dp)
-                        .width(72.dp),
-                    shape = CircleShape,
-                    color = Color.Transparent
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(
-                                brush = Brush.verticalGradient(
-                                    colors = listOf(
-                                        RawColors.Emerald.Emerald500.copy(alpha = 0.9f),
-                                        RawColors.Emerald.Emerald500.copy(alpha = 0.75f),
-                                        RawColors.Emerald.Emerald500.copy(alpha = 0.9f)
-                                    )
-                                )
-                            )
-                            .border(0.5.dp, Color.White.copy(alpha = 0.5f), CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Outlined.Send,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(12.dp)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                text = "Nudge",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = Color.White,
-                                fontWeight = FontWeight.Medium,
-                                fontSize = 10.sp
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-private enum class PersistenceFilter {
-    ALL, OVERDUE, RECURRENT, PENDING, COMPLETED
 }

@@ -2,13 +2,14 @@ package com.kahavanu.di
 
 import android.content.Context
 import androidx.room.Room
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.kahavanu.data.income.DefaultIncomeRepository
 import com.kahavanu.data.income.local.IncomeDatabase
 import com.kahavanu.data.income.local.IncomeDatabaseMigrations
 import com.kahavanu.data.income.local.IncomeLogDao
 import com.kahavanu.data.income.local.IncomeSourceDao
-import com.kahavanu.data.income.local.UserSettingsDao
+import com.kahavanu.data.income.sync.IncomeSyncManager
 import com.kahavanu.data.income.sync.IncomeSyncScheduler
 import com.kahavanu.domain.repository.IncomeRepository
 import dagger.Binds
@@ -50,9 +51,10 @@ abstract class IncomeModule {
                 IncomeDatabaseMigrations.MIGRATION_4_5,
                 IncomeDatabaseMigrations.MIGRATION_5_6,
                 IncomeDatabaseMigrations.MIGRATION_6_7,
-                IncomeDatabaseMigrations.MIGRATION_7_8
+                IncomeDatabaseMigrations.MIGRATION_7_8,
+                IncomeDatabaseMigrations.MIGRATION_9_10
             )
-            .fallbackToDestructiveMigration()
+            .fallbackToDestructiveMigration(dropAllTables = true)
             .build()
 
         @Provides
@@ -66,15 +68,18 @@ abstract class IncomeModule {
         ): IncomeSourceDao = database.incomeSourceDao()
 
         @Provides
-        fun provideUserSettingsDao(
-            database: IncomeDatabase,
-        ): UserSettingsDao = database.userSettingsDao()
-
-        @Provides
         fun provideScheduledIncomeDao(
             database: IncomeDatabase,
         ): com.kahavanu.data.income.local.ScheduledIncomeDao = database.scheduledIncomeDao()
 
+        @Provides
+        @Singleton
+        fun provideIncomeSyncManager(
+            @ApplicationContext context: Context,
+            firestore: FirebaseFirestore,
+            auth: FirebaseAuth,
+            database: IncomeDatabase,
+        ): IncomeSyncManager = IncomeSyncManager(context, firestore, auth, database)
 
         @Provides
         @Singleton

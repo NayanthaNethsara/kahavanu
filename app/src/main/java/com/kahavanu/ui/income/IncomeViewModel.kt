@@ -2,12 +2,14 @@ package com.kahavanu.ui.income
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.kahavanu.domain.model.CurrencyOption
 import com.kahavanu.domain.model.IncomeLogEntry
 import com.kahavanu.domain.model.IncomeLogResult
 import com.kahavanu.domain.model.IncomeSource
 import com.kahavanu.domain.model.IncomeSourceType
 import com.kahavanu.domain.model.ScheduledIncome
 import com.kahavanu.domain.repository.IncomeRepository
+import com.kahavanu.domain.repository.SettingsRepository
 import com.kahavanu.ui.income.components.isPending
 import com.kahavanu.ui.income.components.isRecurrent
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,18 +23,19 @@ import javax.inject.Inject
 
 @HiltViewModel
 class IncomeViewModel @Inject constructor(
-    private val repository: IncomeRepository,
+    private val incomeRepository: IncomeRepository,
+    private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(IncomeUiState())
     val uiState: StateFlow<IncomeUiState> = _uiState
 
     init {
         viewModelScope.launch {
-            repository.ensureDefaultSources()
+            incomeRepository.ensureDefaultSources()
         }
 
         viewModelScope.launch {
-            repository.observeIncomeSources().collect { sources ->
+            incomeRepository.observeIncomeSources().collect { sources ->
                 _uiState.update { current ->
                     val selectedSourceId = resolveSelectedSourceId(
                         sources = sources,
@@ -48,7 +51,7 @@ class IncomeViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            repository.observeCurrencySettings().collect { (primary, secondary) ->
+            settingsRepository.observeCurrencySettings().collect { (primary, secondary) ->
                 _uiState.update { current ->
                     val available = listOf(primary, secondary)
                     val newCurrency = if (current.currency !in available) primary else current.currency
@@ -166,7 +169,7 @@ class IncomeViewModel @Inject constructor(
                     contactName = current.contactName,
                     contactNumber = current.contactNumber,
                 )
-                repository.logIncome(entry).map { 
+                incomeRepository.logIncome(entry).map { 
                     when(it) {
                         IncomeLogResult.SYNCED -> "Income logged"
                         IncomeLogResult.LOCAL_ONLY -> "Saved offline. Will sync when online."
@@ -185,7 +188,7 @@ class IncomeViewModel @Inject constructor(
                     contactName = current.contactName,
                     contactNumber = current.contactNumber,
                 )
-                repository.upsertScheduledIncome(scheduled).map { "Scheduled income saved" }
+                incomeRepository.upsertScheduledIncome(scheduled).map { "Scheduled income saved" }
             }
 
             _uiState.update {

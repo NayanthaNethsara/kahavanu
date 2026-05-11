@@ -2,6 +2,8 @@ package com.kahavanu.data.income.local
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import com.kahavanu.data.settings.local.UserSettingsDao
+import com.kahavanu.data.settings.local.UserSettingsEntity
 
 @Database(
     entities = [
@@ -10,7 +12,7 @@ import androidx.room.RoomDatabase
         UserSettingsEntity::class,
         ScheduledIncomeEntity::class
     ],
-    version = 9,
+    version = 10,
     exportSchema = false,
 )
 abstract class IncomeDatabase : RoomDatabase() {

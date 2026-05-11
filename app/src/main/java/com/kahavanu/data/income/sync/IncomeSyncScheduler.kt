@@ -14,7 +14,7 @@ import javax.inject.Singleton
 
 @Singleton
 class IncomeSyncScheduler @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
 ) {
     fun enqueue() {
         val constraints = Constraints.Builder()

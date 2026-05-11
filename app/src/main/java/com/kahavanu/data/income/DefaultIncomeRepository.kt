@@ -1,34 +1,38 @@
 package com.kahavanu.data.income
 
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.DocumentChange
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.SetOptions
+import com.kahavanu.data.common.awaitResult
 import com.kahavanu.data.income.local.IncomeLogDao
+import com.kahavanu.data.income.local.IncomeLogEntity
 import com.kahavanu.data.income.local.IncomeSourceDao
 import com.kahavanu.data.income.local.IncomeSourceEntity
 import com.kahavanu.data.income.local.ScheduledIncomeDao
 import com.kahavanu.data.income.local.ScheduledIncomeEntity
-import com.kahavanu.data.income.local.UserSettingsDao
-import com.kahavanu.data.income.local.UserSettingsEntity
 import com.kahavanu.data.income.sync.IncomeSyncScheduler
 import com.kahavanu.domain.model.IncomeLogEntry
 import com.kahavanu.domain.model.IncomeLogResult
 import com.kahavanu.domain.model.IncomeSource
 import com.kahavanu.domain.model.IncomeSourceType
 import com.kahavanu.domain.repository.IncomeRepository
-import com.kahavanu.ui.income.CurrencyOption
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
+import android.util.Log
 import com.kahavanu.domain.model.ScheduledIncome
 import javax.inject.Inject
 import javax.inject.Singleton
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import dagger.hilt.android.qualifiers.ApplicationContext
 
 @Singleton
 class DefaultIncomeRepository @Inject constructor(
@@ -36,48 +40,35 @@ class DefaultIncomeRepository @Inject constructor(
     private val auth: FirebaseAuth,
     private val incomeLogDao: IncomeLogDao,
     private val incomeSourceDao: IncomeSourceDao,
-    private val userSettingsDao: UserSettingsDao,
     private val scheduledIncomeDao: ScheduledIncomeDao,
     private val syncScheduler: IncomeSyncScheduler,
+    @ApplicationContext private val appContext: Context,
 ) : IncomeRepository {
     private val repositoryScope = CoroutineScope(Dispatchers.IO)
+
+    private var incomeLogsListener: ListenerRegistration? = null
+    private var incomeSourcesListener: ListenerRegistration? = null
+    private var scheduledIncomeListener: ListenerRegistration? = null
+    private var listenerUserId: String? = null
+
+    private val authStateListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
+        val uid = firebaseAuth.currentUser?.uid
+        if (uid == null) {
+            stopRealtimeListeners()
+            return@AuthStateListener
+        }
+        startRealtimeListeners(uid)
+        syncScheduler.enqueue()
+    }
 
     init {
         syncScheduler.enqueue()
         syncScheduler.scheduleIncomeProcessing()
-        observeRemoteSettings()
         repositoryScope.launch {
             processScheduledIncomes()
         }
-    }
-
-    private fun observeRemoteSettings() {
-        val uid = auth.currentUser?.uid ?: return
-        firestore.collection(USERS_COLLECTION)
-            .document(uid)
-            .collection(SETTINGS_COLLECTION)
-            .document(CONFIG_DOCUMENT)
-            .addSnapshotListener { snapshot, error ->
-                if (error != null || snapshot == null || !snapshot.exists()) return@addSnapshotListener
-                
-                val primaryCode = snapshot.getString("primaryCurrency") ?: return@addSnapshotListener
-                val secondaryCode = snapshot.getString("secondaryCurrency") ?: return@addSnapshotListener
-                val updatedAt = snapshot.getLong("updatedAt") ?: 0L
-                
-                repositoryScope.launch {
-                    val local = userSettingsDao.getSettings(uid)
-                    if (local == null || updatedAt > local.updatedAtEpochMillis) {
-                        userSettingsDao.upsert(
-                            UserSettingsEntity(
-                                userId = uid,
-                                primaryCurrency = primaryCode,
-                                secondaryCurrency = secondaryCode,
-                                updatedAtEpochMillis = updatedAt
-                            )
-                        )
-                    }
-                }
-            }
+        auth.addAuthStateListener(authStateListener)
+        auth.currentUser?.uid?.let { startRealtimeListeners(it) }
     }
 
     override fun observeIncomeLogs(): Flow<List<IncomeLogEntry>> {
@@ -92,6 +83,12 @@ class DefaultIncomeRepository @Inject constructor(
 
         val createdAt = System.currentTimeMillis()
         val localId = incomeLogDao.insert(entry.toEntity(uid, createdAt))
+
+        // If offline, persist locally and enqueue sync without attempting network write.
+        if (!isOnline()) {
+            syncScheduler.enqueue()
+            return Result.success(IncomeLogResult.LOCAL_ONLY)
+        }
 
         val data = mapOf(
             "title" to entry.title,
@@ -123,6 +120,14 @@ class DefaultIncomeRepository @Inject constructor(
             syncScheduler.enqueue()
             Result.success(IncomeLogResult.LOCAL_ONLY)
         }
+    }
+
+    private fun isOnline(): Boolean {
+        val cm = appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
+            ?: return false
+        val network = cm.activeNetwork ?: return false
+        val caps = cm.getNetworkCapabilities(network) ?: return false
+        return caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
 
     override fun observeIncomeSources(): Flow<List<IncomeSource>> {
@@ -212,50 +217,6 @@ class DefaultIncomeRepository @Inject constructor(
         }
     }
 
-    override fun observeCurrencySettings(): Flow<Pair<CurrencyOption, CurrencyOption>> {
-        val uid = auth.currentUser?.uid ?: return flowOf(CurrencyOption.LKR to CurrencyOption.USD)
-        return userSettingsDao.observeSettings(uid).map { entity ->
-            if (entity != null) {
-                val primary = try { CurrencyOption.valueOf(entity.primaryCurrency) } catch (e: Exception) { CurrencyOption.LKR }
-                val secondary = try { CurrencyOption.valueOf(entity.secondaryCurrency) } catch (e: Exception) { CurrencyOption.USD }
-                primary to secondary
-            } else {
-                CurrencyOption.LKR to CurrencyOption.USD
-            }
-        }
-    }
-
-    override suspend fun updateCurrencySettings(primary: CurrencyOption, secondary: CurrencyOption): Result<Unit> {
-        val uid = auth.currentUser?.uid
-            ?: return Result.failure(IllegalStateException("User not authenticated"))
-        
-        val now = System.currentTimeMillis()
-        
-        // Update local first
-        userSettingsDao.upsert(
-            UserSettingsEntity(
-                userId = uid,
-                primaryCurrency = primary.name,
-                secondaryCurrency = secondary.name,
-                updatedAtEpochMillis = now
-            )
-        )
-        
-        // Sync with remote
-        val data = mapOf(
-            "primaryCurrency" to primary.name,
-            "secondaryCurrency" to secondary.name,
-            "updatedAt" to now
-        )
-        
-        return firestore.collection(USERS_COLLECTION)
-            .document(uid)
-            .collection(SETTINGS_COLLECTION)
-            .document(CONFIG_DOCUMENT)
-            .set(data, SetOptions.merge())
-            .awaitResult()
-            .map { }
-    }
 
     override fun observeScheduledIncomes(): Flow<List<ScheduledIncome>> {
         val uid = auth.currentUser?.uid ?: return flowOf(emptyList())
@@ -391,6 +352,126 @@ class DefaultIncomeRepository @Inject constructor(
         return nextDate.atStartOfDay(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
     }
 
+    private fun startRealtimeListeners(uid: String) {
+        if (listenerUserId == uid && incomeLogsListener != null && incomeSourcesListener != null && scheduledIncomeListener != null) {
+            return
+        }
+        stopRealtimeListeners()
+        listenerUserId = uid
+
+        incomeLogsListener = firestore
+            .collection(USERS_COLLECTION)
+            .document(uid)
+            .collection(INCOME_LOGS_COLLECTION)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    Log.w("IncomeRepository", "Income logs listener error", error)
+                    return@addSnapshotListener
+                }
+                if (snapshot == null) return@addSnapshotListener
+                repositoryScope.launch {
+                    for (change in snapshot.documentChanges) {
+                        handleIncomeLogChange(uid, change)
+                    }
+                }
+            }
+
+        incomeSourcesListener = firestore
+            .collection(USERS_COLLECTION)
+            .document(uid)
+            .collection(INCOME_SOURCES_COLLECTION)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    Log.w("IncomeRepository", "Income sources listener error", error)
+                    return@addSnapshotListener
+                }
+                if (snapshot == null) return@addSnapshotListener
+                repositoryScope.launch {
+                    for (change in snapshot.documentChanges) {
+                        handleIncomeSourceChange(uid, change)
+                    }
+                }
+            }
+
+        scheduledIncomeListener = firestore
+            .collection(USERS_COLLECTION)
+            .document(uid)
+            .collection(SCHEDULED_COLLECTION)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    Log.w("IncomeRepository", "Scheduled income listener error", error)
+                    return@addSnapshotListener
+                }
+                if (snapshot == null) return@addSnapshotListener
+                repositoryScope.launch {
+                    for (change in snapshot.documentChanges) {
+                        handleScheduledIncomeChange(uid, change)
+                    }
+                }
+            }
+    }
+
+    private fun stopRealtimeListeners() {
+        incomeLogsListener?.remove()
+        incomeSourcesListener?.remove()
+        scheduledIncomeListener?.remove()
+        incomeLogsListener = null
+        incomeSourcesListener = null
+        scheduledIncomeListener = null
+        listenerUserId = null
+    }
+
+    private suspend fun handleIncomeLogChange(uid: String, change: DocumentChange) {
+        val doc = change.document
+        val remoteId = doc.id
+        when (change.type) {
+            DocumentChange.Type.ADDED, DocumentChange.Type.MODIFIED -> {
+                val local = incomeLogDao.getByRemoteId(remoteId)
+                val entity = doc.toIncomeLogEntity(uid, remoteId, local?.localId ?: 0L)
+                if (local == null || entity.updatedAtEpochMillis > local.updatedAtEpochMillis) {
+                    incomeLogDao.upsert(entity)
+                }
+            }
+            DocumentChange.Type.REMOVED -> {
+                incomeLogDao.deleteByRemoteId(remoteId)
+            }
+        }
+    }
+
+    private suspend fun handleIncomeSourceChange(uid: String, change: DocumentChange) {
+        val doc = change.document
+        val remoteId = doc.id
+        when (change.type) {
+            DocumentChange.Type.ADDED, DocumentChange.Type.MODIFIED -> {
+                val local = incomeSourceDao.getByRemoteId(remoteId)
+                val entity = doc.toIncomeSourceEntity(uid, remoteId, local?.localId ?: 0L)
+                if (local == null || entity.updatedAtEpochMillis > local.updatedAtEpochMillis) {
+                    incomeSourceDao.upsert(entity)
+                }
+            }
+            DocumentChange.Type.REMOVED -> {
+                incomeSourceDao.markDeletedByRemoteIds(uid, listOf(remoteId))
+            }
+        }
+    }
+
+    private suspend fun handleScheduledIncomeChange(uid: String, change: DocumentChange) {
+        val doc = change.document
+        val remoteId = doc.id
+        when (change.type) {
+            DocumentChange.Type.ADDED, DocumentChange.Type.MODIFIED -> {
+                val local = scheduledIncomeDao.getByRemoteId(remoteId)
+                val entity = doc.toScheduledIncomeEntity(uid, remoteId, local?.localId ?: 0L)
+                if (local == null || entity.updatedAtEpochMillis > local.updatedAtEpochMillis) {
+                    scheduledIncomeDao.upsert(entity)
+                }
+            }
+            DocumentChange.Type.REMOVED -> {
+                scheduledIncomeDao.markDeletedByRemoteIds(uid, listOf(remoteId))
+            }
+        }
+    }
+
     private suspend fun upsertRemoteSource(
         uid: String,
         source: IncomeSourceEntity,
@@ -524,8 +605,6 @@ class DefaultIncomeRepository @Inject constructor(
 }
 
 private const val USERS_COLLECTION = "users"
-private const val SETTINGS_COLLECTION = "settings"
-private const val CONFIG_DOCUMENT = "config"
 private const val INCOME_LOGS_COLLECTION = "incomeLogs"
 private const val INCOME_SOURCES_COLLECTION = "incomeSources"
 private const val SCHEDULED_COLLECTION = "scheduledIncomes"
@@ -542,20 +621,85 @@ private fun defaultSourceSeeds(): List<IncomeSourceSeed> = listOf(
     IncomeSourceSeed("Crypto", setOf(IncomeSourceType.ONE_TIME, IncomeSourceType.PENDING)),
 )
 
-private suspend fun <T> com.google.android.gms.tasks.Task<T>.awaitResult(): Result<T> {
-    return suspendCancellableCoroutine { continuation ->
-        addOnCompleteListener { task ->
-            if (!continuation.isActive) return@addOnCompleteListener
-            if (task.isSuccessful) {
-                continuation.resumeWith(Result.success(Result.success(task.result)))
-            } else {
-                continuation.resumeWith(
-                    Result.success(
-                        Result.failure(task.exception ?: Exception("Unknown error"))
-                    )
-                )
-            }
-        }
-    }
+private fun DocumentSnapshot.toIncomeLogEntity(
+    uid: String,
+    remoteId: String,
+    localId: Long,
+): IncomeLogEntity {
+    val createdAt = getLong("createdAt") ?: System.currentTimeMillis()
+    val updatedAt = getLong("updatedAt") ?: createdAt
+    return IncomeLogEntity(
+        localId = localId,
+        userId = uid,
+        title = getString("title") ?: "",
+        amount = getDouble("amount") ?: 0.0,
+        currency = getString("currency") ?: "",
+        receivedAtEpochMillis = getLong("receivedAt") ?: System.currentTimeMillis(),
+        createdAtEpochMillis = createdAt,
+        sourceId = getLong("sourceId"),
+        sourceName = getString("sourceName"),
+        sourceType = getString("sourceType"),
+        isInvoiceSent = getBoolean("isInvoiceSent") ?: false,
+        frequency = getString("frequency"),
+        contactName = getString("contactName"),
+        contactNumber = getString("contactNumber"),
+        remoteId = remoteId,
+        isSynced = true,
+        isDeleted = false,
+        updatedAtEpochMillis = updatedAt,
+    )
 }
+
+private fun DocumentSnapshot.toIncomeSourceEntity(
+    uid: String,
+    remoteId: String,
+    localId: Long,
+): IncomeSourceEntity {
+    val typesList = (get("types") as? List<*>)
+        ?.mapNotNull { it as? String }
+        ?.filter { it.isNotBlank() }
+        ?: emptyList()
+    val createdAt = getLong("createdAt") ?: System.currentTimeMillis()
+    val updatedAt = getLong("updatedAt") ?: createdAt
+    return IncomeSourceEntity(
+        localId = localId,
+        userId = uid,
+        name = getString("name") ?: "",
+        typesCsv = typesList.joinToString(","),
+        createdAtEpochMillis = createdAt,
+        updatedAtEpochMillis = updatedAt,
+        remoteId = remoteId,
+        isSynced = true,
+        isDeleted = false,
+    )
+}
+
+private fun DocumentSnapshot.toScheduledIncomeEntity(
+    uid: String,
+    remoteId: String,
+    localId: Long,
+): ScheduledIncomeEntity {
+    val updatedAt = getLong("updatedAt") ?: System.currentTimeMillis()
+    return ScheduledIncomeEntity(
+        localId = localId,
+        userId = uid,
+        title = getString("title") ?: "",
+        amount = getDouble("amount") ?: 0.0,
+        currency = getString("currency") ?: "",
+        type = getString("type") ?: "pending",
+        frequency = getString("frequency"),
+        scheduledDateEpochMillis = getLong("scheduledDate") ?: System.currentTimeMillis(),
+        lastGeneratedEpochMillis = getLong("lastGenerated") ?: getLong("receivedAt"),
+        sourceId = getLong("sourceId"),
+        sourceName = getString("sourceName"),
+        isInvoiceSent = getBoolean("isInvoiceSent") ?: false,
+        contactName = getString("contactName"),
+        contactNumber = getString("contactNumber"),
+        remoteId = remoteId,
+        isSynced = true,
+        isDeleted = false,
+        updatedAtEpochMillis = updatedAt,
+    )
+}
+
 

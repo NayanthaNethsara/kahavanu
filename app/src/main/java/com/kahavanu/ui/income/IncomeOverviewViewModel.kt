@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kahavanu.domain.model.IncomeLogEntry
 import com.kahavanu.domain.repository.IncomeRepository
+import com.kahavanu.domain.repository.SettingsRepository
 import com.kahavanu.ui.theme.RawColors
 import dagger.hilt.android.lifecycle.HiltViewModel
 import com.kahavanu.ui.income.components.isPending
@@ -28,16 +29,17 @@ data class IncomeBreakdownItem(
 
 @HiltViewModel
 class IncomeOverviewViewModel @Inject constructor(
-    private val repository: IncomeRepository,
+    private val incomeRepository: IncomeRepository,
+    private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
-    val incomeLogs: StateFlow<List<IncomeLogEntry>> = repository.observeIncomeLogs()
+    val incomeLogs: StateFlow<List<IncomeLogEntry>> = incomeRepository.observeIncomeLogs()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = emptyList(),
         )
 
-    val scheduledIncomes: StateFlow<List<com.kahavanu.domain.model.ScheduledIncome>> = repository.observeScheduledIncomes()
+    val scheduledIncomes: StateFlow<List<com.kahavanu.domain.model.ScheduledIncome>> = incomeRepository.observeScheduledIncomes()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
@@ -46,7 +48,7 @@ class IncomeOverviewViewModel @Inject constructor(
 
     fun markAsReceived(id: Long) {
         viewModelScope.launch {
-            repository.markScheduledAsReceived(id)
+            incomeRepository.markScheduledAsReceived(id)
         }
     }
 
@@ -123,7 +125,7 @@ class IncomeOverviewViewModel @Inject constructor(
             initialValue = emptyMap(),
         )
 
-    val primaryCurrency: StateFlow<String> = repository.observeCurrencySettings()
+    val primaryCurrency: StateFlow<String> = settingsRepository.observeCurrencySettings()
         .map { it.first.code }
         .stateIn(
             scope = viewModelScope,

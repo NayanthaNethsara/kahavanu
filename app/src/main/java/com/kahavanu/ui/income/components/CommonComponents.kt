@@ -76,7 +76,13 @@ fun GlassCard(
 }
 
 @Composable
-fun SectionHeader(title: String, subtitle: String, actionText: String? = null, badgeCount: String? = null) {
+fun SectionHeader(
+    title: String,
+    subtitle: String,
+    actionText: String? = null,
+    badgeCount: String? = null,
+    onActionClick: (() -> Unit)? = null
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -124,7 +130,9 @@ fun SectionHeader(title: String, subtitle: String, actionText: String? = null, b
                 fontSize = TextSize.sm,
                 fontWeight = FontWeight.Bold,
                 color = TextTertiary,
-                modifier = Modifier.padding(top = Spacing.extraSmall)
+                modifier = Modifier
+                    .padding(top = Spacing.extraSmall)
+                    .clickable(enabled = onActionClick != null) { onActionClick?.invoke() }
             )
         }
     }

@@ -29,7 +29,7 @@ data class IncomeUiState(
     val clientDescription: String = "",
     val amount: String = "",
     val currency: CurrencyOption = CurrencyOption.LKR,
-    val receivedDate: LocalDate? = null,
+    val receivedDate: LocalDate = LocalDate.now(),
     val frequency: RecurrenceFrequency = RecurrenceFrequency.MONTHLY,
     val isDatePickerOpen: Boolean = false,
     val isSaving: Boolean = false,

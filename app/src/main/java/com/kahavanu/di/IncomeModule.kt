@@ -47,7 +47,10 @@ abstract class IncomeModule {
                 IncomeDatabaseMigrations.MIGRATION_1_2,
                 IncomeDatabaseMigrations.MIGRATION_2_3,
                 IncomeDatabaseMigrations.MIGRATION_3_4,
-                IncomeDatabaseMigrations.MIGRATION_4_5
+                IncomeDatabaseMigrations.MIGRATION_4_5,
+                IncomeDatabaseMigrations.MIGRATION_5_6,
+                IncomeDatabaseMigrations.MIGRATION_6_7,
+                IncomeDatabaseMigrations.MIGRATION_7_8
             )
             .build()
 

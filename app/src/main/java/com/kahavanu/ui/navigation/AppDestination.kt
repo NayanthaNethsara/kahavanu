@@ -12,4 +12,5 @@ sealed class AppDestination(val route: String) {
     data object Expenses : AppDestination("expenses")
     data object Goals : AppDestination("goals")
     data object Profile : AppDestination("profile")
+    data object PersistenceList : AppDestination("persistence-list")
 }

@@ -68,4 +68,24 @@ object IncomeDatabaseMigrations {
             database.execSQL("DROP TABLE IF EXISTS contacts")
         }
     }
+
+    val MIGRATION_5_6 = object : Migration(5, 6) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            database.execSQL("ALTER TABLE income_logs ADD COLUMN sourceId INTEGER")
+            database.execSQL("ALTER TABLE income_logs ADD COLUMN sourceType TEXT")
+        }
+    }
+
+    val MIGRATION_6_7 = object : Migration(6, 7) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            database.execSQL("ALTER TABLE income_logs ADD COLUMN isInvoiceSent INTEGER NOT NULL DEFAULT 0")
+            database.execSQL("ALTER TABLE income_logs ADD COLUMN frequency TEXT")
+        }
+    }
+
+    val MIGRATION_7_8 = object : Migration(7, 8) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            database.execSQL("ALTER TABLE income_logs ADD COLUMN sourceName TEXT")
+        }
+    }
 }

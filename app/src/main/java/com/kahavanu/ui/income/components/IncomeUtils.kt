@@ -1,5 +1,7 @@
 package com.kahavanu.ui.income.components
 
+import android.text.format.DateUtils
+
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccountBalanceWallet
 import androidx.compose.material.icons.outlined.CurrencyBitcoin
@@ -37,5 +39,38 @@ fun sourceIconFor(name: String): ImageVector {
         "adsense" -> Icons.Outlined.Public
         "crypto" -> Icons.Outlined.CurrencyBitcoin
         else -> Icons.Outlined.AccountBalanceWallet
+    }
+}
+
+fun isPending(sourceType: String?): Boolean {
+    return sourceType == "pending"
+}
+
+fun isRecurrent(sourceType: String?): Boolean {
+    return sourceType == "recurrent"
+}
+
+fun isPersistent(sourceType: String?): Boolean {
+    return isPending(sourceType) || isRecurrent(sourceType)
+}
+
+fun isOverdue(epochMillis: Long): Boolean {
+    val now = System.currentTimeMillis()
+    // A payment is overdue if it's pending and the expected date is in the past (more than a day)
+    return epochMillis < (now - DateUtils.DAY_IN_MILLIS)
+}
+
+fun getDueText(epochMillis: Long): String {
+    val now = System.currentTimeMillis()
+    val diff = epochMillis - now
+    val days = (diff / DateUtils.DAY_IN_MILLIS).toInt()
+    
+    return when {
+        days < -1 -> "Due ${-days} days ago"
+        days == -1 -> "Due yesterday"
+        days == 0 -> "Due today"
+        days == 1 -> "Due tomorrow"
+        days > 1 -> "Due in $days days"
+        else -> "Due today"
     }
 }

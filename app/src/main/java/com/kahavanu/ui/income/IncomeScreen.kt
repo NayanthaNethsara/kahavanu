@@ -8,15 +8,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.kahavanu.ui.income.components.CryptoGatewaySection
 import com.kahavanu.ui.income.components.IncomeActionButtons
 import com.kahavanu.ui.income.components.IncomeHeader
 import com.kahavanu.ui.income.components.IncomeLogSection
@@ -27,21 +23,20 @@ import com.kahavanu.ui.income.components.currentMonthLabel
 import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 
-enum class IncomeFilter {
-    ALL, PENDING
-}
 
 @Composable
 fun IncomeScreen(
     onLogIncome: () -> Unit,
+    onViewPersistence: () -> Unit,
     viewModel: IncomeOverviewViewModel = hiltViewModel(),
 ) {
     val logs by viewModel.incomeLogs.collectAsStateWithLifecycle()
-    val totalForMonth by viewModel.monthlyTotal.collectAsStateWithLifecycle()
-    val breakdowns by viewModel.breakdowns.collectAsStateWithLifecycle()
-    val currency by viewModel.currency.collectAsStateWithLifecycle()
+    val pendingLogs by viewModel.pendingLogs.collectAsStateWithLifecycle()
+    val totalIncomeByCurrency by viewModel.totalIncomeByCurrency.collectAsStateWithLifecycle()
+    val totalReceivedByCurrency by viewModel.totalReceivedByCurrency.collectAsStateWithLifecycle()
+    val breakdownsByCurrency by viewModel.breakdownsByCurrency.collectAsStateWithLifecycle()
+    val primaryCurrency by viewModel.primaryCurrency.collectAsStateWithLifecycle()
     val monthLabel = currentMonthLabel()
-    var selectedFilter by remember { mutableStateOf(IncomeFilter.ALL) }
 
     LazyColumn(
         modifier = Modifier
@@ -58,7 +53,7 @@ fun IncomeScreen(
         contentPadding = PaddingValues(
             start = Spacing.large,
             end = Spacing.large,
-            top = 120.dp,
+            top = 140.dp,
             bottom = 140.dp
         ),
         verticalArrangement = Arrangement.spacedBy(Spacing.extraLarge)
@@ -67,18 +62,25 @@ fun IncomeScreen(
         item {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.large)) {
                 TotalExpectedCard(
-                    totalForMonth = totalForMonth,
-                    currency = currency,
+                    totalIncomeByCurrency = totalIncomeByCurrency,
+                    totalReceivedByCurrency = totalReceivedByCurrency,
+                    primaryCurrency = primaryCurrency,
                     monthLabel = monthLabel,
-                    breakdowns = breakdowns,
-                    selectedFilter = selectedFilter,
-                    onFilterSelected = { selectedFilter = it }
+                    breakdownsByCurrency = breakdownsByCurrency,
                 )
-                IncomeActionButtons(onLogIncome = onLogIncome)
+                IncomeActionButtons(
+                    onLogIncome = onLogIncome,
+                    onViewPending = onViewPersistence
+                )
             }
         }
         item { MatchAndCatchSection() }
-        item { PersistenceSection() }
+        item { 
+            PersistenceSection(
+                pendingLogs = pendingLogs,
+                onViewAll = onViewPersistence
+            ) 
+        }
         item { IncomeLogSection(logs = logs) }
     }
 }

@@ -52,7 +52,9 @@ abstract class IncomeModule {
                 IncomeDatabaseMigrations.MIGRATION_5_6,
                 IncomeDatabaseMigrations.MIGRATION_6_7,
                 IncomeDatabaseMigrations.MIGRATION_7_8,
-                IncomeDatabaseMigrations.MIGRATION_9_10
+                IncomeDatabaseMigrations.MIGRATION_9_10,
+                IncomeDatabaseMigrations.MIGRATION_10_11,
+                IncomeDatabaseMigrations.MIGRATION_11_12
             )
             .fallbackToDestructiveMigration(dropAllTables = true)
             .build()

@@ -2,6 +2,7 @@ package com.kahavanu.data.settings
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.SetOptions
 import com.kahavanu.data.common.awaitResult
 import com.kahavanu.data.settings.local.UserSettingsDao
@@ -25,8 +26,28 @@ class DefaultSettingsRepository @Inject constructor(
 ) : SettingsRepository {
     private val repositoryScope = CoroutineScope(Dispatchers.IO)
 
+    private var settingsListener: ListenerRegistration? = null
+
+    private val authStateListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
+        val uid = firebaseAuth.currentUser?.uid
+        if (uid == null) {
+            stopSettingsListener()
+            return@AuthStateListener
+        }
+        repositoryScope.launch {
+            ensureDefaultSettings(uid)
+        }
+        startSettingsListener(uid)
+    }
+
     init {
-        observeRemoteSettings()
+        auth.addAuthStateListener(authStateListener)
+        auth.currentUser?.uid?.let { uid ->
+            repositoryScope.launch {
+                ensureDefaultSettings(uid)
+            }
+            startSettingsListener(uid)
+        }
     }
 
     override fun observeCurrencySettings(): Flow<Pair<CurrencyOption, CurrencyOption>> {
@@ -82,9 +103,9 @@ class DefaultSettingsRepository @Inject constructor(
             .map { }
     }
 
-    private fun observeRemoteSettings() {
-        val uid = auth.currentUser?.uid ?: return
-        firestore.collection(USERS_COLLECTION)
+    private fun startSettingsListener(uid: String) {
+        if (settingsListener != null) return
+        settingsListener = firestore.collection(USERS_COLLECTION)
             .document(uid)
             .collection(SETTINGS_COLLECTION)
             .document(CONFIG_DOCUMENT)
@@ -109,6 +130,42 @@ class DefaultSettingsRepository @Inject constructor(
                     }
                 }
             }
+    }
+
+    private fun stopSettingsListener() {
+        settingsListener?.remove()
+        settingsListener = null
+    }
+
+    private suspend fun ensureDefaultSettings(uid: String) {
+        val existing = userSettingsDao.getSettings(uid)
+        if (existing != null) return
+
+        val now = System.currentTimeMillis()
+        val primary = CurrencyOption.LKR
+        val secondary = CurrencyOption.USD
+
+        userSettingsDao.upsert(
+            UserSettingsEntity(
+                userId = uid,
+                primaryCurrency = primary.name,
+                secondaryCurrency = secondary.name,
+                updatedAtEpochMillis = now,
+            )
+        )
+
+        val data = mapOf(
+            "primaryCurrency" to primary.name,
+            "secondaryCurrency" to secondary.name,
+            "updatedAt" to now,
+        )
+
+        firestore.collection(USERS_COLLECTION)
+            .document(uid)
+            .collection(SETTINGS_COLLECTION)
+            .document(CONFIG_DOCUMENT)
+            .set(data, SetOptions.merge())
+            .awaitResult()
     }
 }
 

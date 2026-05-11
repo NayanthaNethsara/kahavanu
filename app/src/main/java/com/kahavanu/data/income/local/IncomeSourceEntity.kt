@@ -17,6 +17,7 @@ data class IncomeSourceEntity(
     val typesCsv: String,
     val createdAtEpochMillis: Long,
     override val updatedAtEpochMillis: Long,
+    val clientId: String,
     override val remoteId: String? = null,
     override val isSynced: Boolean = false,
     override val isDeleted: Boolean = false,
@@ -26,6 +27,7 @@ data class IncomeSourceEntity(
         "types" to typesCsv.split(',').filter { it.isNotBlank() },
         "createdAt" to createdAtEpochMillis,
         "updatedAt" to updatedAtEpochMillis,
+        "clientId" to clientId,
         "userId" to userId,
     )
 }

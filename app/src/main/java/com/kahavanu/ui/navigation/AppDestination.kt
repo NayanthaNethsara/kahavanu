@@ -9,6 +9,7 @@ sealed class AppDestination(val route: String) {
     data object Income : AppDestination("income")
     data object IncomeLog : AppDestination("income-log")
     data object IncomeSources : AppDestination("income-sources")
+    data object IncomeRecurrents : AppDestination("income-recurrents")
     data object Expenses : AppDestination("expenses")
     data object Goals : AppDestination("goals")
     data object Profile : AppDestination("profile")

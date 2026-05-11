@@ -27,6 +27,7 @@ import com.kahavanu.ui.theme.Spacing
 @Composable
 fun IncomeScreen(
     onLogIncome: () -> Unit,
+    onViewRecurrents: () -> Unit,
     onViewPersistence: () -> Unit,
     onViewHistory: () -> Unit,
     viewModel: IncomeOverviewViewModel = hiltViewModel()
@@ -79,6 +80,7 @@ fun IncomeScreen(
                 )
                 IncomeActionButtons(
                     onLogIncome = onLogIncome,
+                    onViewRecurrents = onViewRecurrents,
                     onViewPending = onViewPersistence,
                     onViewHistory = onViewHistory
                 )

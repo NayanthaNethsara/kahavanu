@@ -40,18 +40,14 @@ import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextSize
-import com.kahavanu.domain.model.IncomeLogEntry
-import com.kahavanu.ui.income.components.getDueText
-import com.kahavanu.ui.income.components.isOverdue
-import com.kahavanu.ui.income.components.formatAmount
-import com.kahavanu.ui.income.components.isPending
-import com.kahavanu.ui.income.components.isRecurrent
-import com.kahavanu.ui.income.components.PersistenceListItem
+import com.kahavanu.domain.model.ScheduledIncome
+import com.kahavanu.domain.model.IncomeSourceType
 
 @Composable
 fun PersistenceSection(
-    pendingLogs: List<IncomeLogEntry>,
-    onViewAll: () -> Unit
+    scheduledItems: List<ScheduledIncome>,
+    onViewAll: () -> Unit,
+    onMarkAsReceived: (Long) -> Unit
 ) {
     Column {
         SectionHeader(
@@ -61,7 +57,7 @@ fun PersistenceSection(
             onActionClick = onViewAll
         )
         GlassCard(modifier = Modifier.fillMaxWidth()) {
-            if (pendingLogs.isEmpty()) {
+            if (scheduledItems.isEmpty()) {
                 Text(
                     text = "No pending payments found",
                     style = MaterialTheme.typography.bodyMedium,
@@ -70,17 +66,18 @@ fun PersistenceSection(
                     textAlign = TextAlign.Center
                 )
             } else {
-                pendingLogs.forEachIndexed { index, log ->
+                scheduledItems.forEachIndexed { index, item ->
                     PersistenceListItem(
-                        title = log.title,
-                        dueText = getDueText(log.receivedAtEpochMillis),
-                        isOverdue = isOverdue(log.receivedAtEpochMillis),
-                        isPending = isPending(log.sourceType),
-                        isRecurrent = isRecurrent(log.sourceType),
-                        amount = formatAmount(log.amount, log.currency),
-                        isInvoiceSent = log.isInvoiceSent
+                        title = item.title,
+                        dueText = getDueText(item.scheduledDateEpochMillis),
+                        isOverdue = isOverdue(item.scheduledDateEpochMillis),
+                        isPending = item.type == IncomeSourceType.PENDING,
+                        isRecurrent = item.type == IncomeSourceType.RECURRENT,
+                        amount = formatAmount(item.amount, item.currency),
+                        isInvoiceSent = item.isInvoiceSent,
+                        onMarkAsReceived = { onMarkAsReceived(item.id) }
                     )
-                    if (index < pendingLogs.size - 1) {
+                    if (index < scheduledItems.size - 1) {
                         HorizontalDivider(color = RawColors.Slate.Slate900.copy(alpha = 0.06f))
                     }
                 }

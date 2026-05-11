@@ -52,6 +52,7 @@ abstract class IncomeModule {
                 IncomeDatabaseMigrations.MIGRATION_6_7,
                 IncomeDatabaseMigrations.MIGRATION_7_8
             )
+            .fallbackToDestructiveMigration()
             .build()
 
         @Provides
@@ -68,6 +69,11 @@ abstract class IncomeModule {
         fun provideUserSettingsDao(
             database: IncomeDatabase,
         ): UserSettingsDao = database.userSettingsDao()
+
+        @Provides
+        fun provideScheduledIncomeDao(
+            database: IncomeDatabase,
+        ): com.kahavanu.data.income.local.ScheduledIncomeDao = database.scheduledIncomeDao()
 
 
         @Provides

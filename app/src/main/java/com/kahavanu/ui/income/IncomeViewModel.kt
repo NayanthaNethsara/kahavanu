@@ -6,7 +6,10 @@ import com.kahavanu.domain.model.IncomeLogEntry
 import com.kahavanu.domain.model.IncomeLogResult
 import com.kahavanu.domain.model.IncomeSource
 import com.kahavanu.domain.model.IncomeSourceType
+import com.kahavanu.domain.model.ScheduledIncome
 import com.kahavanu.domain.repository.IncomeRepository
+import com.kahavanu.ui.income.components.isPending
+import com.kahavanu.ui.income.components.isRecurrent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -151,40 +154,54 @@ class IncomeViewModel @Inject constructor(
                 .toInstant()
                 .toEpochMilli()
 
-            val entry = IncomeLogEntry(
-                title = clientDescription,
-                amount = amountValue,
-                currency = currency,
-                receivedAtEpochMillis = receivedAtEpochMillis,
-                sourceId = current.selectedSourceId,
-                sourceName = selectedSource?.name,
-                sourceType = current.incomeType.id,
-                frequency = if (current.incomeType == IncomeSourceType.RECURRENT) {
-                    current.frequency.label
-                } else null,
-                contactName = current.contactName,
-                contactNumber = current.contactNumber,
-            )
-
-            val result = repository.logIncome(entry)
-            _uiState.update {
-                if (result.isSuccess) {
-                    val successMessage = when (result.getOrThrow()) {
+            val result = if (current.incomeType == IncomeSourceType.ONE_TIME) {
+                val entry = IncomeLogEntry(
+                    title = clientDescription,
+                    amount = amountValue,
+                    currency = currency,
+                    receivedAtEpochMillis = receivedAtEpochMillis,
+                    sourceId = current.selectedSourceId,
+                    sourceName = selectedSource?.name,
+                    sourceType = current.incomeType.id,
+                    contactName = current.contactName,
+                    contactNumber = current.contactNumber,
+                )
+                repository.logIncome(entry).map { 
+                    when(it) {
                         IncomeLogResult.SYNCED -> "Income logged"
                         IncomeLogResult.LOCAL_ONLY -> "Saved offline. Will sync when online."
                     }
+                }
+            } else {
+                val scheduled = ScheduledIncome(
+                    title = clientDescription,
+                    amount = amountValue,
+                    currency = currency,
+                    type = current.incomeType,
+                    frequency = if (current.incomeType == IncomeSourceType.RECURRENT) current.frequency.label else null,
+                    scheduledDateEpochMillis = receivedAtEpochMillis,
+                    sourceId = current.selectedSourceId,
+                    sourceName = selectedSource?.name,
+                    contactName = current.contactName,
+                    contactNumber = current.contactNumber,
+                )
+                repository.upsertScheduledIncome(scheduled).map { "Scheduled income saved" }
+            }
+
+            _uiState.update {
+                if (result.isSuccess) {
                     it.copy(
                         clientDescription = "",
                         amount = "",
                         currency = current.currency,
                         receivedDate = LocalDate.now(),
                         isSaving = false,
-                        successMessage = successMessage,
+                        successMessage = result.getOrThrow(),
                     )
                 } else {
                     it.copy(
                         isSaving = false,
-                        errorMessage = result.exceptionOrNull()?.message ?: "Could not log income",
+                        errorMessage = result.exceptionOrNull()?.message ?: "Could not save income",
                     )
                 }
             }

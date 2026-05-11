@@ -37,6 +37,7 @@ import com.kahavanu.ui.theme.TextSize
 fun IncomeActionButtons(
     onLogIncome: () -> Unit,
     onViewPending: () -> Unit,
+    onViewHistory: () -> Unit,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -60,7 +61,7 @@ fun IncomeActionButtons(
         QuickActionButton(
             icon = Icons.Outlined.History,
             label = "History",
-            onClick = { }
+            onClick = onViewHistory
         )
     }
 }

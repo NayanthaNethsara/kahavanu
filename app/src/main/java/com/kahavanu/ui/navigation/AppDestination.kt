@@ -12,5 +12,7 @@ sealed class AppDestination(val route: String) {
     data object Expenses : AppDestination("expenses")
     data object Goals : AppDestination("goals")
     data object Profile : AppDestination("profile")
-    data object PersistenceList : AppDestination("persistence-list")
+    data object IncomeHistory : AppDestination("income-history?filter={filter}") {
+        fun createRoute(filter: String? = null) = if (filter != null) "income-history?filter=$filter" else "income-history"
+    }
 }

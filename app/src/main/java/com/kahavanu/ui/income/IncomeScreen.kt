@@ -28,15 +28,24 @@ import com.kahavanu.ui.theme.Spacing
 fun IncomeScreen(
     onLogIncome: () -> Unit,
     onViewPersistence: () -> Unit,
-    viewModel: IncomeOverviewViewModel = hiltViewModel(),
+    onViewHistory: () -> Unit,
+    viewModel: IncomeOverviewViewModel = hiltViewModel()
 ) {
     val logs by viewModel.incomeLogs.collectAsStateWithLifecycle()
-    val pendingLogs by viewModel.pendingLogs.collectAsStateWithLifecycle()
+    val scheduledIncomes by viewModel.scheduledIncomes.collectAsStateWithLifecycle()
     val totalIncomeByCurrency by viewModel.totalIncomeByCurrency.collectAsStateWithLifecycle()
     val totalReceivedByCurrency by viewModel.totalReceivedByCurrency.collectAsStateWithLifecycle()
     val breakdownsByCurrency by viewModel.breakdownsByCurrency.collectAsStateWithLifecycle()
     val primaryCurrency by viewModel.primaryCurrency.collectAsStateWithLifecycle()
     val monthLabel = currentMonthLabel()
+
+    val pendingScheduled = scheduledIncomes.filter { scheduled ->
+        val isPendingOpen = scheduled.type == com.kahavanu.domain.model.IncomeSourceType.PENDING &&
+            scheduled.lastGeneratedEpochMillis == null
+        val isOverdueRecurrent = scheduled.type == com.kahavanu.domain.model.IncomeSourceType.RECURRENT &&
+            com.kahavanu.ui.income.components.isOverdue(scheduled.scheduledDateEpochMillis)
+        isPendingOpen || isOverdueRecurrent
+    }
 
     LazyColumn(
         modifier = Modifier
@@ -70,17 +79,24 @@ fun IncomeScreen(
                 )
                 IncomeActionButtons(
                     onLogIncome = onLogIncome,
-                    onViewPending = onViewPersistence
+                    onViewPending = onViewPersistence,
+                    onViewHistory = onViewHistory
                 )
             }
         }
         item { MatchAndCatchSection() }
         item { 
             PersistenceSection(
-                pendingLogs = pendingLogs,
-                onViewAll = onViewPersistence
+                scheduledItems = pendingScheduled,
+                onViewAll = onViewPersistence,
+                onMarkAsReceived = viewModel::markAsReceived
             ) 
         }
-        item { IncomeLogSection(logs = logs) }
+        item { 
+            IncomeLogSection(
+                logs = logs,
+                onViewAll = onViewHistory
+            ) 
+        }
     }
 }

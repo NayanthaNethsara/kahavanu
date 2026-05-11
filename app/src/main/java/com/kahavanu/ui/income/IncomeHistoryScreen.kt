@@ -3,38 +3,17 @@ package com.kahavanu.ui.income
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Tune
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -44,43 +23,46 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.kahavanu.ui.income.components.CircularIconButton
-import com.kahavanu.ui.income.components.GlassCard
-import com.kahavanu.ui.income.components.GradientBlob
-import com.kahavanu.ui.income.components.PersistenceFilterToggle
-import com.kahavanu.ui.income.components.PersistenceListItem
-import com.kahavanu.ui.income.components.formatAmount
-import com.kahavanu.ui.income.components.getDueText
-import com.kahavanu.ui.income.components.isOverdue
-import com.kahavanu.ui.income.components.isPending
-import com.kahavanu.ui.income.components.isRecurrent
-import com.kahavanu.ui.income.components.isPersistent
+import com.kahavanu.ui.income.components.*
 import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
+import java.time.Instant
+import java.time.YearMonth
+import java.time.ZoneId
+import com.kahavanu.domain.model.ScheduledIncome
+import com.kahavanu.domain.model.IncomeSourceType
+import com.kahavanu.domain.model.IncomeLogEntry
 
 @Composable
-fun PersistenceListScreen(
+fun IncomeHistoryScreen(
     onBack: () -> Unit,
+    initialFilter: HistoryFilter = HistoryFilter.ALL,
     viewModel: IncomeOverviewViewModel = hiltViewModel()
 ) {
     val allLogs by viewModel.incomeLogs.collectAsStateWithLifecycle()
+    val allScheduled by viewModel.scheduledIncomes.collectAsStateWithLifecycle()
+    
     var searchQuery by remember { mutableStateOf("") }
-    var selectedFilter by remember { mutableStateOf(PersistenceFilter.ALL) }
+    var selectedFilter by remember { mutableStateOf(initialFilter) }
 
-    val filteredLogs = allLogs.filter { log ->
-        val matchesSearch = log.title.contains(searchQuery, ignoreCase = true) || 
-                          log.amount.toString().contains(searchQuery)
-        val isLogPersistent = isPersistent(log.sourceType)
+    val historyItems = remember(allLogs, allScheduled, selectedFilter, searchQuery) {
+        val logs = allLogs.map { HistoryItem.Log(it) }
+        val scheduled = allScheduled.map { HistoryItem.Scheduled(it) }
         
-        val matchesFilter = when (selectedFilter) {
-            PersistenceFilter.ALL -> isLogPersistent
-            PersistenceFilter.OVERDUE -> isLogPersistent && isOverdue(log.receivedAtEpochMillis) && isPending(log.sourceType)
-            PersistenceFilter.PENDING -> isLogPersistent && isPending(log.sourceType)
-            PersistenceFilter.PAID -> !isPending(log.sourceType) && !isRecurrent(log.sourceType)
-        }
-        matchesSearch && matchesFilter
+        (logs + scheduled).filter { item ->
+            val matchesSearch = item.title.contains(searchQuery, ignoreCase = true) || 
+                              item.amount.toString().contains(searchQuery)
+            
+            val matchesFilter = when (selectedFilter) {
+                HistoryFilter.ALL -> true
+                HistoryFilter.PENDING -> item is HistoryItem.Scheduled && item.scheduled.type == IncomeSourceType.PENDING
+                HistoryFilter.OVERDUE -> item is HistoryItem.Scheduled && isOverdue(item.scheduled.scheduledDateEpochMillis)
+                HistoryFilter.PAID -> item is HistoryItem.Log
+            }
+            matchesSearch && matchesFilter
+        }.sortedByDescending { it.timestamp }
     }
 
     Box(
@@ -93,23 +75,12 @@ fun PersistenceListScreen(
             modifier = Modifier.offset(x = (-96).dp, y = (-128).dp),
             size = 360.dp,
             colors = listOf(
-                RawColors.Emerald.Emerald400.copy(alpha = 0.16f),
-                RawColors.Emerald.Emerald800.copy(alpha = 0.08f),
+                RawColors.Slate.Slate200.copy(alpha = 0.16f),
+                RawColors.Slate.Slate400.copy(alpha = 0.08f),
                 Color.Transparent,
             ),
         )
-        GradientBlob(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .offset(x = 128.dp, y = 128.dp),
-            size = 420.dp,
-            colors = listOf(
-                RawColors.Emerald.Emerald400.copy(alpha = 0.1f),
-                RawColors.Emerald.Emerald600.copy(alpha = 0.04f),
-                Color.Transparent,
-            ),
-        )
-
+        
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -130,7 +101,7 @@ fun PersistenceListScreen(
                 Spacer(modifier = Modifier.width(Spacing.medium))
                 Column {
                     Text(
-                        text = "PERSISTENCE",
+                        text = "INCOME HISTORY",
                         style = MaterialTheme.typography.labelSmall,
                         color = TextSecondary,
                         letterSpacing = 1.sp,
@@ -138,7 +109,7 @@ fun PersistenceListScreen(
                         fontSize = 11.sp
                     )
                     Text(
-                        text = "${filteredLogs.size} payments",
+                        text = "${historyItems.size} logs",
                         style = MaterialTheme.typography.titleLarge,
                         color = TextPrimary,
                         fontWeight = FontWeight.Medium,
@@ -166,7 +137,7 @@ fun PersistenceListScreen(
                         .border(0.5.dp, Color.White.copy(alpha = 0.5f), RoundedCornerShape(16.dp)),
                     placeholder = {
                         Text(
-                            "Search client or amount...",
+                            "Search logs...",
                             style = MaterialTheme.typography.bodyMedium,
                             color = TextSecondary.copy(alpha = 0.5f)
                         )
@@ -211,7 +182,7 @@ fun PersistenceListScreen(
             Spacer(modifier = Modifier.height(Spacing.large))
 
             // Filter Tabs
-            PersistenceFilterToggle(
+            HistoryFilterToggle(
                 selectedFilter = selectedFilter,
                 onFilterSelected = { selectedFilter = it }
             )
@@ -220,28 +191,38 @@ fun PersistenceListScreen(
 
             // List
             GlassCard(modifier = Modifier.weight(1f)) {
-                if (filteredLogs.isEmpty()) {
+                if (historyItems.isEmpty()) {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text(
-                            "No payments found matching criteria",
+                            "No income history found",
                             style = MaterialTheme.typography.bodyMedium,
                             color = TextSecondary
                         )
                     }
                 } else {
                     LazyColumn {
-                        itemsIndexed(filteredLogs) { index, log ->
-                            val isOverdue = isOverdue(log.receivedAtEpochMillis) && isPending(log.sourceType)
+                        itemsIndexed(historyItems) { index, item ->
+                            val isLogOverdue = isOverdue(item.timestamp) && (item is HistoryItem.Scheduled)
+                            val canReceive = item is HistoryItem.Scheduled &&
+                                item.scheduled.type == IncomeSourceType.PENDING &&
+                                item.scheduled.lastGeneratedEpochMillis == null
                             PersistenceListItem(
-                                title = log.title,
-                                dueText = getDueText(log.receivedAtEpochMillis),
-                                isOverdue = isOverdue,
-                                isPending = isPending(log.sourceType),
-                                isRecurrent = isRecurrent(log.sourceType),
-                                amount = formatAmount(log.amount, log.currency),
-                                isInvoiceSent = log.isInvoiceSent
+                                title = item.title,
+                                dueText = formatDate(item.timestamp),
+                                isOverdue = isLogOverdue,
+                                isPending = canReceive,
+                                isRecurrent = item is HistoryItem.Scheduled && item.scheduled.type == IncomeSourceType.RECURRENT,
+                                amount = formatAmount(item.amount, item.currency),
+                                isInvoiceSent = item.isInvoiceSent,
+                                onMarkAsReceived = if (item is HistoryItem.Scheduled) {
+                                    if (canReceive) {
+                                        { viewModel.markAsReceived(item.scheduled.id) }
+                                    } else {
+                                        null
+                                    }
+                                } else null
                             )
-                            if (index < filteredLogs.size - 1) {
+                            if (index < historyItems.size - 1) {
                                 HorizontalDivider(color = RawColors.Slate.Slate900.copy(alpha = 0.06f))
                             }
                         }
@@ -258,7 +239,7 @@ fun PersistenceListScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Show 10",
+                    text = "Show 20",
                     style = MaterialTheme.typography.bodySmall,
                     color = TextSecondary
                 )
@@ -271,7 +252,7 @@ fun PersistenceListScreen(
                     )
                     Spacer(modifier = Modifier.width(Spacing.medium))
                     Text(
-                        text = "1 / 1",
+                        text = "1 / ${maxOf(1, (historyItems.size + 19) / 20)}",
                         style = MaterialTheme.typography.labelSmall,
                         color = TextPrimary
                     )
@@ -285,5 +266,31 @@ fun PersistenceListScreen(
                 }
             }
         }
+    }
+}
+
+sealed class HistoryItem {
+    data class Log(val log: IncomeLogEntry) : HistoryItem()
+    data class Scheduled(val scheduled: ScheduledIncome) : HistoryItem()
+    
+    val title: String get() = when(this) {
+        is Log -> log.title
+        is Scheduled -> scheduled.title
+    }
+    val amount: Double get() = when(this) {
+        is Log -> log.amount
+        is Scheduled -> scheduled.amount
+    }
+    val currency: String get() = when(this) {
+        is Log -> log.currency
+        is Scheduled -> scheduled.currency
+    }
+    val timestamp: Long get() = when(this) {
+        is Log -> log.receivedAtEpochMillis
+        is Scheduled -> scheduled.lastGeneratedEpochMillis ?: scheduled.scheduledDateEpochMillis
+    }
+    val isInvoiceSent: Boolean get() = when(this) {
+        is Log -> log.isInvoiceSent
+        is Scheduled -> scheduled.isInvoiceSent
     }
 }

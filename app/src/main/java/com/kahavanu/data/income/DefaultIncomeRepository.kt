@@ -3,29 +3,24 @@ package com.kahavanu.data.income
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
+import com.kahavanu.data.common.awaitResult
 import com.kahavanu.data.income.local.IncomeLogDao
 import com.kahavanu.data.income.local.IncomeSourceDao
 import com.kahavanu.data.income.local.IncomeSourceEntity
 import com.kahavanu.data.income.local.ScheduledIncomeDao
 import com.kahavanu.data.income.local.ScheduledIncomeEntity
-import com.kahavanu.data.income.local.UserSettingsDao
-import com.kahavanu.data.income.local.UserSettingsEntity
 import com.kahavanu.data.income.sync.IncomeSyncScheduler
 import com.kahavanu.domain.model.IncomeLogEntry
 import com.kahavanu.domain.model.IncomeLogResult
 import com.kahavanu.domain.model.IncomeSource
 import com.kahavanu.domain.model.IncomeSourceType
 import com.kahavanu.domain.repository.IncomeRepository
-import com.kahavanu.ui.income.CurrencyOption
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
 import com.kahavanu.domain.model.ScheduledIncome
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -36,7 +31,6 @@ class DefaultIncomeRepository @Inject constructor(
     private val auth: FirebaseAuth,
     private val incomeLogDao: IncomeLogDao,
     private val incomeSourceDao: IncomeSourceDao,
-    private val userSettingsDao: UserSettingsDao,
     private val scheduledIncomeDao: ScheduledIncomeDao,
     private val syncScheduler: IncomeSyncScheduler,
 ) : IncomeRepository {
@@ -45,39 +39,9 @@ class DefaultIncomeRepository @Inject constructor(
     init {
         syncScheduler.enqueue()
         syncScheduler.scheduleIncomeProcessing()
-        observeRemoteSettings()
         repositoryScope.launch {
             processScheduledIncomes()
         }
-    }
-
-    private fun observeRemoteSettings() {
-        val uid = auth.currentUser?.uid ?: return
-        firestore.collection(USERS_COLLECTION)
-            .document(uid)
-            .collection(SETTINGS_COLLECTION)
-            .document(CONFIG_DOCUMENT)
-            .addSnapshotListener { snapshot, error ->
-                if (error != null || snapshot == null || !snapshot.exists()) return@addSnapshotListener
-                
-                val primaryCode = snapshot.getString("primaryCurrency") ?: return@addSnapshotListener
-                val secondaryCode = snapshot.getString("secondaryCurrency") ?: return@addSnapshotListener
-                val updatedAt = snapshot.getLong("updatedAt") ?: 0L
-                
-                repositoryScope.launch {
-                    val local = userSettingsDao.getSettings(uid)
-                    if (local == null || updatedAt > local.updatedAtEpochMillis) {
-                        userSettingsDao.upsert(
-                            UserSettingsEntity(
-                                userId = uid,
-                                primaryCurrency = primaryCode,
-                                secondaryCurrency = secondaryCode,
-                                updatedAtEpochMillis = updatedAt
-                            )
-                        )
-                    }
-                }
-            }
     }
 
     override fun observeIncomeLogs(): Flow<List<IncomeLogEntry>> {
@@ -212,50 +176,6 @@ class DefaultIncomeRepository @Inject constructor(
         }
     }
 
-    override fun observeCurrencySettings(): Flow<Pair<CurrencyOption, CurrencyOption>> {
-        val uid = auth.currentUser?.uid ?: return flowOf(CurrencyOption.LKR to CurrencyOption.USD)
-        return userSettingsDao.observeSettings(uid).map { entity ->
-            if (entity != null) {
-                val primary = try { CurrencyOption.valueOf(entity.primaryCurrency) } catch (e: Exception) { CurrencyOption.LKR }
-                val secondary = try { CurrencyOption.valueOf(entity.secondaryCurrency) } catch (e: Exception) { CurrencyOption.USD }
-                primary to secondary
-            } else {
-                CurrencyOption.LKR to CurrencyOption.USD
-            }
-        }
-    }
-
-    override suspend fun updateCurrencySettings(primary: CurrencyOption, secondary: CurrencyOption): Result<Unit> {
-        val uid = auth.currentUser?.uid
-            ?: return Result.failure(IllegalStateException("User not authenticated"))
-        
-        val now = System.currentTimeMillis()
-        
-        // Update local first
-        userSettingsDao.upsert(
-            UserSettingsEntity(
-                userId = uid,
-                primaryCurrency = primary.name,
-                secondaryCurrency = secondary.name,
-                updatedAtEpochMillis = now
-            )
-        )
-        
-        // Sync with remote
-        val data = mapOf(
-            "primaryCurrency" to primary.name,
-            "secondaryCurrency" to secondary.name,
-            "updatedAt" to now
-        )
-        
-        return firestore.collection(USERS_COLLECTION)
-            .document(uid)
-            .collection(SETTINGS_COLLECTION)
-            .document(CONFIG_DOCUMENT)
-            .set(data, SetOptions.merge())
-            .awaitResult()
-            .map { }
-    }
 
     override fun observeScheduledIncomes(): Flow<List<ScheduledIncome>> {
         val uid = auth.currentUser?.uid ?: return flowOf(emptyList())
@@ -524,8 +444,6 @@ class DefaultIncomeRepository @Inject constructor(
 }
 
 private const val USERS_COLLECTION = "users"
-private const val SETTINGS_COLLECTION = "settings"
-private const val CONFIG_DOCUMENT = "config"
 private const val INCOME_LOGS_COLLECTION = "incomeLogs"
 private const val INCOME_SOURCES_COLLECTION = "incomeSources"
 private const val SCHEDULED_COLLECTION = "scheduledIncomes"
@@ -542,20 +460,4 @@ private fun defaultSourceSeeds(): List<IncomeSourceSeed> = listOf(
     IncomeSourceSeed("Crypto", setOf(IncomeSourceType.ONE_TIME, IncomeSourceType.PENDING)),
 )
 
-private suspend fun <T> com.google.android.gms.tasks.Task<T>.awaitResult(): Result<T> {
-    return suspendCancellableCoroutine { continuation ->
-        addOnCompleteListener { task ->
-            if (!continuation.isActive) return@addOnCompleteListener
-            if (task.isSuccessful) {
-                continuation.resumeWith(Result.success(Result.success(task.result)))
-            } else {
-                continuation.resumeWith(
-                    Result.success(
-                        Result.failure(task.exception ?: Exception("Unknown error"))
-                    )
-                )
-            }
-        }
-    }
-}
 

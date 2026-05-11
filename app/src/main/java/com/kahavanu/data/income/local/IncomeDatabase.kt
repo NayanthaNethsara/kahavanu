@@ -2,6 +2,8 @@ package com.kahavanu.data.income.local
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import com.kahavanu.data.settings.local.UserSettingsDao
+import com.kahavanu.data.settings.local.UserSettingsEntity
 
 @Database(
     entities = [

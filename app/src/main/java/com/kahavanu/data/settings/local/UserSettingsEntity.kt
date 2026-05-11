@@ -1,4 +1,4 @@
-package com.kahavanu.data.income.local
+package com.kahavanu.data.settings.local
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

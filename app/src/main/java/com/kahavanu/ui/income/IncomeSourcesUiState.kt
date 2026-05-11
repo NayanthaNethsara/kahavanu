@@ -1,8 +1,8 @@
 package com.kahavanu.ui.income
 
+import com.kahavanu.domain.model.CurrencyOption
 import com.kahavanu.domain.model.IncomeSource
 import com.kahavanu.domain.model.IncomeSourceType
-import com.kahavanu.ui.income.CurrencyOption
 
 data class IncomeSourcesUiState(
     val sources: List<IncomeSource> = emptyList(),

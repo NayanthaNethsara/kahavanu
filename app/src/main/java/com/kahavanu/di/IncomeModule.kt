@@ -8,7 +8,6 @@ import com.kahavanu.data.income.local.IncomeDatabase
 import com.kahavanu.data.income.local.IncomeDatabaseMigrations
 import com.kahavanu.data.income.local.IncomeLogDao
 import com.kahavanu.data.income.local.IncomeSourceDao
-import com.kahavanu.data.income.local.UserSettingsDao
 import com.kahavanu.data.income.sync.IncomeSyncScheduler
 import com.kahavanu.domain.repository.IncomeRepository
 import dagger.Binds
@@ -64,11 +63,6 @@ abstract class IncomeModule {
         fun provideIncomeSourceDao(
             database: IncomeDatabase,
         ): IncomeSourceDao = database.incomeSourceDao()
-
-        @Provides
-        fun provideUserSettingsDao(
-            database: IncomeDatabase,
-        ): UserSettingsDao = database.userSettingsDao()
 
         @Provides
         fun provideScheduledIncomeDao(

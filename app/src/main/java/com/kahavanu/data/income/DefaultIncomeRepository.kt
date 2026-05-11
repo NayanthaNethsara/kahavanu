@@ -289,6 +289,7 @@ class DefaultIncomeRepository @Inject constructor(
 
         val remoteResult = deleteRemoteScheduled(uid, existing)
         return if (remoteResult.isSuccess) {
+            scheduledIncomeDao.markSynced(id, existing.remoteId)
             Result.success(Unit)
         } else {
             syncScheduler.enqueue()
@@ -318,9 +319,18 @@ class DefaultIncomeRepository @Inject constructor(
         
         val logResult = logIncome(entry)
         if (logResult.isSuccess) {
-            // Delete the scheduled item if it's PENDING (one-off)
             if (scheduled.type == IncomeSourceType.PENDING.id) {
-                deleteScheduledIncome(id)
+                val updated = scheduled.copy(
+                    lastGeneratedEpochMillis = System.currentTimeMillis(),
+                    isSynced = false
+                )
+                scheduledIncomeDao.upsert(updated)
+                val remoteResult = upsertRemoteScheduled(uid, updated)
+                if (remoteResult.isSuccess) {
+                    scheduledIncomeDao.markSynced(updated.localId, remoteResult.getOrThrow())
+                } else {
+                    syncScheduler.enqueue()
+                }
             }
             return Result.success(Unit)
         }
@@ -339,9 +349,11 @@ class DefaultIncomeRepository @Inject constructor(
                 amount = item.amount,
                 currency = item.currency,
                 receivedAtEpochMillis = item.scheduledDateEpochMillis,
-                sourceId = item.sourceId ?: 0,
+                sourceId = item.sourceId,
                 sourceName = item.sourceName,
-                sourceType = IncomeSourceType.ONE_TIME.id,
+                sourceType = IncomeSourceType.RECURRENT.id,
+                isInvoiceSent = item.isInvoiceSent,
+                frequency = item.frequency,
                 contactName = item.contactName,
                 contactNumber = item.contactNumber
             )
@@ -355,7 +367,12 @@ class DefaultIncomeRepository @Inject constructor(
                 isSynced = false
             )
             scheduledIncomeDao.upsert(updated)
-            upsertRemoteScheduled(uid, updated)
+            val remoteResult = upsertRemoteScheduled(uid, updated)
+            if (remoteResult.isSuccess) {
+                scheduledIncomeDao.markSynced(updated.localId, remoteResult.getOrThrow())
+            } else {
+                syncScheduler.enqueue()
+            }
         }
     }
 
@@ -373,6 +390,137 @@ class DefaultIncomeRepository @Inject constructor(
         }
         return nextDate.atStartOfDay(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
     }
+
+    private suspend fun upsertRemoteSource(
+        uid: String,
+        source: IncomeSourceEntity,
+    ): Result<String?> {
+        val data = mapOf(
+            "name" to source.name,
+            "types" to source.typesCsv.split(',').filter { it.isNotBlank() },
+            "createdAt" to source.createdAtEpochMillis,
+            "updatedAt" to source.updatedAtEpochMillis,
+            "userId" to uid,
+        )
+
+        return if (source.remoteId != null) {
+            firestore.collection(USERS_COLLECTION)
+                .document(uid)
+                .collection(INCOME_SOURCES_COLLECTION)
+                .document(source.remoteId)
+                .set(data)
+                .awaitResult()
+                .map { source.remoteId }
+        } else {
+            firestore.collection(USERS_COLLECTION)
+                .document(uid)
+                .collection(INCOME_SOURCES_COLLECTION)
+                .add(data)
+                .awaitResult()
+                .map { it.id }
+        }
+    }
+
+    private suspend fun deleteRemoteSource(
+        uid: String,
+        source: IncomeSourceEntity,
+    ): Result<String?> {
+        val remoteId = source.remoteId ?: return Result.success(null)
+        return firestore.collection(USERS_COLLECTION)
+            .document(uid)
+            .collection(INCOME_SOURCES_COLLECTION)
+            .document(remoteId)
+            .delete()
+            .awaitResult()
+            .map { remoteId }
+    }
+
+    private suspend fun upsertRemoteScheduled(
+        uid: String,
+        scheduled: ScheduledIncomeEntity,
+    ): Result<String?> {
+        if (scheduled.remoteId == null) {
+            val ensureResult = ensureScheduledCollection(uid)
+            if (ensureResult.isFailure) return Result.failure(ensureResult.exceptionOrNull()!!)
+        }
+        val status = when {
+            scheduled.type == IncomeSourceType.PENDING.id && scheduled.lastGeneratedEpochMillis != null -> "received"
+            scheduled.type == IncomeSourceType.PENDING.id -> "pending"
+            scheduled.type == IncomeSourceType.RECURRENT.id -> "active"
+            else -> "pending"
+        }
+        val receivedAt = if (scheduled.type == IncomeSourceType.PENDING.id) {
+            scheduled.lastGeneratedEpochMillis
+        } else {
+            null
+        }
+        val data = mapOf(
+            "title" to scheduled.title,
+            "amount" to scheduled.amount,
+            "currency" to scheduled.currency,
+            "type" to scheduled.type,
+            "frequency" to scheduled.frequency,
+            "scheduledDate" to scheduled.scheduledDateEpochMillis,
+            "lastGenerated" to scheduled.lastGeneratedEpochMillis,
+            "receivedAt" to receivedAt,
+            "sourceId" to scheduled.sourceId,
+            "sourceName" to scheduled.sourceName,
+            "isInvoiceSent" to scheduled.isInvoiceSent,
+            "contactName" to scheduled.contactName,
+            "contactNumber" to scheduled.contactNumber,
+            "status" to status,
+            "updatedAt" to System.currentTimeMillis(),
+            "userId" to uid,
+        )
+
+        return if (scheduled.remoteId != null) {
+            firestore.collection(USERS_COLLECTION)
+                .document(uid)
+                .collection(SCHEDULED_COLLECTION)
+                .document(scheduled.remoteId)
+                .set(data)
+                .awaitResult()
+                .map { scheduled.remoteId }
+        } else {
+            firestore.collection(USERS_COLLECTION)
+                .document(uid)
+                .collection(SCHEDULED_COLLECTION)
+                .add(data)
+                .awaitResult()
+                .map { it.id }
+        }
+    }
+
+    private suspend fun ensureScheduledCollection(uid: String): Result<Unit> {
+        val now = System.currentTimeMillis()
+        val userResult = firestore.collection(USERS_COLLECTION)
+            .document(uid)
+            .set(mapOf("updatedAt" to now), SetOptions.merge())
+            .awaitResult()
+        if (userResult.isFailure) return Result.failure(userResult.exceptionOrNull()!!)
+
+        return firestore.collection(USERS_COLLECTION)
+            .document(uid)
+            .collection(SCHEDULED_COLLECTION)
+            .document("_meta")
+            .set(mapOf("createdAt" to now), SetOptions.merge())
+            .awaitResult()
+            .map { }
+    }
+
+    private suspend fun deleteRemoteScheduled(
+        uid: String,
+        scheduled: ScheduledIncomeEntity,
+    ): Result<String?> {
+        val remoteId = scheduled.remoteId ?: return Result.success(null)
+        return firestore.collection(USERS_COLLECTION)
+            .document(uid)
+            .collection(SCHEDULED_COLLECTION)
+            .document(remoteId)
+            .delete()
+            .awaitResult()
+            .map { remoteId }
+    }
 }
 
 private const val USERS_COLLECTION = "users"
@@ -380,7 +528,7 @@ private const val SETTINGS_COLLECTION = "settings"
 private const val CONFIG_DOCUMENT = "config"
 private const val INCOME_LOGS_COLLECTION = "incomeLogs"
 private const val INCOME_SOURCES_COLLECTION = "incomeSources"
-private const val SCHEDULED_COLLECTION = "scheduledIncome"
+private const val SCHEDULED_COLLECTION = "scheduledIncomes"
 
 private data class IncomeSourceSeed(
     val name: String,
@@ -411,105 +559,3 @@ private suspend fun <T> com.google.android.gms.tasks.Task<T>.awaitResult(): Resu
     }
 }
 
-private suspend fun upsertRemoteSource(
-    uid: String,
-    source: IncomeSourceEntity,
-): Result<String?> {
-    val data = mapOf(
-        "name" to source.name,
-        "types" to source.typesCsv.split(',').filter { it.isNotBlank() },
-        "createdAt" to source.createdAtEpochMillis,
-        "updatedAt" to source.updatedAtEpochMillis,
-        "userId" to uid,
-    )
-
-    return if (source.remoteId != null) {
-        FirebaseFirestore.getInstance()
-            .collection(USERS_COLLECTION)
-            .document(uid)
-            .collection(INCOME_SOURCES_COLLECTION)
-            .document(source.remoteId)
-            .set(data)
-            .awaitResult()
-            .map { source.remoteId }
-    } else {
-        FirebaseFirestore.getInstance()
-            .collection(USERS_COLLECTION)
-            .document(uid)
-            .collection(INCOME_SOURCES_COLLECTION)
-            .add(data)
-            .awaitResult()
-            .map { it.id }
-    }
-}
-
-private suspend fun deleteRemoteSource(
-    uid: String,
-    source: IncomeSourceEntity,
-): Result<String?> {
-    val remoteId = source.remoteId ?: return Result.success(null)
-    return FirebaseFirestore.getInstance()
-        .collection(USERS_COLLECTION)
-        .document(uid)
-        .collection(INCOME_SOURCES_COLLECTION)
-        .document(remoteId)
-        .delete()
-        .awaitResult()
-        .map { remoteId }
-}
-
-private suspend fun upsertRemoteScheduled(
-    uid: String,
-    scheduled: ScheduledIncomeEntity,
-): Result<String?> {
-    val data = mapOf(
-        "title" to scheduled.title,
-        "amount" to scheduled.amount,
-        "currency" to scheduled.currency,
-        "type" to scheduled.type,
-        "frequency" to scheduled.frequency,
-        "scheduledDate" to scheduled.scheduledDateEpochMillis,
-        "lastGenerated" to scheduled.lastGeneratedEpochMillis,
-        "sourceId" to scheduled.sourceId,
-        "sourceName" to scheduled.sourceName,
-        "isInvoiceSent" to scheduled.isInvoiceSent,
-        "contactName" to scheduled.contactName,
-        "contactNumber" to scheduled.contactNumber,
-        "updatedAt" to System.currentTimeMillis(),
-        "userId" to uid,
-    )
-
-    return if (scheduled.remoteId != null) {
-        FirebaseFirestore.getInstance()
-            .collection(USERS_COLLECTION)
-            .document(uid)
-            .collection(SCHEDULED_COLLECTION)
-            .document(scheduled.remoteId)
-            .set(data)
-            .awaitResult()
-            .map { scheduled.remoteId }
-    } else {
-        FirebaseFirestore.getInstance()
-            .collection(USERS_COLLECTION)
-            .document(uid)
-            .collection(SCHEDULED_COLLECTION)
-            .add(data)
-            .awaitResult()
-            .map { it.id }
-    }
-}
-
-private suspend fun deleteRemoteScheduled(
-    uid: String,
-    scheduled: ScheduledIncomeEntity,
-): Result<String?> {
-    val remoteId = scheduled.remoteId ?: return Result.success(null)
-    return FirebaseFirestore.getInstance()
-        .collection(USERS_COLLECTION)
-        .document(uid)
-        .collection(SCHEDULED_COLLECTION)
-        .document(remoteId)
-        .delete()
-        .awaitResult()
-        .map { remoteId }
-}

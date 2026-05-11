@@ -39,9 +39,12 @@ fun IncomeScreen(
     val primaryCurrency by viewModel.primaryCurrency.collectAsStateWithLifecycle()
     val monthLabel = currentMonthLabel()
 
-    val pendingScheduled = scheduledIncomes.filter { 
-        com.kahavanu.ui.income.components.isOverdue(it.scheduledDateEpochMillis) || 
-        it.type == com.kahavanu.domain.model.IncomeSourceType.PENDING
+    val pendingScheduled = scheduledIncomes.filter { scheduled ->
+        val isPendingOpen = scheduled.type == com.kahavanu.domain.model.IncomeSourceType.PENDING &&
+            scheduled.lastGeneratedEpochMillis == null
+        val isOverdueRecurrent = scheduled.type == com.kahavanu.domain.model.IncomeSourceType.RECURRENT &&
+            com.kahavanu.ui.income.components.isOverdue(scheduled.scheduledDateEpochMillis)
+        isPendingOpen || isOverdueRecurrent
     }
 
     LazyColumn(

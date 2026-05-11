@@ -17,6 +17,9 @@ interface IncomeLogDao {
     )
     suspend fun getUnsynced(userId: String): List<IncomeLogEntity>
 
+    @Query("SELECT * FROM income_logs WHERE remoteId = :remoteId LIMIT 1")
+    suspend fun getByRemoteId(remoteId: String): IncomeLogEntity?
+
     @Insert
     suspend fun insert(entry: IncomeLogEntity): Long
 

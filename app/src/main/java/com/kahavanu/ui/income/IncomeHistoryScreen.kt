@@ -203,16 +203,23 @@ fun IncomeHistoryScreen(
                     LazyColumn {
                         itemsIndexed(historyItems) { index, item ->
                             val isLogOverdue = isOverdue(item.timestamp) && (item is HistoryItem.Scheduled)
+                            val canReceive = item is HistoryItem.Scheduled &&
+                                item.scheduled.type == IncomeSourceType.PENDING &&
+                                item.scheduled.lastGeneratedEpochMillis == null
                             PersistenceListItem(
                                 title = item.title,
                                 dueText = formatDate(item.timestamp),
                                 isOverdue = isLogOverdue,
-                                isPending = item is HistoryItem.Scheduled && item.scheduled.type == IncomeSourceType.PENDING,
+                                isPending = canReceive,
                                 isRecurrent = item is HistoryItem.Scheduled && item.scheduled.type == IncomeSourceType.RECURRENT,
                                 amount = formatAmount(item.amount, item.currency),
                                 isInvoiceSent = item.isInvoiceSent,
                                 onMarkAsReceived = if (item is HistoryItem.Scheduled) {
-                                    { viewModel.markAsReceived(item.scheduled.id) }
+                                    if (canReceive) {
+                                        { viewModel.markAsReceived(item.scheduled.id) }
+                                    } else {
+                                        null
+                                    }
                                 } else null
                             )
                             if (index < historyItems.size - 1) {
@@ -280,7 +287,7 @@ sealed class HistoryItem {
     }
     val timestamp: Long get() = when(this) {
         is Log -> log.receivedAtEpochMillis
-        is Scheduled -> scheduled.scheduledDateEpochMillis
+        is Scheduled -> scheduled.lastGeneratedEpochMillis ?: scheduled.scheduledDateEpochMillis
     }
     val isInvoiceSent: Boolean get() = when(this) {
         is Log -> log.isInvoiceSent

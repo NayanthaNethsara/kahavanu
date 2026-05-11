@@ -24,6 +24,10 @@ import kotlinx.coroutines.launch
 import com.kahavanu.domain.model.ScheduledIncome
 import javax.inject.Inject
 import javax.inject.Singleton
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import dagger.hilt.android.qualifiers.ApplicationContext
 
 @Singleton
 class DefaultIncomeRepository @Inject constructor(
@@ -33,6 +37,7 @@ class DefaultIncomeRepository @Inject constructor(
     private val incomeSourceDao: IncomeSourceDao,
     private val scheduledIncomeDao: ScheduledIncomeDao,
     private val syncScheduler: IncomeSyncScheduler,
+    @ApplicationContext private val appContext: Context,
 ) : IncomeRepository {
     private val repositoryScope = CoroutineScope(Dispatchers.IO)
 
@@ -56,6 +61,12 @@ class DefaultIncomeRepository @Inject constructor(
 
         val createdAt = System.currentTimeMillis()
         val localId = incomeLogDao.insert(entry.toEntity(uid, createdAt))
+
+        // If offline, persist locally and enqueue sync without attempting network write.
+        if (!isOnline()) {
+            syncScheduler.enqueue()
+            return Result.success(IncomeLogResult.LOCAL_ONLY)
+        }
 
         val data = mapOf(
             "title" to entry.title,
@@ -87,6 +98,14 @@ class DefaultIncomeRepository @Inject constructor(
             syncScheduler.enqueue()
             Result.success(IncomeLogResult.LOCAL_ONLY)
         }
+    }
+
+    private fun isOnline(): Boolean {
+        val cm = appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
+            ?: return false
+        val network = cm.activeNetwork ?: return false
+        val caps = cm.getNetworkCapabilities(network) ?: return false
+        return caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
 
     override fun observeIncomeSources(): Flow<List<IncomeSource>> {
@@ -146,6 +165,11 @@ class DefaultIncomeRepository @Inject constructor(
         val resolvedLocalId = if (entity.localId == 0L) localId else entity.localId
         val updatedEntity = entity.copy(localId = resolvedLocalId)
 
+        if (!isOnline()) {
+            syncScheduler.enqueue()
+            return Result.success(Unit)
+        }
+
         val remoteResult = upsertRemoteSource(uid, updatedEntity)
         return if (remoteResult.isSuccess) {
             incomeSourceDao.markSynced(updatedEntity.localId, remoteResult.getOrThrow())
@@ -165,6 +189,11 @@ class DefaultIncomeRepository @Inject constructor(
 
         val now = System.currentTimeMillis()
         incomeSourceDao.markDeleted(sourceId, now)
+
+        if (!isOnline()) {
+            syncScheduler.enqueue()
+            return Result.success(Unit)
+        }
 
         val remoteResult = deleteRemoteSource(uid, existing)
         return if (remoteResult.isSuccess) {
@@ -190,6 +219,11 @@ class DefaultIncomeRepository @Inject constructor(
         val localId = scheduledIncomeDao.upsert(scheduled.toEntity(uid))
         val existing = scheduledIncomeDao.getById(localId) ?: return Result.failure(Exception("Failed to save locally"))
 
+        if (!isOnline()) {
+            syncScheduler.enqueue()
+            return Result.success(Unit)
+        }
+
         val remoteResult = upsertRemoteScheduled(uid, existing)
         return if (remoteResult.isSuccess) {
             scheduledIncomeDao.upsert(existing.copy(remoteId = remoteResult.getOrThrow(), isSynced = true))
@@ -206,6 +240,11 @@ class DefaultIncomeRepository @Inject constructor(
 
         val existing = scheduledIncomeDao.getById(id) ?: return Result.success(Unit)
         scheduledIncomeDao.markDeleted(id)
+
+        if (!isOnline()) {
+            syncScheduler.enqueue()
+            return Result.success(Unit)
+        }
 
         val remoteResult = deleteRemoteScheduled(uid, existing)
         return if (remoteResult.isSuccess) {
@@ -245,9 +284,13 @@ class DefaultIncomeRepository @Inject constructor(
                     isSynced = false
                 )
                 scheduledIncomeDao.upsert(updated)
-                val remoteResult = upsertRemoteScheduled(uid, updated)
-                if (remoteResult.isSuccess) {
-                    scheduledIncomeDao.markSynced(updated.localId, remoteResult.getOrThrow())
+                if (isOnline()) {
+                    val remoteResult = upsertRemoteScheduled(uid, updated)
+                    if (remoteResult.isSuccess) {
+                        scheduledIncomeDao.markSynced(updated.localId, remoteResult.getOrThrow())
+                    } else {
+                        syncScheduler.enqueue()
+                    }
                 } else {
                     syncScheduler.enqueue()
                 }
@@ -287,9 +330,13 @@ class DefaultIncomeRepository @Inject constructor(
                 isSynced = false
             )
             scheduledIncomeDao.upsert(updated)
-            val remoteResult = upsertRemoteScheduled(uid, updated)
-            if (remoteResult.isSuccess) {
-                scheduledIncomeDao.markSynced(updated.localId, remoteResult.getOrThrow())
+            if (isOnline()) {
+                val remoteResult = upsertRemoteScheduled(uid, updated)
+                if (remoteResult.isSuccess) {
+                    scheduledIncomeDao.markSynced(updated.localId, remoteResult.getOrThrow())
+                } else {
+                    syncScheduler.enqueue()
+                }
             } else {
                 syncScheduler.enqueue()
             }

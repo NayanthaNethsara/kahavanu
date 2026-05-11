@@ -10,6 +10,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.navArgument
+import androidx.navigation.NavType
 import com.kahavanu.domain.model.UserSession
 import com.kahavanu.ui.common.BottomNavBar
 import com.kahavanu.ui.common.TopAppHeader
@@ -17,9 +19,10 @@ import com.kahavanu.ui.expenses.ExpensesScreen
 import com.kahavanu.ui.goals.GoalsScreen
 import com.kahavanu.ui.home.HomeScreen
 import com.kahavanu.ui.income.IncomeLogScreen
+import com.kahavanu.ui.income.IncomeHistoryScreen
 import com.kahavanu.ui.income.IncomeScreen
 import com.kahavanu.ui.income.IncomeSourcesScreen
-import com.kahavanu.ui.income.PersistenceListScreen
+import com.kahavanu.ui.income.HistoryFilter
 import com.kahavanu.ui.navigation.AppDestination
 import com.kahavanu.ui.profile.ProfileScreen
 
@@ -77,7 +80,8 @@ fun MainTabsScreen(
             composable(AppDestination.Income.route) {
                 IncomeScreen(
                     onLogIncome = { navController.navigate(AppDestination.IncomeLog.route) },
-                    onViewPersistence = { navController.navigate(AppDestination.PersistenceList.route) },
+                    onViewPersistence = { navController.navigate(AppDestination.IncomeHistory.createRoute("PENDING")) },
+                    onViewHistory = { navController.navigate(AppDestination.IncomeHistory.createRoute("ALL")) }
                 )
             }
             composable(AppDestination.IncomeLog.route) {
@@ -101,9 +105,23 @@ fun MainTabsScreen(
             composable(AppDestination.Profile.route) {
                 ProfileScreen()
             }
-            composable(AppDestination.PersistenceList.route) {
-                PersistenceListScreen(
-                    onBack = { navController.popBackStack() }
+            composable(
+                route = AppDestination.IncomeHistory.route,
+                arguments = listOf(navArgument("filter") { 
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                })
+            ) { backStackEntry ->
+                val filterStr = backStackEntry.arguments?.getString("filter")
+                val filter = try {
+                    if (filterStr != null) HistoryFilter.valueOf(filterStr) else HistoryFilter.ALL
+                } catch (e: Exception) {
+                    HistoryFilter.ALL
+                }
+                IncomeHistoryScreen(
+                    onBack = { navController.popBackStack() },
+                    initialFilter = filter
                 )
             }
         }

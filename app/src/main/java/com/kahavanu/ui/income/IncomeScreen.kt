@@ -28,7 +28,8 @@ import com.kahavanu.ui.theme.Spacing
 fun IncomeScreen(
     onLogIncome: () -> Unit,
     onViewPersistence: () -> Unit,
-    viewModel: IncomeOverviewViewModel = hiltViewModel(),
+    onViewHistory: () -> Unit,
+    viewModel: IncomeOverviewViewModel = hiltViewModel()
 ) {
     val logs by viewModel.incomeLogs.collectAsStateWithLifecycle()
     val pendingLogs by viewModel.pendingLogs.collectAsStateWithLifecycle()
@@ -70,7 +71,8 @@ fun IncomeScreen(
                 )
                 IncomeActionButtons(
                     onLogIncome = onLogIncome,
-                    onViewPending = onViewPersistence
+                    onViewPending = onViewPersistence,
+                    onViewHistory = onViewHistory
                 )
             }
         }
@@ -81,6 +83,11 @@ fun IncomeScreen(
                 onViewAll = onViewPersistence
             ) 
         }
-        item { IncomeLogSection(logs = logs) }
+        item { 
+            IncomeLogSection(
+                logs = logs,
+                onViewAll = onViewHistory
+            ) 
+        }
     }
 }

@@ -35,12 +35,16 @@ import com.kahavanu.ui.theme.TextTertiaryEmerald
 import com.kahavanu.ui.theme.TextSize
 
 @Composable
-fun IncomeLogSection(logs: List<IncomeLogEntry>) {
+fun IncomeLogSection(
+    logs: List<IncomeLogEntry>,
+    onViewAll: () -> Unit
+) {
     Column {
         SectionHeader(
             title = "Income Log",
             subtitle = "Recent payments",
-            actionText = "View all"
+            actionText = "View all",
+            onActionClick = onViewAll
         )
         GlassCard(modifier = Modifier.fillMaxWidth()) {
             if (logs.isEmpty()) {

@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.width
@@ -49,10 +50,16 @@ fun AuthScaffold(
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             AppDecorativeGradientOverlay(
-                modifier = Modifier.offset(
-                    x = 96.dp,
-                    y = 80.dp,
-                ),
+                modifier = Modifier
+                    .offset(x = 120.dp, y = (-20).dp)
+                    .size(300.dp),
+            )
+            
+            AppDecorativeGradientOverlay(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .offset(x = (-60).dp, y = 40.dp)
+                    .size(350.dp),
             )
 
             Column(

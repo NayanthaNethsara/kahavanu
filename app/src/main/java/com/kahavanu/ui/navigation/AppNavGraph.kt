@@ -15,6 +15,12 @@ import com.kahavanu.ui.auth.SignupScreen
 import com.kahavanu.ui.onboarding.OnboardingScreen
 import com.kahavanu.ui.main.MainTabsScreen
 
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.core.tween
+
 @Composable
 fun AppNavGraph(
     navController: NavHostController,
@@ -25,7 +31,6 @@ fun AppNavGraph(
     val currentUser by authViewModel.currentUser.collectAsStateWithLifecycle()
 
     // Single source of truth for auth-state-driven navigation.
-    // Screens must not perform auth navigation themselves; this effect owns it.
     LaunchedEffect(isAuthenticated) {
         val currentRoute = navController.currentBackStackEntry?.destination?.route
         if (isAuthenticated && currentRoute != AppDestination.Home.route) {
@@ -44,6 +49,18 @@ fun AppNavGraph(
     NavHost(
         navController = navController,
         startDestination = startDestination,
+        enterTransition = {
+            slideInHorizontally(animationSpec = tween(500)) { offset -> offset } + fadeIn(animationSpec = tween(500))
+        },
+        exitTransition = {
+            slideOutHorizontally(animationSpec = tween(500)) { offset -> -offset } + fadeOut(animationSpec = tween(500))
+        },
+        popEnterTransition = {
+            slideInHorizontally(animationSpec = tween(500)) { offset -> -offset } + fadeIn(animationSpec = tween(500))
+        },
+        popExitTransition = {
+            slideOutHorizontally(animationSpec = tween(500)) { offset -> offset } + fadeOut(animationSpec = tween(500))
+        }
     ) {
         composable(AppDestination.Onboarding.route) {
             OnboardingScreen(

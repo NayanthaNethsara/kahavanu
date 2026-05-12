@@ -19,11 +19,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.kahavanu.ui.theme.ButtonTokens
 import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.Primary
+
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.shadow
+import com.kahavanu.ui.theme.appButtonHighlightBrush
 
 @Composable
 fun AuthPrimaryButton(
@@ -32,14 +37,29 @@ fun AuthPrimaryButton(
     trailingIcon: ImageVector? = null,
     modifier: Modifier = Modifier,
 ) {
+    val buttonShape = RoundedCornerShape(ButtonTokens.radius)
+    
     Button(
         onClick = onClick,
         modifier = modifier
             .fillMaxWidth()
-            .height(ButtonTokens.height),
-        shape = MaterialTheme.shapes.extraLarge,
+            .height(ButtonTokens.height)
+            .shadow(
+                elevation = 6.dp,
+                shape = buttonShape,
+                spotColor = Color.Black.copy(alpha = 0.12f)
+            )
+            .background(
+                color = Primary,
+                shape = buttonShape,
+            )
+            .background(
+                brush = appButtonHighlightBrush(),
+                shape = buttonShape,
+            ),
+        shape = buttonShape,
         colors = ButtonDefaults.buttonColors(
-            containerColor = Primary,
+            containerColor = Color.Transparent,
             contentColor = Color.White,
         ),
     ) {
@@ -50,12 +70,14 @@ fun AuthPrimaryButton(
             Text(
                 text = text,
                 style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Medium,
             )
             if (trailingIcon != null) {
                 Spacer(modifier = Modifier.width(Spacing.small))
                 Icon(
                     imageVector = trailingIcon,
                     contentDescription = null,
+                    modifier = Modifier.width(ButtonTokens.iconSize)
                 )
             }
         }
@@ -69,18 +91,26 @@ fun AuthOutlinedButton(
     leadingIcon: ImageVector? = null,
     modifier: Modifier = Modifier,
 ) {
+    val buttonShape = RoundedCornerShape(ButtonTokens.radius)
+    
     Button(
         onClick = onClick,
         modifier = modifier
             .fillMaxWidth()
-            .height(ButtonTokens.height),
-        shape = MaterialTheme.shapes.extraLarge,
-        border = BorderStroke(1.dp, RawColors.Slate.Slate200.copy(alpha = 0.8f)),
+            .height(ButtonTokens.height)
+            .shadow(
+                elevation = 4.dp,
+                shape = buttonShape,
+                clip = false,
+                ambientColor = RawColors.Slate.Slate900.copy(alpha = 0.05f),
+                spotColor = RawColors.Slate.Slate900.copy(alpha = 0.1f)
+            ),
+        shape = buttonShape,
+        border = BorderStroke(1.2.dp, RawColors.Slate.Slate200.copy(alpha = 0.7f)),
         colors = ButtonDefaults.buttonColors(
             containerColor = Color.White.copy(alpha = 0.7f),
             contentColor = RawColors.Slate.Slate900,
         ),
-        elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp),
     ) {
         Row(
             modifier = Modifier.padding(horizontal = Spacing.medium),
@@ -91,7 +121,8 @@ fun AuthOutlinedButton(
                 Icon(
                     imageVector = leadingIcon,
                     contentDescription = null,
-                    tint = RawColors.Slate.Slate700,
+                    tint = Color.Unspecified,
+                    modifier = Modifier.width(ButtonTokens.iconSize)
                 )
                 Spacer(modifier = Modifier.width(Spacing.small))
             }
@@ -99,6 +130,7 @@ fun AuthOutlinedButton(
                 text = text,
                 style = MaterialTheme.typography.titleMedium,
                 color = RawColors.Slate.Slate900,
+                fontWeight = FontWeight.Medium,
             )
         }
     }

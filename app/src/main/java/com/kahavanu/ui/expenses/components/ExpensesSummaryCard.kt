@@ -232,6 +232,4 @@ private fun LegendItem(
     }
 }
 
-private fun formatAmountNoDecimals(amount: Double, currencyCode: String): String {
-    return "$currencyCode ${String.format(java.util.Locale.getDefault(), "%,.0f", amount)}"
-}
+

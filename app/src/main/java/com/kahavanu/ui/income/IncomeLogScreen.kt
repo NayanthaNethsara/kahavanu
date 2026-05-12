@@ -70,7 +70,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kahavanu.domain.model.CurrencyOption
 import com.kahavanu.domain.model.IncomeSource
 import com.kahavanu.domain.model.IncomeSourceType
-import com.kahavanu.ui.common.CircularIconButton
+import com.kahavanu.ui.theme.circularIconButton
 import com.kahavanu.ui.common.GradientBlob
 import com.kahavanu.ui.common.PrimaryActionButton
 import com.kahavanu.ui.common.SectionLabel
@@ -341,11 +341,16 @@ private fun TopBar(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            CircularIconButton(
-                icon = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Back",
+            IconButton(
                 onClick = onBack,
-            )
+                modifier = Modifier.circularIconButton(),
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back",
+                    tint = TextPrimaryEmerald,
+                )
+            }
             Spacer(modifier = Modifier.width(Spacing.medium))
             Column {
                 Text(
@@ -366,11 +371,16 @@ private fun TopBar(
                 )
             }
         }
-        CircularIconButton(
-            icon = Icons.Outlined.Settings,
-            contentDescription = "Manage income sources",
+        IconButton(
             onClick = onManageSources,
-        )
+            modifier = Modifier.circularIconButton(),
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Settings,
+                contentDescription = "Manage income sources",
+                tint = TextPrimaryEmerald,
+            )
+        }
     }
 }
 

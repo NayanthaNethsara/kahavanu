@@ -20,52 +20,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kahavanu.ui.theme.KahavanuShapes
 import com.kahavanu.ui.theme.RawColors
+import com.kahavanu.ui.theme.TextPrimaryEmerald
 import com.kahavanu.ui.theme.TextSecondary
 import com.kahavanu.ui.theme.TextSize
 
-@Composable
-fun CircularIconButton(
-    icon: ImageVector,
-    contentDescription: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    size: Dp = 40.dp,
-    iconSize: Dp = 20.dp,
-    shadowElevation: Dp = 4.dp,
-    backgroundColor: Color = Color.White,
-    borderColor: Color = RawColors.Slate.Slate200.copy(alpha = 0.7f),
-    borderWidth: Dp = 0.7.dp,
-    tint: Color = TextSecondary,
-) {
-    Box(
-        modifier = modifier
-            .size(size)
-            .shadow(
-                elevation = shadowElevation,
-                shape = CircleShape,
-                ambientColor = Color.Black.copy(alpha = 0.12f),
-                spotColor = Color.Black.copy(alpha = 0.12f),
-            )
-            .background(backgroundColor, CircleShape)
-            .border(borderWidth, borderColor, CircleShape)
-            .clip(CircleShape)
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        androidx.compose.material3.Icon(
-            imageVector = icon,
-            contentDescription = contentDescription,
-            tint = tint,
-            modifier = Modifier.size(iconSize),
-        )
-    }
-}
+
 
 @Composable
 fun PrimaryActionButton(

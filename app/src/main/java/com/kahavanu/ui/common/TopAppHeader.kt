@@ -11,7 +11,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.NotificationsNone
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -25,6 +27,8 @@ import com.kahavanu.R
 import com.kahavanu.domain.model.UserSession
 import com.kahavanu.ui.theme.Elevation
 import com.kahavanu.ui.theme.Spacing
+import com.kahavanu.ui.theme.circularIconButton
+import com.kahavanu.ui.theme.TextPrimaryEmerald
 import com.kahavanu.ui.theme.TextSecondary
 
 @Composable
@@ -86,16 +90,16 @@ fun TopAppHeader(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(Spacing.small)
                 ) {
-                    CircularIconButton(
-                        icon = Icons.Outlined.Notifications,
-                        contentDescription = "Notifications",
+                    IconButton(
                         onClick = onNotificationClick,
-                        size = 42.dp,
-                        iconSize = 22.dp,
-                        borderColor = Color.White.copy(alpha = 0.5f),
-                        borderWidth = 0.5.dp,
-                        tint = TextSecondary,
-                    )
+                        modifier = Modifier.circularIconButton(),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.NotificationsNone,
+                            contentDescription = "Notifications",
+                            tint = TextPrimaryEmerald,
+                        )
+                    }
                 }
             }
         }

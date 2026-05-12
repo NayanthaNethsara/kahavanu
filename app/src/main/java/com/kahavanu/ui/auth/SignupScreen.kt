@@ -18,7 +18,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import com.kahavanu.ui.common.AppSnackbarHost
+import kotlinx.coroutines.flow.collectLatest
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -42,11 +47,22 @@ fun SignupScreen(
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
     val googleSignInRequest = rememberGoogleSignInRequest()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(Unit) {
+        viewModel.events.collectLatest { event ->
+            when (event) {
+                is AuthEvent.Error -> snackbarHostState.showSnackbar(event.message)
+                else -> {}
+            }
+        }
+    }
 
     AuthScaffold(
         title = "Create your account",
         subtitle = "Start building wealth with discipline",
         onBack = onBack,
+        snackbarHost = { AppSnackbarHost(hostState = snackbarHostState) }
     ) {
         AuthOutlinedButton(
             text = "Continue with Google",

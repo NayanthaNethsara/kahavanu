@@ -42,8 +42,11 @@ fun AuthScaffold(
     subtitle: String,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    snackbarHost: @Composable () -> Unit = {},
     content: @Composable ColumnScope.() -> Unit,
 ) {
+    val scrollState = rememberScrollState()
+    
     Surface(
         modifier = modifier.fillMaxSize(),
         color = RawColors.Slate.Slate50,
@@ -65,59 +68,76 @@ fun AuthScaffold(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .windowInsetsPadding(WindowInsets.systemBars)
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = Spacing.extraLarge),
-                horizontalAlignment = Alignment.Start,
+                    .windowInsetsPadding(WindowInsets.systemBars),
             ) {
-                Spacer(modifier = Modifier.height(Spacing.huge))
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(scrollState)
+                        .padding(horizontal = Spacing.extraLarge),
+                    horizontalAlignment = Alignment.Start,
+                ) {
+                    Spacer(modifier = Modifier.height(Spacing.huge))
 
-                TextButton(onClick = onBack) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = null,
-                        tint = RawColors.Slate.Slate600,
-                    )
-                    Spacer(modifier = Modifier.width(Spacing.small))
+                    TextButton(
+                        onClick = onBack,
+                        shape = MaterialTheme.shapes.medium,
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = null,
+                            tint = RawColors.Slate.Slate600,
+                        )
+                        Spacer(modifier = Modifier.width(Spacing.small))
+                        Text(
+                            text = "Back",
+                            color = RawColors.Slate.Slate600,
+                            fontWeight = FontWeight.Medium,
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(Spacing.large))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.kahavanu_logo),
+                            contentDescription = "Kahavanu logo",
+                            modifier = Modifier.height(64.dp),
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(Spacing.huge))
+
                     Text(
-                        text = "Back",
-                        color = RawColors.Slate.Slate600,
+                        text = title,
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = RawColors.Slate.Slate900,
                         fontWeight = FontWeight.Medium,
                     )
-                }
-
-                Spacer(modifier = Modifier.height(Spacing.large))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.kahavanu_logo),
-                        contentDescription = "Kahavanu logo",
-                        modifier = Modifier.height(64.dp),
+                    Text(
+                        text = subtitle,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = RawColors.Slate.Slate600,
                     )
+
+                    Spacer(modifier = Modifier.height(Spacing.huge))
+
+                    content()
+
+                    Spacer(modifier = Modifier.height(Spacing.large))
                 }
+            }
 
-                Spacer(modifier = Modifier.height(Spacing.huge))
-
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = RawColors.Slate.Slate900,
-                    fontWeight = FontWeight.Medium,
-                )
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = RawColors.Slate.Slate600,
-                )
-
-                Spacer(modifier = Modifier.height(Spacing.huge))
-
-                content()
-
-                Spacer(modifier = Modifier.height(Spacing.large))
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(bottom = Spacing.large),
+                contentAlignment = Alignment.BottomCenter
+            ) {
+                snackbarHost()
             }
         }
     }

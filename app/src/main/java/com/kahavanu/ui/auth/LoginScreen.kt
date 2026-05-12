@@ -19,7 +19,12 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import com.kahavanu.ui.common.AppSnackbarHost
+import kotlinx.coroutines.flow.collectLatest
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -42,11 +47,22 @@ fun LoginScreen(
     val context = LocalContext.current
     val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
     val googleSignInRequest = rememberGoogleSignInRequest()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(Unit) {
+        viewModel.events.collectLatest { event ->
+            when (event) {
+                is AuthEvent.Error -> snackbarHostState.showSnackbar(event.message)
+                AuthEvent.ResetPasswordEmailSent -> snackbarHostState.showSnackbar("Password reset email sent")
+            }
+        }
+    }
 
     AuthScaffold(
         title = "Welcome back",
         subtitle = "Log in to continue your wealth journey",
         onBack = onBack,
+        snackbarHost = { AppSnackbarHost(hostState = snackbarHostState) }
     ) {
         AuthOutlinedButton(
             text = "Continue with Google",
@@ -98,22 +114,9 @@ fun LoginScreen(
             TextButton(
                 onClick = {
                     if (uiState.email.isBlank()) {
-                        Toast.makeText(context, "Enter your email first", Toast.LENGTH_SHORT)
-                            .show()
+                        viewModel.setError("Enter your email first")
                     } else {
-                        viewModel.sendPasswordReset(
-                            email = uiState.email,
-                            onSuccess = {
-                                Toast.makeText(
-                                    context,
-                                    "Password reset email sent",
-                                    Toast.LENGTH_SHORT,
-                                ).show()
-                            },
-                            onFailure = { message ->
-                                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-                            },
-                        )
+                        viewModel.sendPasswordReset(email = uiState.email)
                     }
                 },
             ) {

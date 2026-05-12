@@ -57,6 +57,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 
+import androidx.compose.material3.SnackbarHostState
+import com.kahavanu.ui.common.AppSnackbarHost
+import kotlinx.coroutines.flow.collectLatest
+
 @Composable
 fun AuthChoiceScreen(
     onCreateAccount: () -> Unit,
@@ -66,9 +70,20 @@ fun AuthChoiceScreen(
     val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
     val googleSignInRequest = rememberGoogleSignInRequest()
     var visible by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(Unit) {
         visible = true
+        viewModel.events.collectLatest { event ->
+            when (event) {
+                is AuthEvent.Error -> {
+                    snackbarHostState.showSnackbar(event.message)
+                }
+                AuthEvent.ResetPasswordEmailSent -> {
+                    snackbarHostState.showSnackbar("Password reset email sent")
+                }
+            }
+        }
     }
 
     Surface(
@@ -178,17 +193,6 @@ fun AuthChoiceScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(Spacing.large))
-
-                if (uiState.errorMessage != null) {
-                    Text(
-                        text = uiState.errorMessage ?: "",
-                        color = RawColors.Red.Red600,
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                    Spacer(modifier = Modifier.height(Spacing.small))
-                }
-
                 Spacer(modifier = Modifier.weight(1f))
                 
                 AnimatedVisibility(
@@ -200,6 +204,11 @@ fun AuthChoiceScreen(
                 
                 Spacer(modifier = Modifier.height(Spacing.large))
             }
+
+            AppSnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.align(Alignment.BottomCenter)
+            )
         }
     }
 }

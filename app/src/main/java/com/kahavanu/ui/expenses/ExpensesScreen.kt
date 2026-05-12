@@ -14,7 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kahavanu.ui.expenses.components.ExpensesActionButtons
-import com.kahavanu.ui.expenses.components.ExpensesHeader
+import com.kahavanu.ui.common.ScreenHeader
 import com.kahavanu.ui.expenses.components.ExpensesSummaryCard
 import com.kahavanu.ui.expenses.components.ByCategorySection
 import com.kahavanu.ui.expenses.components.MatchAndCategorizeSection
@@ -49,13 +49,16 @@ fun ExpensesScreen(
         contentPadding = PaddingValues(
             start = Spacing.large,
             end = Spacing.large,
-            top = 48.dp,
+            top = 140.dp,
             bottom = 120.dp,
         ),
         verticalArrangement = Arrangement.spacedBy(Spacing.large),
     ) {
         item {
-            ExpensesHeader(onQuickActionClick = onViewBudgets)
+            ScreenHeader(
+                label = "Expenses",
+                title = "Where Money Goes"
+            )
         }
         item {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.large)) {

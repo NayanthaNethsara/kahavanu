@@ -48,6 +48,7 @@ fun MainTabsScreen(
     val showTopBar = currentRoute in setOf(
         AppDestination.Home.route,
         AppDestination.Income.route,
+        AppDestination.Expenses.route,
         AppDestination.Goals.route,
         AppDestination.Profile.route,
     )

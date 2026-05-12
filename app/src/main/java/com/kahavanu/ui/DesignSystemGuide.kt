@@ -16,11 +16,12 @@ package com.kahavanu.ui
  * - **TypographyTokens**: TextStyle values for cases outside the M3 type scale
  *
  * ### Color System (theme/Color.kt)
- * - **Primary**: #2855D8 (Blue)
- * - **Secondary**: #1BA97E (Green)
- * - **Tertiary**: #006E3C (Dark Green)
- * - **Error**: #B3261E (Red)
- * - **Semantic**: OnboardingButtonGreen (#00BC7D), gradient colors
+ * - **Primary**: Emerald600 (Main brand, success, growth)
+ * - **Secondary**: Slate600 (Neutral actions, secondary labels)
+ * - **Tertiary**: Indigo600 (Complementary tech accents)
+ * - **Error**: Red600 (Alerts and critical states)
+ * - **Background**: Slate50 (Crisp, modern background)
+ * - **Surface**: White (Primary content surfaces)
  *
  * ### Typography (theme/Type.kt)
  * Full Material Design 3 scale: Display, Headline, Title, Body, Label
@@ -51,6 +52,15 @@ package com.kahavanu.ui
  * - AppSelection: SelectableChip, SelectableCard
  * - AppToggles: AppSegmentedToggle
  *
+ * ### MatchAndCatch (common/MatchAndCatch.kt)
+ * Standardized transaction matching UI used in Income and Expenses modules.
+ * - **MatchingSection**: Wrapper for "Match & Categorize" workflows.
+ * - **MatchItemState**: Data structure for matchable items.
+ *
+ * ### SummaryItems (common/SummaryItems.kt)
+ * Standardized row items for categorized data:
+ * - **SummaryItem**: Row with icon, label, and formatted value.
+ *
  * ### AuthTextField
  * Labeled outlined text field with leading/trailing icon support.
  *
@@ -61,7 +71,7 @@ package com.kahavanu.ui
  * ## Navigation (navigation/)
  *
  * ### AppDestination
- * Sealed class providing type-safe route constants: Onboarding, AuthChoice, Login, Signup, Home.
+ * Sealed class providing type-safe route constants: Onboarding, AuthChoice, Login, Signup, Home, Income, Expenses.
  *
  * ### AppNavGraph
  * Composable function encapsulating the full NavHost and all destination wiring.
@@ -77,6 +87,12 @@ package com.kahavanu.ui
  * ### home/
  * HomeScreen
  *
+ * ### income/
+ * IncomeScreen, IncomeViewModel, IncomeHistory, IncomeSources, IncomeSync
+ *
+ * ### expenses/
+ * ExpensesScreen, ExpensesViewModel, ExpensesSync
+ *
  * ## File Structure
  *
  * ```
@@ -88,6 +104,12 @@ package com.kahavanu.ui
  * +-- data/
  * |   +-- auth/
  * |       +-- DefaultAuthRepository.kt
+ * |   +-- income/
+ * |       +-- DefaultIncomeRepository.kt
+ * |       +-- IncomeFirestoreMappers.kt
+ * |   +-- expenses/
+ * |       +-- DefaultExpensesRepository.kt
+ * |       +-- ExpenseFirestoreMappers.kt
  * +-- domain/
  * |   +-- model/
  * |   |   +-- UserSession.kt
@@ -114,6 +136,8 @@ package com.kahavanu.ui
  *     |   +-- AppSelection.kt
  *     |   +-- AppSurfaces.kt
  *     |   +-- AppToggles.kt
+ *     |   +-- MatchAndCatch.kt
+ *     |   +-- SummaryItems.kt
  *     +-- home/
  *     |   +-- HomeScreen.kt
  *     +-- navigation/
@@ -141,4 +165,5 @@ package com.kahavanu.ui
  * - All dependency wiring goes through di/AuthModule (Hilt @Module).
  * - Use @HiltViewModel + @Inject constructor on ViewModels; use hiltViewModel() in screens.
  * - No manual ViewModelProvider.Factory or singleton containers in Composables.
+ * - **Firestore Mapping**: Decouple Firestore `DocumentSnapshot` transformation into dedicated `FirestoreMappers.kt` files in the data layer.
  */

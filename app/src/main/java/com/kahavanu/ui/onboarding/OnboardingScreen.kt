@@ -35,10 +35,26 @@ import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+
 @Composable
 fun OnboardingScreen(
     onGetStarted: () -> Unit = {},
 ) {
+    var visible by remember { mutableStateOf(false) }
+    
+    LaunchedEffect(Unit) {
+        visible = true
+    }
+
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = RawColors.Slate.Slate50,
@@ -67,13 +83,18 @@ fun OnboardingScreen(
             ) {
                 Spacer(modifier = Modifier.weight(1.2f))
 
-                Image(
-                    painter = painterResource(id = R.drawable.kahavanu_logo),
-                    contentDescription = "Kahavanu logo",
-                    modifier = Modifier
-                        .width(128.dp)
-                        .height(64.dp),
-                )
+                AnimatedVisibility(
+                    visible = visible,
+                    enter = fadeIn(tween(1000)) + slideInVertically(tween(1000)) { -20 }
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.kahavanu_logo),
+                        contentDescription = "Kahavanu logo",
+                        modifier = Modifier
+                            .width(128.dp)
+                            .height(64.dp),
+                    )
+                }
 
                 Spacer(modifier = Modifier.weight(1f))
 
@@ -81,41 +102,58 @@ fun OnboardingScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.verticalScroll(rememberScrollState())
                 ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.money_tree),
-                        contentDescription = "Money Tree",
-                        modifier = Modifier
-                            .width(300.dp)
-                            .height(400.dp),
-                    )
+                    AnimatedVisibility(
+                        visible = visible,
+                        enter = fadeIn(tween(1000, 300)) + slideInVertically(tween(1000, 300)) { 40 }
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.money_tree),
+                            contentDescription = "Money Tree",
+                            modifier = Modifier
+                                .width(300.dp)
+                                .height(400.dp),
+                        )
+                    }
 
                     Spacer(modifier = Modifier.height(Spacing.massive))
 
-                    Text(
-                        text = "Discipline builds wealth",
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = TextPrimary,
-                        textAlign = TextAlign.Center,
-                        fontWeight = FontWeight.SemiBold
-                    )
+                    AnimatedVisibility(
+                        visible = visible,
+                        enter = fadeIn(tween(1000, 600)) + slideInVertically(tween(1000, 600)) { 20 }
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = "Discipline builds wealth",
+                                style = MaterialTheme.typography.headlineMedium,
+                                color = TextPrimary,
+                                textAlign = TextAlign.Center,
+                                fontWeight = FontWeight.SemiBold
+                            )
 
-                    Spacer(modifier = Modifier.height(Spacing.small))
+                            Spacer(modifier = Modifier.height(Spacing.small))
 
-                    Text(
-                        text = "Automate your finances and achieve your goals with precision",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = TextSecondary,
-                        textAlign = TextAlign.Center,
-                        lineHeight = 24.sp,
-                    )
+                            Text(
+                                text = "Automate your finances and achieve your goals with precision",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = TextSecondary,
+                                textAlign = TextAlign.Center,
+                                lineHeight = 24.sp,
+                            )
+                        }
+                    }
                 }
 
                 Spacer(modifier = Modifier.weight(1.5f))
 
-                AppPrimaryButton(
-                    text = "Get started",
-                    onClick = onGetStarted,
-                )
+                AnimatedVisibility(
+                    visible = visible,
+                    enter = fadeIn(tween(1000, 900)) + slideInVertically(tween(1000, 900)) { 20 }
+                ) {
+                    AppPrimaryButton(
+                        text = "Get started",
+                        onClick = onGetStarted,
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(Spacing.large))
             }

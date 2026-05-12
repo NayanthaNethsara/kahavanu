@@ -5,7 +5,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.QuerySnapshot
-import com.kahavanu.data.income.local.IncomeDatabase
+import com.kahavanu.data.local.AppDatabase
 import com.kahavanu.data.income.local.IncomeLogEntity
 import com.kahavanu.data.income.local.IncomeSourceEntity
 import com.kahavanu.data.income.local.ScheduledIncomeEntity
@@ -30,7 +30,7 @@ class IncomeSyncManager @Inject constructor(
     @ApplicationContext context: Context,
     firestore: FirebaseFirestore,
     auth: FirebaseAuth,
-    private val database: IncomeDatabase,
+    private val database: AppDatabase,
 ) : FirebaseSyncManager(context, firestore, auth) {
     
     override suspend fun sync(): Result<Unit> {

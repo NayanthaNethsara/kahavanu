@@ -1,6 +1,6 @@
 package com.kahavanu.di
 
-import com.kahavanu.data.income.local.IncomeDatabase
+import com.kahavanu.data.local.AppDatabase
 import com.kahavanu.data.settings.local.UserSettingsDao
 import com.kahavanu.data.settings.DefaultSettingsRepository
 import com.kahavanu.domain.repository.SettingsRepository
@@ -24,7 +24,7 @@ abstract class SettingsModule {
     companion object {
         @Provides
         fun provideUserSettingsDao(
-            database: IncomeDatabase,
+            database: AppDatabase,
         ): UserSettingsDao = database.userSettingsDao()
     }
 }

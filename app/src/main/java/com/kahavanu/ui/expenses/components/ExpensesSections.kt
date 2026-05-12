@@ -15,7 +15,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.LocalGasStation
-import androidx.compose.material.icons.outlined.ReceiptLong
+import androidx.compose.material.icons.automirrored.outlined.ReceiptLong
 import androidx.compose.material.icons.outlined.Restaurant
 import androidx.compose.material.icons.outlined.ShoppingBag
 import androidx.compose.material.icons.outlined.Subscriptions
@@ -322,6 +322,6 @@ private fun expenseIconFor(category: String): ImageVector {
         "lifestyle" -> Icons.Outlined.Restaurant
         "transport" -> Icons.Outlined.LocalGasStation
         "subscriptions" -> Icons.Outlined.Subscriptions
-        else -> Icons.Outlined.ReceiptLong
+        else -> Icons.AutoMirrored.Outlined.ReceiptLong
     }
 }

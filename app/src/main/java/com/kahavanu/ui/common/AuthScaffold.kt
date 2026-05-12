@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.width
@@ -30,8 +31,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import com.kahavanu.R
-import com.kahavanu.ui.theme.OnboardingTokens
+import androidx.compose.ui.text.font.FontWeight
+import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
+import androidx.compose.ui.unit.dp
 
 @Composable
 fun AuthScaffold(
@@ -39,70 +42,102 @@ fun AuthScaffold(
     subtitle: String,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    snackbarHost: @Composable () -> Unit = {},
     content: @Composable ColumnScope.() -> Unit,
 ) {
+    val scrollState = rememberScrollState()
+    
     Surface(
         modifier = modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background,
+        color = RawColors.Slate.Slate50,
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             AppDecorativeGradientOverlay(
-                modifier = Modifier.offset(
-                    x = OnboardingTokens.gradientLeftOffset,
-                    y = OnboardingTokens.gradientTopOffset,
-                ),
+                modifier = Modifier
+                    .offset(x = 120.dp, y = (-20).dp)
+                    .size(300.dp),
+            )
+            
+            AppDecorativeGradientOverlay(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .offset(x = (-60).dp, y = 40.dp)
+                    .size(350.dp),
             )
 
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .windowInsetsPadding(WindowInsets.systemBars)
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = Spacing.extraLarge),
-                horizontalAlignment = Alignment.Start,
+                    .windowInsetsPadding(WindowInsets.systemBars),
             ) {
-                Spacer(modifier = Modifier.height(Spacing.huge))
-
-                TextButton(onClick = onBack) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = null,
-                    )
-                    Spacer(modifier = Modifier.width(Spacing.small))
-                    Text(text = "Back")
-                }
-
-                Spacer(modifier = Modifier.height(Spacing.large))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(scrollState)
+                        .padding(horizontal = Spacing.extraLarge),
+                    horizontalAlignment = Alignment.Start,
                 ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.kahavanu_logo),
-                        contentDescription = "Kahavanu logo",
-                        modifier = Modifier.height(OnboardingTokens.headerHeight),
+                    Spacer(modifier = Modifier.height(Spacing.huge))
+
+                    TextButton(
+                        onClick = onBack,
+                        shape = MaterialTheme.shapes.medium,
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = null,
+                            tint = RawColors.Slate.Slate600,
+                        )
+                        Spacer(modifier = Modifier.width(Spacing.small))
+                        Text(
+                            text = "Back",
+                            color = RawColors.Slate.Slate600,
+                            fontWeight = FontWeight.Medium,
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(Spacing.large))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.kahavanu_logo),
+                            contentDescription = "Kahavanu logo",
+                            modifier = Modifier.height(64.dp),
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(Spacing.huge))
+
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = RawColors.Slate.Slate900,
+                        fontWeight = FontWeight.Medium,
                     )
+                    Text(
+                        text = subtitle,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = RawColors.Slate.Slate600,
+                    )
+
+                    Spacer(modifier = Modifier.height(Spacing.huge))
+
+                    content()
+
+                    Spacer(modifier = Modifier.height(Spacing.large))
                 }
+            }
 
-                Spacer(modifier = Modifier.height(Spacing.huge))
-
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = MaterialTheme.colorScheme.onBackground,
-                )
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-
-                Spacer(modifier = Modifier.height(Spacing.huge))
-
-                content()
-
-                Spacer(modifier = Modifier.height(Spacing.large))
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(bottom = Spacing.large),
+                contentAlignment = Alignment.BottomCenter
+            ) {
+                snackbarHost()
             }
         }
     }

@@ -82,35 +82,20 @@ object AnimationDuration {
 }
 
 /**
- * Onboarding-specific design tokens
+ * Component-specific design tokens consolidated for global use.
  */
 @Immutable
-object OnboardingTokens {
-    // Header
-    val headerWidth: Dp = 128.dp
-    val headerHeight: Dp = 64.dp
+object ButtonTokens {
+    val height: Dp = 54.dp
+    val heightSmall: Dp = 40.dp
+    val radius: Dp = CornerRadius.full
+    val iconSize: Dp = 20.dp
+}
 
-    // Image
-    val imageWidth: Dp = 300.dp
-    val imageHeight: Dp = 400.dp
-
-    // Button
-    val buttonHeight: Dp = 54.dp
-    val buttonWidth: Dp = 330.dp
-    val buttonRadius: Dp = CornerRadius.full
-    val buttonIconSize: Dp = 20.dp
-
-    // Decorative overlay
-    val gradientSize: Dp = 200.dp
+@Immutable
+object DecorativeTokens {
+    val gradientSize: Dp = 240.dp
     val gradientBlur: Dp = BlurValues.extraLarge
-    val gradientTopOffset: Dp = 80.dp
-    val gradientLeftOffset: Dp = 97.51.dp
-
-    // Spacing
-    val verticalSpacing: Dp = 60.dp
-    val headerBottomSpacing: Dp = 100.dp
-    val contentBottomSpacing: Dp = 80.dp
-    val buttonBottomSpacing: Dp = 48.dp
 }
 
 /**

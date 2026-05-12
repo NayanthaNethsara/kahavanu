@@ -5,8 +5,8 @@ import androidx.compose.ui.graphics.Color
 
 fun appDecorativeGradientBrush(): Brush = Brush.radialGradient(
     colorStops = arrayOf(
-        0.0f to OnboardingGradientStart,
-        0.55f to OnboardingGradientStart.copy(alpha = 0.12f),
+        0.0f to DecorativeGradientStart,
+        0.55f to DecorativeGradientStart.copy(alpha = 0.12f),
         1.0f to Color.Transparent,
     ),
 )

@@ -19,17 +19,24 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import com.kahavanu.ui.common.AppSnackbarHost
+import kotlinx.coroutines.flow.collectLatest
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.compose.ui.text.font.FontWeight
 import com.kahavanu.ui.common.AuthScaffold
 import com.kahavanu.ui.common.AuthOutlinedButton
 import com.kahavanu.ui.common.AuthPrimaryButton
 import com.kahavanu.ui.common.AuthTextField
+import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 
 @Composable
@@ -40,11 +47,22 @@ fun LoginScreen(
     val context = LocalContext.current
     val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
     val googleSignInRequest = rememberGoogleSignInRequest()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(Unit) {
+        viewModel.events.collectLatest { event ->
+            when (event) {
+                is AuthEvent.Error -> snackbarHostState.showSnackbar(event.message)
+                AuthEvent.ResetPasswordEmailSent -> snackbarHostState.showSnackbar("Password reset email sent")
+            }
+        }
+    }
 
     AuthScaffold(
         title = "Welcome back",
         subtitle = "Log in to continue your wealth journey",
         onBack = onBack,
+        snackbarHost = { AppSnackbarHost(hostState = snackbarHostState) }
     ) {
         AuthOutlinedButton(
             text = "Continue with Google",
@@ -96,28 +114,16 @@ fun LoginScreen(
             TextButton(
                 onClick = {
                     if (uiState.email.isBlank()) {
-                        Toast.makeText(context, "Enter your email first", Toast.LENGTH_SHORT)
-                            .show()
+                        viewModel.setError("Enter your email first")
                     } else {
-                        viewModel.sendPasswordReset(
-                            email = uiState.email,
-                            onSuccess = {
-                                Toast.makeText(
-                                    context,
-                                    "Password reset email sent",
-                                    Toast.LENGTH_SHORT,
-                                ).show()
-                            },
-                            onFailure = { message ->
-                                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-                            },
-                        )
+                        viewModel.sendPasswordReset(email = uiState.email)
                     }
                 },
             ) {
                 Text(
                     text = "Forgot password?",
-                    color = MaterialTheme.colorScheme.secondary,
+                    color = RawColors.Emerald.Emerald600,
+                    fontWeight = FontWeight.Medium,
                 )
             }
         }
@@ -140,7 +146,7 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(Spacing.small))
             Text(
                 text = uiState.errorMessage ?: "",
-                color = MaterialTheme.colorScheme.error,
+                color = RawColors.Red.Red600,
                 style = MaterialTheme.typography.bodySmall,
             )
         }

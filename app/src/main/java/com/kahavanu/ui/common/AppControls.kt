@@ -1,5 +1,6 @@
 package com.kahavanu.ui.common
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -36,8 +37,8 @@ fun CircularIconButton(
     modifier: Modifier = Modifier,
     size: Dp = 40.dp,
     iconSize: Dp = 20.dp,
-    shadowElevation: Dp = 6.dp,
-    backgroundColor: Color = Color.White.copy(alpha = 0.8f),
+    shadowElevation: Dp = 4.dp,
+    backgroundColor: Color = Color.White,
     borderColor: Color = RawColors.Slate.Slate200.copy(alpha = 0.7f),
     borderWidth: Dp = 0.7.dp,
     tint: Color = TextSecondary,
@@ -45,7 +46,12 @@ fun CircularIconButton(
     Box(
         modifier = modifier
             .size(size)
-            .shadow(shadowElevation, CircleShape)
+            .shadow(
+                elevation = shadowElevation,
+                shape = CircleShape,
+                ambientColor = Color.Black.copy(alpha = 0.12f),
+                spotColor = Color.Black.copy(alpha = 0.12f),
+            )
             .background(backgroundColor, CircleShape)
             .border(borderWidth, borderColor, CircleShape)
             .clip(CircleShape)

@@ -92,8 +92,6 @@ fun TopAppHeader(
                         onClick = onNotificationClick,
                         size = 42.dp,
                         iconSize = 22.dp,
-                        shadowElevation = 10.dp,
-                        backgroundColor = Color.White.copy(alpha = 0.85f),
                         borderColor = Color.White.copy(alpha = 0.5f),
                         borderWidth = 0.5.dp,
                         tint = TextSecondary,

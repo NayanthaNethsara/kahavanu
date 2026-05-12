@@ -132,7 +132,7 @@ fun IncomeSourcesScreen(
                     .padding(
                         start = Spacing.extraLarge,
                         end = Spacing.extraLarge,
-                        top = 48.dp,
+                        top = 30.dp,
                         bottom = Spacing.large,
                     ),
                 verticalArrangement = Arrangement.spacedBy(Spacing.large),

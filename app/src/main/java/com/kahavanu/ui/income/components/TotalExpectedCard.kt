@@ -15,7 +15,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,18 +25,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.offset
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kahavanu.ui.income.IncomeBreakdownItem
+import com.kahavanu.ui.common.AppSegmentedToggle
+import com.kahavanu.ui.common.GlassCard
 import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
@@ -85,61 +78,24 @@ fun TotalExpectedCard(
                 )
                 
                 if (currencies.size > 1) {
-                    val selectedIndex = currencies.indexOf(selectedCurrency)
-                    val itemWidth = 56.dp // Fixed width for each toggle item
-                    val indicatorOffset by animateDpAsState(
-                        targetValue = itemWidth * selectedIndex,
-                        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-                        label = "indicatorOffset"
-                    )
-
-                    Surface(
-                        shape = CircleShape,
-                        color = RawColors.Emerald.Emerald500.copy(alpha = 0.08f),
+                    AppSegmentedToggle(
+                        items = currencies,
+                        selectedItem = selectedCurrency,
+                        onSelect = { selectedCurrency = it },
+                        labelFor = { it },
                         modifier = Modifier
                             .align(Alignment.CenterVertically)
-                            .height(34.dp)
-                            .width(itemWidth * currencies.size)
-                    ) {
-                        Box {
-                            // Animated Indicator
-                            Surface(
-                                modifier = Modifier
-                                    .padding(2.dp)
-                                    .size(width = itemWidth - 4.dp, height = 30.dp)
-                                    .offset { IntOffset(indicatorOffset.roundToPx(), 0) },
-                                shape = CircleShape,
-                                color = RawColors.Emerald.Emerald600.copy(alpha = 0.9f),
-                                shadowElevation = 4.dp,
-                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.2f))
-                            ) {}
-
-                            // Text Labels
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                currencies.forEach { code ->
-                                    val isSelected = selectedCurrency == code
-                                    Box(
-                                        modifier = Modifier
-                                            .width(itemWidth)
-                                            .height(34.dp)
-                                            .clickable(
-                                                interactionSource = remember { MutableInteractionSource() },
-                                                indication = null
-                                            ) { selectedCurrency = code },
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text(
-                                            text = code,
-                                            style = MaterialTheme.typography.labelSmall,
-                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                            color = if (isSelected) Color.White else RawColors.Emerald.Emerald600.copy(alpha = 0.6f),
-                                            fontSize = 11.sp
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
+                            .height(34.dp),
+                        height = 34.dp,
+                        shape = CircleShape,
+                        containerColor = RawColors.Emerald.Emerald500.copy(alpha = 0.08f),
+                        indicatorColor = RawColors.Emerald.Emerald600.copy(alpha = 0.9f),
+                        indicatorShadow = 4.dp,
+                        selectedTextColor = Color.White,
+                        unselectedTextColor = RawColors.Emerald.Emerald600.copy(alpha = 0.6f),
+                        textStyle = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
+                        itemWidth = 56.dp,
+                    )
                 }
             }
             Text(

@@ -41,6 +41,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.dp
+import com.kahavanu.ui.common.GlassCard
+import com.kahavanu.ui.common.SectionHeader
 import com.kahavanu.ui.theme.KahavanuShapes
 import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.TextPrimary

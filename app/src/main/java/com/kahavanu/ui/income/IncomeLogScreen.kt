@@ -34,10 +34,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.outlined.Autorenew
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.PersonAdd
-import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.DatePicker
@@ -58,7 +56,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -66,7 +63,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -74,12 +70,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kahavanu.domain.model.CurrencyOption
 import com.kahavanu.domain.model.IncomeSource
 import com.kahavanu.domain.model.IncomeSourceType
-import com.kahavanu.ui.income.components.CircularIconButton
+import com.kahavanu.ui.common.CircularIconButton
+import com.kahavanu.ui.common.GradientBlob
+import com.kahavanu.ui.common.PrimaryActionButton
+import com.kahavanu.ui.common.SectionLabel
+import com.kahavanu.ui.common.SelectableCard
+import com.kahavanu.ui.common.SelectableChip
+import com.kahavanu.ui.common.textFieldColors
 import com.kahavanu.ui.income.components.CurrencyDropdown
-import com.kahavanu.ui.income.components.GradientBlob
-import com.kahavanu.ui.income.components.PrimaryActionButton
-import com.kahavanu.ui.income.components.SectionLabel
-import com.kahavanu.ui.income.components.textFieldColors
 import com.kahavanu.ui.theme.KahavanuShapes
 import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
@@ -205,7 +203,7 @@ fun IncomeLogScreen(
                     .padding(
                         start = Spacing.extraLarge,
                         end = Spacing.extraLarge,
-                        top = 48.dp,
+                        top = 30.dp,
                         bottom = Spacing.large,
                     ),
                 verticalArrangement = Arrangement.spacedBy(Spacing.large),
@@ -389,21 +387,18 @@ private fun IncomeTypeSection(
         ) {
             IncomeTypeCard(
                 type = IncomeSourceType.ONE_TIME,
-                icon = Icons.Outlined.CalendarMonth,
                 selected = selectedType == IncomeSourceType.ONE_TIME,
                 modifier = Modifier.weight(1f),
                 onClick = { onTypeSelected(IncomeSourceType.ONE_TIME) },
             )
             IncomeTypeCard(
                 type = IncomeSourceType.RECURRENT,
-                icon = Icons.Outlined.Autorenew,
                 selected = selectedType == IncomeSourceType.RECURRENT,
                 modifier = Modifier.weight(1f),
                 onClick = { onTypeSelected(IncomeSourceType.RECURRENT) },
             )
             IncomeTypeCard(
                 type = IncomeSourceType.PENDING,
-                icon = Icons.Outlined.Schedule,
                 selected = selectedType == IncomeSourceType.PENDING,
                 modifier = Modifier.weight(1f),
                 onClick = { onTypeSelected(IncomeSourceType.PENDING) },
@@ -415,53 +410,31 @@ private fun IncomeTypeSection(
 @Composable
 private fun IncomeTypeCard(
     type: IncomeSourceType,
-    icon: ImageVector,
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val backgroundColor = if (selected) {
-        RawColors.Emerald.Emerald400.copy(alpha = 0.12f)
-    } else {
-        Color.White.copy(alpha = 0.4f)
-    }
-    val borderColor = if (selected) {
-        RawColors.Emerald.Emerald300
-    } else {
-        RawColors.Slate.Slate900.copy(alpha = 0.08f)
-    }
-
-    Box(
-        modifier = modifier
-            .height(72.dp)
-            .background(backgroundColor, KahavanuShapes.large)
-            .border(1.dp, borderColor, KahavanuShapes.large)
-            .clip(KahavanuShapes.large)
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            modifier = Modifier.padding(Spacing.small),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
-            Text(
-                text = type.label,
-                style = MaterialTheme.typography.labelMedium,
-                fontSize = TextSize.sm,
-                fontWeight = FontWeight.Bold,
-                color = if (selected) RawColors.Emerald.Emerald600 else TextPrimary,
-            )
-            Text(
-                text = type.description,
-                style = MaterialTheme.typography.labelSmall,
-                fontSize = TextSize.xs,
-                color = TextSecondary,
-                lineHeight = 14.sp,
-                textAlign = TextAlign.Center,
-            )
-        }
-    }
+    SelectableCard(
+        title = type.label,
+        subtitle = type.description,
+        selected = selected,
+        onClick = onClick,
+        modifier = modifier,
+        height = 72.dp,
+        selectedBackgroundColor = RawColors.Emerald.Emerald400.copy(alpha = 0.12f),
+        unselectedBackgroundColor = Color.White.copy(alpha = 0.4f),
+        selectedBorderColor = RawColors.Emerald.Emerald300,
+        unselectedBorderColor = RawColors.Slate.Slate900.copy(alpha = 0.08f),
+        selectedTitleColor = RawColors.Emerald.Emerald600,
+        unselectedTitleColor = TextPrimary,
+        subtitleColor = TextSecondary,
+        titleStyle = MaterialTheme.typography.labelMedium,
+        subtitleStyle = MaterialTheme.typography.labelSmall,
+        titleFontSize = TextSize.sm,
+        subtitleFontSize = TextSize.xs,
+        subtitleLineHeight = 14.sp,
+        contentPadding = Spacing.small,
+    )
 }
 
 @Composable
@@ -507,39 +480,26 @@ private fun SourceChip(
     enabled: Boolean,
     onClick: () -> Unit,
 ) {
-    val backgroundColor = if (selected) {
-        RawColors.Emerald.Emerald400.copy(alpha = 0.12f)
-    } else {
-        Color.White.copy(alpha = 0.4f)
-    }
-    val borderColor = if (selected) {
-        RawColors.Emerald.Emerald300
-    } else {
-        RawColors.Slate.Slate900.copy(alpha = 0.08f)
-    }
-
-    Box(
+    SelectableCard(
+        title = source.name,
+        subtitle = null,
+        selected = selected,
+        onClick = onClick,
+        enabled = enabled,
         modifier = Modifier
-            .height(56.dp)
             .width(110.dp)
-            .alpha(if (enabled) 1f else 0.4f)
-            .background(backgroundColor, KahavanuShapes.large)
-            .border(1.dp, borderColor, KahavanuShapes.large)
-            .clip(KahavanuShapes.large)
-            .clickable(enabled = enabled, onClick = onClick),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = source.name,
-            style = MaterialTheme.typography.labelMedium,
-            fontSize = TextSize.sm,
-            fontWeight = FontWeight.Bold,
-            color = if (selected) RawColors.Emerald.Emerald600 else TextPrimary,
-            textAlign = TextAlign.Center,
-            maxLines = 2,
-            modifier = Modifier.padding(horizontal = Spacing.small)
-        )
-    }
+            .alpha(if (enabled) 1f else 0.4f),
+        height = 56.dp,
+        selectedBackgroundColor = RawColors.Emerald.Emerald400.copy(alpha = 0.12f),
+        unselectedBackgroundColor = Color.White.copy(alpha = 0.4f),
+        selectedBorderColor = RawColors.Emerald.Emerald300,
+        unselectedBorderColor = RawColors.Slate.Slate900.copy(alpha = 0.08f),
+        selectedTitleColor = RawColors.Emerald.Emerald600,
+        unselectedTitleColor = TextPrimary,
+        titleStyle = MaterialTheme.typography.labelMedium,
+        titleFontSize = TextSize.sm,
+        titleMaxLines = 2,
+    )
 }
 
 @Composable
@@ -672,32 +632,22 @@ private fun FrequencyChip(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Box(
-        modifier = modifier
-            .height(44.dp)
-            .background(
-                if (selected) RawColors.Emerald.Emerald500.copy(alpha = 0.12f) else RawColors.Slate.Slate900.copy(
-                    alpha = 0.04f
-                ),
-                KahavanuShapes.medium
-            )
-            .border(
-                1.dp,
-                if (selected) RawColors.Emerald.Emerald500 else RawColors.Slate.Slate900.copy(alpha = 0.08f),
-                KahavanuShapes.medium
-            )
-            .clip(KahavanuShapes.medium)
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelMedium,
-            fontSize = TextSize.xs,
-            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
-            color = if (selected) RawColors.Emerald.Emerald700 else TextSecondary
-        )
-    }
+    SelectableChip(
+        text = label,
+        selected = selected,
+        onClick = onClick,
+        modifier = modifier,
+        height = 44.dp,
+        shape = KahavanuShapes.medium,
+        selectedBackgroundColor = RawColors.Emerald.Emerald500.copy(alpha = 0.12f),
+        unselectedBackgroundColor = RawColors.Slate.Slate900.copy(alpha = 0.04f),
+        selectedBorderColor = RawColors.Emerald.Emerald500,
+        unselectedBorderColor = RawColors.Slate.Slate900.copy(alpha = 0.08f),
+        selectedTextColor = RawColors.Emerald.Emerald700,
+        unselectedTextColor = TextSecondary,
+        textStyle = MaterialTheme.typography.labelMedium,
+        fontSize = TextSize.xs,
+    )
 }
 
 @Composable

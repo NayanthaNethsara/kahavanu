@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.combine
 import javax.inject.Inject
 
 data class IncomeBreakdownItem(
@@ -46,6 +47,22 @@ class IncomeOverviewViewModel @Inject constructor(
             initialValue = emptyList(),
         )
 
+    val currencySettings: StateFlow<Pair<String, String>> = settingsRepository.observeCurrencySettings()
+        .map { it.first.code to it.second.code }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = "" to "",
+        )
+
+    val primaryCurrency: StateFlow<String> = currencySettings
+        .map { it.first }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = "",
+        )
+
     fun markAsReceived(id: Long) {
         viewModelScope.launch {
             incomeRepository.markScheduledAsReceived(id)
@@ -58,35 +75,37 @@ class IncomeOverviewViewModel @Inject constructor(
         }
     }
 
-    val totalIncomeByCurrency: StateFlow<Map<String, Double>> = incomeLogs
-        .map { logs ->
-            val month = YearMonth.now()
-            val primary = primaryCurrency.value
-            val initial = mapOf(primary to 0.0)
-            initial + logs.filter { isInMonth(it.receivedAtEpochMillis, month) }
-                .groupBy { it.currency }
-                .mapValues { (_, items) -> items.sumOf { it.amount } }
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = emptyMap(),
-        )
+    val totalIncomeByCurrency: StateFlow<Map<String, Double>> = combine(incomeLogs, currencySettings) { logs, settings ->
+        val month = YearMonth.now()
+        val (primary, secondary) = settings
+        val initial = mutableMapOf<String, Double>()
+        if (primary.isNotBlank()) initial[primary] = 0.0
+        if (secondary.isNotBlank() && secondary != primary) initial[secondary] = 0.0
+        
+        initial + logs.filter { isInMonth(it.receivedAtEpochMillis, month) }
+            .groupBy { it.currency }
+            .mapValues { (_, items) -> items.sumOf { it.amount } }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = emptyMap(),
+    )
 
-    val totalReceivedByCurrency: StateFlow<Map<String, Double>> = incomeLogs
-        .map { logs ->
-            val month = YearMonth.now()
-            val primary = primaryCurrency.value
-            val initial = mapOf(primary to 0.0)
-            initial + logs.filter { isInMonth(it.receivedAtEpochMillis, month) && !isPending(it.sourceType) }
-                .groupBy { it.currency }
-                .mapValues { (_, items) -> items.sumOf { it.amount } }
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = emptyMap(),
-        )
+    val totalReceivedByCurrency: StateFlow<Map<String, Double>> = combine(incomeLogs, currencySettings) { logs, settings ->
+        val month = YearMonth.now()
+        val (primary, secondary) = settings
+        val initial = mutableMapOf<String, Double>()
+        if (primary.isNotBlank()) initial[primary] = 0.0
+        if (secondary.isNotBlank() && secondary != primary) initial[secondary] = 0.0
+        
+        initial + logs.filter { isInMonth(it.receivedAtEpochMillis, month) && !isPending(it.sourceType) }
+            .groupBy { it.currency }
+            .mapValues { (_, items) -> items.sumOf { it.amount } }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = emptyMap(),
+    )
 
     val pendingLogs: StateFlow<List<IncomeLogEntry>> = incomeLogs
         .map { logs ->
@@ -98,46 +117,38 @@ class IncomeOverviewViewModel @Inject constructor(
             initialValue = emptyList(),
         )
 
-    val breakdownsByCurrency: StateFlow<Map<String, List<IncomeBreakdownItem>>> = incomeLogs
-        .map { logs ->
-            val month = YearMonth.now()
-            val monthLogs = logs.filter { isInMonth(it.receivedAtEpochMillis, month) }
-            val primary = primaryCurrency.value
-            
-            val currencyGroups = monthLogs.groupBy { it.currency }.toMutableMap()
-            if (!currencyGroups.containsKey(primary)) {
-                currencyGroups[primary] = emptyList()
-            }
-
-            currencyGroups.mapValues { (currency, items) ->
-                val recurrentTotal = items.filter { 
-                    isRecurrent(it.sourceType) ||
-                    it.title.contains("Salary", true) || 
-                    it.title.contains("Retainer", true) || 
-                    it.title.contains("Subscription", true)
-                }.sumOf { it.amount }
-                
-                val otherTotal = items.sumOf { it.amount } - recurrentTotal
-
-                listOf(
-                    IncomeBreakdownItem("Main Recurrent", recurrentTotal, RawColors.Emerald.Emerald600),
-                    IncomeBreakdownItem("Freelance / Other", otherTotal, RawColors.Slate.Slate600)
-                )
-            }
+    val breakdownsByCurrency: StateFlow<Map<String, List<IncomeBreakdownItem>>> = combine(incomeLogs, currencySettings) { logs, settings ->
+        val month = YearMonth.now()
+        val monthLogs = logs.filter { isInMonth(it.receivedAtEpochMillis, month) }
+        val (primary, secondary) = settings
+        
+        val currencyGroups = monthLogs.groupBy { it.currency }.toMutableMap()
+        if (primary.isNotBlank() && !currencyGroups.containsKey(primary)) currencyGroups[primary] = emptyList()
+        if (secondary.isNotBlank() && primary != secondary && !currencyGroups.containsKey(secondary)) {
+            currencyGroups[secondary] = emptyList()
         }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = emptyMap(),
-        )
 
-    val primaryCurrency: StateFlow<String> = settingsRepository.observeCurrencySettings()
-        .map { it.first.code }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = "LKR",
-        )
+        currencyGroups.mapValues { (currency, items) ->
+            val recurrentTotal = items.filter { 
+                isRecurrent(it.sourceType) ||
+                it.title.contains("Salary", true) || 
+                it.title.contains("Retainer", true) || 
+                it.title.contains("Subscription", true)
+            }.sumOf { it.amount }
+            
+            val otherTotal = items.sumOf { it.amount } - recurrentTotal
+
+            listOf(
+                IncomeBreakdownItem("Main Recurrent", recurrentTotal, RawColors.Emerald.Emerald600),
+                IncomeBreakdownItem("Freelance / Other", otherTotal, RawColors.Slate.Slate600)
+            )
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = emptyMap(),
+    )
+
 
     private fun isInMonth(epochMillis: Long, month: YearMonth): Boolean {
         val date = Instant.ofEpochMilli(epochMillis)

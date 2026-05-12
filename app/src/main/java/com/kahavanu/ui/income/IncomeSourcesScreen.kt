@@ -64,7 +64,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -72,14 +71,15 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kahavanu.domain.model.CurrencyOption
 import com.kahavanu.domain.model.IncomeSource
 import com.kahavanu.domain.model.IncomeSourceType
-import com.kahavanu.ui.income.components.CircularIconButton
+import com.kahavanu.ui.common.CircularIconButton
+import com.kahavanu.ui.common.GradientBlob
+import com.kahavanu.ui.common.PrimaryActionButton
+import com.kahavanu.ui.common.SectionLabel
+import com.kahavanu.ui.common.SelectableChip
+import com.kahavanu.ui.common.textFieldColors
 import com.kahavanu.ui.income.components.CurrencyDropdown
 import com.kahavanu.ui.income.components.CurrencyToggle
-import com.kahavanu.ui.income.components.GradientBlob
-import com.kahavanu.ui.income.components.PrimaryActionButton
-import com.kahavanu.ui.income.components.SectionLabel
 import com.kahavanu.ui.income.components.sourceIconFor
-import com.kahavanu.ui.income.components.textFieldColors
 import com.kahavanu.ui.theme.CornerRadius
 import com.kahavanu.ui.theme.KahavanuShapes
 import com.kahavanu.ui.theme.RawColors
@@ -132,7 +132,7 @@ fun IncomeSourcesScreen(
                     .padding(
                         start = Spacing.extraLarge,
                         end = Spacing.extraLarge,
-                        top = 48.dp,
+                        top = 30.dp,
                         bottom = Spacing.large,
                     ),
                 verticalArrangement = Arrangement.spacedBy(Spacing.large),
@@ -646,33 +646,20 @@ private fun TypeToggleChip(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val backgroundColor = if (selected) {
-        RawColors.Emerald.Emerald400.copy(alpha = 0.12f)
-    } else {
-        Color.White.copy(alpha = 0.4f)
-    }
-    val borderColor = if (selected) {
-        RawColors.Emerald.Emerald300
-    } else {
-        RawColors.Slate.Slate900.copy(alpha = 0.08f)
-    }
-
-    Box(
-        modifier = modifier
-            .height(56.dp)
-            .background(backgroundColor, KahavanuShapes.large)
-            .border(1.dp, borderColor, KahavanuShapes.large)
-            .clip(KahavanuShapes.large)
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = type.label,
-            style = MaterialTheme.typography.labelMedium,
-            fontSize = TextSize.xs,
-            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
-            color = if (selected) RawColors.Emerald.Emerald700 else TextSecondary,
-            textAlign = TextAlign.Center,
-        )
-    }
+    SelectableChip(
+        text = type.label,
+        selected = selected,
+        onClick = onClick,
+        modifier = modifier,
+        height = 56.dp,
+        shape = KahavanuShapes.large,
+        selectedBackgroundColor = RawColors.Emerald.Emerald400.copy(alpha = 0.12f),
+        unselectedBackgroundColor = Color.White.copy(alpha = 0.4f),
+        selectedBorderColor = RawColors.Emerald.Emerald300,
+        unselectedBorderColor = RawColors.Slate.Slate900.copy(alpha = 0.08f),
+        selectedTextColor = RawColors.Emerald.Emerald700,
+        unselectedTextColor = TextSecondary,
+        textStyle = MaterialTheme.typography.labelMedium,
+        fontSize = TextSize.xs,
+    )
 }

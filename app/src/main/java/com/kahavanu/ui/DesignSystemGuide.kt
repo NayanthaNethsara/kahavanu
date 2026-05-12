@@ -41,6 +41,16 @@ package com.kahavanu.ui
  * ### AuthPrimaryButton / AuthOutlinedButton
  * Auth-specific button variants for sign-in/sign-up flows.
  *
+ * ### AuthScaffold
+ * Shared auth screen layout shell (logo, back button, title/subtitle, gradient overlay).
+ *
+ * ### AppSurfaces / AppControls / AppSelection / AppToggles
+ * Shared UI building blocks split by category:
+ * - AppSurfaces: GlassCard, SectionHeader, SectionLabel
+ * - AppControls: CircularIconButton, PrimaryActionButton, GradientBlob, textFieldColors
+ * - AppSelection: SelectableChip, SelectableCard
+ * - AppToggles: AppSegmentedToggle
+ *
  * ### AuthTextField
  * Labeled outlined text field with leading/trailing icon support.
  *
@@ -98,7 +108,12 @@ package com.kahavanu.ui
  *     |   +-- AppDecorativeGradientOverlay.kt
  *     |   +-- AppPrimaryButton.kt
  *     |   +-- AuthButtons.kt
+ *     |   +-- AuthScaffold.kt
  *     |   +-- AuthTextField.kt
+ *     |   +-- AppControls.kt
+ *     |   +-- AppSelection.kt
+ *     |   +-- AppSurfaces.kt
+ *     |   +-- AppToggles.kt
  *     +-- home/
  *     |   +-- HomeScreen.kt
  *     +-- navigation/

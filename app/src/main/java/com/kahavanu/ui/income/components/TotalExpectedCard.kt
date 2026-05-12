@@ -74,7 +74,8 @@ fun TotalExpectedCard(
                     text = "Total income · $monthLabel",
                     style = MaterialTheme.typography.bodyMedium,
                     fontSize = TextSize.sm,
-                    color = TextSecondary
+                    color = TextSecondary,
+                    modifier = Modifier.weight(1f, fill = false)
                 )
                 
                 if (currencies.size > 1) {
@@ -92,9 +93,9 @@ fun TotalExpectedCard(
                         indicatorColor = RawColors.Emerald.Emerald600.copy(alpha = 0.9f),
                         indicatorShadow = 4.dp,
                         selectedTextColor = Color.White,
-                        unselectedTextColor = RawColors.Emerald.Emerald600.copy(alpha = 0.6f),
+                        unselectedTextColor = RawColors.Emerald.Emerald600.copy(alpha = 0.9f),
                         textStyle = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
-                        itemWidth = 56.dp,
+                        itemWidth = 64.dp,
                     )
                 }
             }

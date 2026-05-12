@@ -59,9 +59,13 @@ fun <T> AppSegmentedToggle(
 ) {
     if (items.isEmpty()) return
 
-    BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
-        val totalWidth = maxWidth
-        val resolvedItemWidth = itemWidth ?: totalWidth / items.size
+    val totalWidth = if (itemWidth != null) itemWidth * items.size else null
+    val containerModifier = modifier.then(
+        if (totalWidth != null) Modifier.width(totalWidth) else Modifier.fillMaxWidth()
+    )
+
+    BoxWithConstraints(modifier = containerModifier) {
+        val resolvedItemWidth = itemWidth ?: (maxWidth / items.size)
         val selectedIndex = items.indexOf(selectedItem).coerceAtLeast(0)
         val indicatorOffset by animateDpAsState(
             targetValue = resolvedItemWidth * selectedIndex,
@@ -71,7 +75,7 @@ fun <T> AppSegmentedToggle(
 
         Surface(
             modifier = Modifier
-                .fillMaxWidth()
+                .then(if (totalWidth != null) Modifier.width(totalWidth) else Modifier.fillMaxWidth())
                 .height(height),
             shape = shape,
             color = containerColor,
@@ -110,6 +114,8 @@ fun <T> AppSegmentedToggle(
                                 style = textStyle,
                                 color = if (isSelected) selectedTextColor else unselectedTextColor,
                                 fontWeight = if (isSelected) selectedFontWeight else unselectedFontWeight,
+                                maxLines = 1,
+                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                             )
                         }
                     }

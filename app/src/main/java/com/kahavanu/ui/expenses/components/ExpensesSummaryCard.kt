@@ -47,10 +47,8 @@ fun ExpensesSummaryCard(
 ) {
     val activeSummaries = categorySummaries.filter { it.amount > 0.0 }
     val totalForDonut = activeSummaries.sumOf { it.amount }
-    val normalizedSummaries = if (activeSummaries.isEmpty()) {
+    val normalizedSummaries = activeSummaries.ifEmpty {
         categorySummaries
-    } else {
-        activeSummaries
     }
 
     val budgetRatio = if (budgetLimit > 0.0) {
@@ -70,49 +68,55 @@ fun ExpensesSummaryCard(
     ) {
         Column(
             modifier = Modifier.padding(Spacing.large),
-            verticalArrangement = Arrangement.spacedBy(Spacing.medium)
         ) {
             Text(
                 text = headerLabel,
-                style = MaterialTheme.typography.bodySmall,
-                fontSize = 11.sp,
+                style = MaterialTheme.typography.bodyMedium,
+                fontSize = TextSize.sm,
                 color = TextSecondary,
-                letterSpacing = 0.06.sp,
             )
+
+            Spacer(modifier = Modifier.height(Spacing.extraSmall))
 
             Text(
                 text = formatAmountNoDecimals(totalSpent, currency.code),
-                style = MaterialTheme.typography.headlineSmall,
-                fontSize = 38.sp,
-                lineHeight = 42.sp,
+                style = MaterialTheme.typography.headlineLarge,
+                fontSize = TextSize.xxxl,
                 fontWeight = FontWeight.Medium,
                 color = TextPrimary,
                 letterSpacing = (-0.18).sp,
             )
 
+            Spacer(modifier = Modifier.height(Spacing.medium))
+
             Text(
                 text = "Budget: ${formatAmountNoDecimals(budgetLimit, currency.code)} · $budgetRatio% used",
                 style = MaterialTheme.typography.bodySmall,
-                fontSize = 11.sp,
+                fontSize = TextSize.xs,
                 color = TextSecondary,
-                letterSpacing = 0.06.sp,
             )
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(Spacing.large),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                DonutChart(
-                    summaries = normalizedSummaries,
-                    total = totalForDonut,
-                    modifier = Modifier.size(128.dp),
-                )
-                CategoryLegend(
-                    summaries = normalizedSummaries,
-                    total = totalForDonut,
-                    modifier = Modifier.weight(1f),
-                )
+            if (activeSummaries.size >= 4) {
+                Spacer(modifier = Modifier.height(Spacing.small))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(Spacing.large),
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.large),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    DonutChart(
+                        summaries = normalizedSummaries,
+                        total = totalForDonut,
+                        modifier = Modifier.size(100.dp),
+                    )
+                    CategoryLegend(
+                        summaries = normalizedSummaries,
+                        total = totalForDonut,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
             }
         }
     }
@@ -127,17 +131,19 @@ private fun DonutChart(
     val totalValue = if (total <= 0.0) 1.0 else total
 
     Canvas(modifier = modifier) {
-        val stroke = Stroke(width = 22f, cap = StrokeCap.Butt)
+        val stroke = Stroke(width = 48f, cap = StrokeCap.Butt)
         var startAngle = -90f
 
         summaries.forEach { summary ->
             val ratio = (summary.amount / totalValue).toFloat().coerceAtLeast(0f)
             val sweepAngle = if (summary.amount == 0.0) 0f else ratio * 360f
             if (sweepAngle > 0f) {
+                // Add a small gap between sections if there's enough space
+                val gap = if (sweepAngle > 4f) 2f else 0f
                 drawArc(
                     color = summary.color,
-                    startAngle = startAngle,
-                    sweepAngle = sweepAngle,
+                    startAngle = startAngle + (gap / 2),
+                    sweepAngle = sweepAngle - gap,
                     useCenter = false,
                     style = stroke,
                 )
@@ -163,7 +169,7 @@ private fun CategoryLegend(
     ) {
         Column(
             modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(Spacing.small),
+            verticalArrangement = Arrangement.spacedBy(Spacing.extraSmall),
         ) {
             left.forEach { summary ->
                 LegendItem(summary = summary, percent = (summary.amount / totalValue * 100).roundToInt())
@@ -171,7 +177,7 @@ private fun CategoryLegend(
         }
         Column(
             modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(Spacing.small),
+            verticalArrangement = Arrangement.spacedBy(Spacing.extraSmall),
         ) {
             right.forEach { summary ->
                 LegendItem(summary = summary, percent = (summary.amount / totalValue * 100).roundToInt())
@@ -191,21 +197,22 @@ private fun LegendItem(
     ) {
         Box(
             modifier = Modifier
-                .padding(top = 6.dp)
+                .padding(top = 5.dp)
                 .size(8.dp)
                 .background(summary.color, RoundedCornerShape(99.dp)),
         )
-        Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
             Text(
                 text = summary.label,
                 style = MaterialTheme.typography.labelSmall,
-                fontSize = 11.sp,
+                fontSize = 12.sp,
                 color = TextPrimary,
+                fontWeight = FontWeight.Medium,
             )
             Text(
                 text = "$percent%",
                 style = MaterialTheme.typography.bodySmall,
-                fontSize = 10.sp,
+                fontSize = 11.sp,
                 color = TextSecondary,
             )
         }

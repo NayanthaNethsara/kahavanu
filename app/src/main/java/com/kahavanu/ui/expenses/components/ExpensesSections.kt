@@ -18,6 +18,7 @@ import com.kahavanu.domain.model.CurrencyOption
 import com.kahavanu.ui.common.GlassCard
 import com.kahavanu.ui.common.MatchItemState
 import com.kahavanu.ui.common.MatchingSection
+import com.kahavanu.ui.common.SectionHeader
 import com.kahavanu.ui.expenses.ExpenseCategorySummary
 import com.kahavanu.ui.expenses.PendingExpenseMatch
 import com.kahavanu.ui.expenses.RecentExpense
@@ -59,22 +60,11 @@ fun ByCategorySection(
 ) {
     val total = categories.sumOf { it.amount }
 
-    Column(verticalArrangement = Arrangement.spacedBy(Spacing.medium)) {
-        Column {
-            Text(
-                text = "By Category",
-                style = MaterialTheme.typography.titleMedium,
-                fontSize = TextSize.base,
-                color = TextPrimary,
-                fontWeight = FontWeight.Medium,
-            )
-            Text(
-                text = "Spending breakdown",
-                style = MaterialTheme.typography.bodySmall,
-                fontSize = TextSize.xs,
-                color = TextSecondary,
-            )
-        }
+    Column {
+        SectionHeader(
+            title = "By Category",
+            subtitle = "Spending breakdown"
+        )
 
         GlassCard(modifier = Modifier.fillMaxWidth()) {
             Column(
@@ -175,38 +165,13 @@ fun RecentExpensesSection(
     currency: CurrencyOption,
     onViewAll: () -> Unit,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(Spacing.medium)) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column {
-                Text(
-                    text = "Recent Expenses",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontSize = TextSize.base,
-                    color = TextPrimary,
-                    fontWeight = FontWeight.Medium,
-                )
-                Text(
-                    text = "Latest transactions",
-                    style = MaterialTheme.typography.bodySmall,
-                    fontSize = TextSize.xs,
-                    color = TextSecondary,
-                )
-            }
-            Text(
-                text = "View all ›",
-                style = MaterialTheme.typography.labelMedium,
-                fontSize = 11.sp,
-                color = RawColors.Emerald.Emerald600,
-                modifier = Modifier
-                    .background(RawColors.Emerald.Emerald50, RoundedCornerShape(99.dp))
-                    .clickable(onClick = onViewAll)
-                    .padding(horizontal = 10.dp, vertical = 5.dp),
-            )
-        }
+    Column {
+        SectionHeader(
+            title = "Recent Expenses",
+            subtitle = "Latest transactions",
+            actionText = "View all ›",
+            onActionClick = onViewAll
+        )
 
         GlassCard(modifier = Modifier.fillMaxWidth()) {
             if (expenses.isEmpty()) {

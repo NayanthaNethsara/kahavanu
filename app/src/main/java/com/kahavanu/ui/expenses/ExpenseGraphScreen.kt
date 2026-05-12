@@ -107,7 +107,7 @@ fun ExpenseGraphScreen(
                         color = TextSecondary,
                     )
                     Text(
-                        text = "USD ${String.format("%.2f", stats.totalSpent)}",
+                        text = "${stats.currencyCode} ${String.format("%.2f", stats.totalSpent)}",
                         style = MaterialTheme.typography.titleLarge,
                         fontSize = TextSize.xl,
                         fontWeight = FontWeight.SemiBold,
@@ -143,6 +143,7 @@ fun ExpenseGraphScreen(
                             category = category,
                             amount = amount,
                             total = stats.totalSpent,
+                            currencyCode = stats.currencyCode,
                         )
                     }
                 }
@@ -162,7 +163,7 @@ fun ExpenseGraphScreen(
                         verticalArrangement = Arrangement.Center,
                     ) {
                         Text(
-                            text = "📊 Chart Visualization",
+                            text = "Chart Visualization",
                             style = MaterialTheme.typography.bodyLarge,
                             color = TextPrimary,
                             fontWeight = FontWeight.Medium,
@@ -188,6 +189,7 @@ private fun CategorySpendRow(
     category: String,
     amount: Double,
     total: Double,
+    currencyCode: String,
 ) {
     val percentage = if (total > 0) (amount / total * 100).toInt() else 0
     val categoryColor = when (category) {
@@ -212,7 +214,7 @@ private fun CategorySpendRow(
                 color = TextPrimary,
             )
             Text(
-                text = "USD ${String.format("%.2f", amount)} ($percentage%)",
+                text = "$currencyCode ${String.format("%.2f", amount)} ($percentage%)",
                 style = MaterialTheme.typography.bodySmall,
                 fontSize = TextSize.sm,
                 color = categoryColor,

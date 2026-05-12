@@ -4,41 +4,42 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kahavanu.domain.model.ExpenseLogEntry
 import com.kahavanu.domain.repository.ExpensesRepository
+import com.kahavanu.domain.repository.SettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 @HiltViewModel
 class ExpenseGraphViewModel @Inject constructor(
     expensesRepository: ExpensesRepository,
+    settingsRepository: SettingsRepository,
 ) : ViewModel() {
 
-    private val _stats = MutableStateFlow(ExpenseStats())
-    val stats: StateFlow<ExpenseStats> = _stats
+    val stats: StateFlow<ExpenseStats> = combine(
+        expensesRepository.observeExpenseLogs(),
+        settingsRepository.observeCurrencySettings(),
+    ) { expenses, (primaryCurrency, _) ->
+        buildStats(expenses, primaryCurrency.code)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = ExpenseStats(),
+    )
 
-    init {
-        viewModelScope.launch {
-            expensesRepository.observeExpenseLogs()
-                .map { expenses ->
-                    buildStats(expenses)
-                }
-                .collect { stats ->
-                    _stats.value = stats
-                }
-        }
-    }
-
-    private fun buildStats(expenses: List<ExpenseLogEntry>): ExpenseStats {
+    private fun buildStats(expenses: List<ExpenseLogEntry>, currencyCode: String): ExpenseStats {
         val totalSpent = expenses.sumOf { it.amount }
         val categoryBreakdown = expenses
             .groupBy { it.category }
             .mapValues { (_, entries) -> entries.sumOf { it.amount } }
-            .toSortedMap { a, b -> b.compareTo(a) }
+            .entries
+            .sortedByDescending { it.value }
+            .associate { it.key to it.value }
 
         return ExpenseStats(
+            currencyCode = currencyCode,
             totalSpent = totalSpent,
             categoryBreakdown = categoryBreakdown,
         )
@@ -46,6 +47,7 @@ class ExpenseGraphViewModel @Inject constructor(
 }
 
 data class ExpenseStats(
+    val currencyCode: String = "LKR",
     val totalSpent: Double = 0.0,
     val categoryBreakdown: Map<String, Double> = emptyMap(),
 )

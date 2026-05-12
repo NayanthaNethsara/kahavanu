@@ -16,9 +16,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kahavanu.ui.expenses.components.ExpensesActionButtons
 import com.kahavanu.ui.expenses.components.ExpensesHeader
 import com.kahavanu.ui.expenses.components.ExpensesSummaryCard
+import com.kahavanu.ui.expenses.components.ByCategorySection
+import com.kahavanu.ui.expenses.components.MatchAndCategorizeSection
 import com.kahavanu.ui.expenses.components.RecentExpensesSection
-import com.kahavanu.ui.expenses.components.SpendingInsightsSection
-import com.kahavanu.ui.expenses.components.UpcomingBillsSection
 import com.kahavanu.ui.expenses.components.currentMonthLabel
 import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
@@ -49,12 +49,14 @@ fun ExpensesScreen(
         contentPadding = PaddingValues(
             start = Spacing.large,
             end = Spacing.large,
-            top = 140.dp,
-            bottom = 140.dp,
+            top = 48.dp,
+            bottom = 120.dp,
         ),
-        verticalArrangement = Arrangement.spacedBy(Spacing.extraLarge),
+        verticalArrangement = Arrangement.spacedBy(Spacing.large),
     ) {
-        item { ExpensesHeader() }
+        item {
+            ExpensesHeader(onQuickActionClick = onViewBudgets)
+        }
         item {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.large)) {
                 ExpensesSummaryCard(
@@ -68,27 +70,19 @@ fun ExpensesScreen(
                 )
                 ExpensesActionButtons(
                     onLogExpense = onLogExpense,
-                    onViewBills = onViewBills,
-                    onViewBudgets = onViewBudgets,
-                    onViewHistory = onViewHistory,
                 )
             }
         }
         item {
-            SpendingInsightsSection(
-                selectedPeriod = uiState.selectedPeriod,
+            MatchAndCategorizeSection(
+                items = uiState.pendingMatches,
                 currency = uiState.currency,
-                totalSpent = uiState.totalSpent,
-                categories = uiState.categorySummaries,
-                recentCount = uiState.recentExpenses.size,
-                upcomingCount = uiState.upcomingBills.size,
             )
         }
         item {
-            UpcomingBillsSection(
-                bills = uiState.upcomingBills,
+            ByCategorySection(
+                categories = uiState.categorySummaries,
                 currency = uiState.currency,
-                onViewAll = onViewBills,
             )
         }
         item {

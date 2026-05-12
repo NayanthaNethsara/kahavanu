@@ -1,6 +1,8 @@
 package com.kahavanu.ui.expenses.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,14 +16,20 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.LocalGasStation
-import androidx.compose.material.icons.automirrored.outlined.ReceiptLong
-import androidx.compose.material.icons.outlined.Restaurant
+import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.LocalHospital
+import androidx.compose.material.icons.outlined.LocalPizza
+import androidx.compose.material.icons.outlined.LocalTaxi
 import androidx.compose.material.icons.outlined.ShoppingBag
-import androidx.compose.material.icons.outlined.Subscriptions
+import androidx.compose.material.icons.outlined.SportsEsports
+import androidx.compose.material.icons.outlined.TipsAndUpdates
+import androidx.compose.material.icons.outlined.Bolt
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -33,126 +41,247 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kahavanu.domain.model.CurrencyOption
 import com.kahavanu.ui.common.GlassCard
-import com.kahavanu.ui.common.SectionHeader
 import com.kahavanu.ui.expenses.ExpenseCategorySummary
-import com.kahavanu.ui.expenses.ExpensePeriod
+import com.kahavanu.ui.expenses.PendingExpenseMatch
 import com.kahavanu.ui.expenses.RecentExpense
-import com.kahavanu.ui.expenses.UpcomingBill
 import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
-import com.kahavanu.ui.theme.TextTertiary
 import com.kahavanu.ui.theme.TextSize
-import java.time.YearMonth
 import kotlin.math.roundToInt
 
 @Composable
-fun SpendingInsightsSection(
-    selectedPeriod: ExpensePeriod,
+fun MatchAndCategorizeSection(
+    items: List<PendingExpenseMatch>,
     currency: CurrencyOption,
-    totalSpent: Double,
-    categories: List<ExpenseCategorySummary>,
-    recentCount: Int,
-    upcomingCount: Int,
 ) {
-    val periodDays = when (selectedPeriod) {
-        ExpensePeriod.Week -> 7
-        ExpensePeriod.Month -> YearMonth.now().lengthOfMonth()
-        ExpensePeriod.Year -> 365
-    }
-    val dailyAverage = if (periodDays > 0) totalSpent / periodDays else 0.0
-    val topCategory = categories.maxByOrNull { it.amount }
-    val topShare = if (topCategory != null && totalSpent > 0) {
-        ((topCategory.amount / totalSpent) * 100).roundToInt()
-    } else 0
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.medium)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column {
+                Text(
+                    text = "Match & Categorize",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontSize = TextSize.base,
+                    color = TextPrimary,
+                    fontWeight = FontWeight.Medium,
+                )
+                Text(
+                    text = "Uncategorized expenses from SMS",
+                    style = MaterialTheme.typography.bodySmall,
+                    fontSize = TextSize.xs,
+                    color = TextSecondary,
+                )
+            }
+            if (items.isNotEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .background(RawColors.Emerald.Emerald100, CircleShape)
+                        .padding(horizontal = 8.dp, vertical = 3.dp),
+                ) {
+                    Text(
+                        text = items.size.toString(),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontSize = 11.sp,
+                        color = RawColors.Emerald.Emerald600,
+                    )
+                }
+            }
+        }
 
-    Column {
-        SectionHeader(
-            title = "Spending insights",
-            subtitle = "Trends at a glance",
-        )
-        GlassCard(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(Spacing.large)) {
-                InsightRow(
-                    title = "Daily average",
-                    value = formatAmount(dailyAverage, currency.code),
-                    subtitle = "Based on ${selectedPeriod.label.lowercase()} spend",
-                )
-                Spacer(modifier = Modifier.height(Spacing.medium))
-                InsightRow(
-                    title = "Largest category",
-                    value = topCategory?.label ?: "No data",
-                    subtitle = if (topShare > 0) "$topShare% of total" else "Add expenses to see this",
-                )
-                Spacer(modifier = Modifier.height(Spacing.medium))
-                InsightRow(
-                    title = "Activity",
-                    value = "$recentCount transactions",
-                    subtitle = "$upcomingCount bills due soon",
-                )
+        Column(verticalArrangement = Arrangement.spacedBy(Spacing.small)) {
+            items.take(2).forEach { item ->
+                MatchCard(item = item, currency = currency)
             }
         }
     }
 }
 
 @Composable
-private fun InsightRow(
-    title: String,
-    value: String,
-    subtitle: String,
+private fun MatchCard(
+    item: PendingExpenseMatch,
+    currency: CurrencyOption,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.bodySmall,
-            fontSize = TextSize.xs,
-            color = TextSecondary,
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.titleMedium,
-            fontSize = TextSize.lg,
-            fontWeight = FontWeight.Medium,
-            color = TextPrimary,
-        )
-        Text(
-            text = subtitle,
-            style = MaterialTheme.typography.bodySmall,
-            fontSize = TextSize.xs,
-            color = TextTertiary,
-        )
+    GlassCard(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(Spacing.medium),
+            verticalArrangement = Arrangement.spacedBy(Spacing.small),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = item.receivedAtLabel,
+                    style = MaterialTheme.typography.bodySmall,
+                    fontSize = 10.sp,
+                    color = TextSecondary,
+                )
+                Box(
+                    modifier = Modifier
+                        .background(RawColors.Emerald.Emerald100, RoundedCornerShape(99.dp))
+                        .padding(horizontal = 6.dp, vertical = 2.dp),
+                ) {
+                    Text(
+                        text = "${item.confidencePercent}% MATCH",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontSize = 9.sp,
+                        color = RawColors.Emerald.Emerald600,
+                    )
+                }
+            }
+
+            Text(
+                text = formatAmountNoDecimals(item.amount, currency.code),
+                style = MaterialTheme.typography.titleMedium,
+                fontSize = 26.sp,
+                lineHeight = 30.sp,
+                color = TextPrimary,
+                fontWeight = FontWeight.Medium,
+            )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(RawColors.Slate.Slate100.copy(alpha = 0.7f), RoundedCornerShape(12.dp))
+                    .padding(horizontal = 10.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Spacing.small),
+            ) {
+                Icon(
+                    imageVector = categoryIcon(item.category),
+                    contentDescription = null,
+                    tint = categoryColor(item.category),
+                    modifier = Modifier.size(14.dp),
+                )
+                Text(
+                    text = "Likely ${item.category}",
+                    style = MaterialTheme.typography.bodySmall,
+                    fontSize = 11.sp,
+                    color = TextPrimary,
+                )
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(Spacing.small),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .background(RawColors.Emerald.Emerald500, RoundedCornerShape(99.dp))
+                        .padding(vertical = 9.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Check,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(14.dp),
+                        )
+                        Text(
+                            text = "Categorize",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontSize = 11.sp,
+                            color = Color.White,
+                        )
+                    }
+                }
+                Box(
+                    modifier = Modifier
+                        .background(Color.White.copy(alpha = 0.75f), RoundedCornerShape(99.dp))
+                        .border(0.7.dp, RawColors.Slate.Slate200, RoundedCornerShape(99.dp))
+                        .padding(horizontal = 12.dp, vertical = 9.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Edit,
+                            contentDescription = null,
+                            tint = TextSecondary,
+                            modifier = Modifier.size(14.dp),
+                        )
+                        Text(
+                            text = "Edit",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontSize = 11.sp,
+                            color = TextSecondary,
+                        )
+                    }
+                }
+                Box(
+                    modifier = Modifier
+                        .size(30.dp)
+                        .background(Color.White.copy(alpha = 0.75f), CircleShape)
+                        .border(0.7.dp, RawColors.Slate.Slate200, CircleShape),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Close,
+                        contentDescription = null,
+                        tint = TextSecondary,
+                        modifier = Modifier.size(12.dp),
+                    )
+                }
+            }
+        }
     }
 }
 
 @Composable
-fun UpcomingBillsSection(
-    bills: List<UpcomingBill>,
+fun ByCategorySection(
+    categories: List<ExpenseCategorySummary>,
     currency: CurrencyOption,
-    onViewAll: () -> Unit,
 ) {
-    Column {
-        SectionHeader(
-            title = "Upcoming bills",
-            subtitle = "Due soon and recurring",
-            actionText = "View all",
-            badgeCount = bills.takeIf { it.isNotEmpty() }?.size?.toString(),
-            onActionClick = onViewAll,
-        )
+    val total = categories.sumOf { it.amount }
+
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.medium)) {
+        Column {
+            Text(
+                text = "By Category",
+                style = MaterialTheme.typography.titleMedium,
+                fontSize = TextSize.base,
+                color = TextPrimary,
+                fontWeight = FontWeight.Medium,
+            )
+            Text(
+                text = "Spending breakdown",
+                style = MaterialTheme.typography.bodySmall,
+                fontSize = TextSize.xs,
+                color = TextSecondary,
+            )
+        }
+
         GlassCard(modifier = Modifier.fillMaxWidth()) {
-            if (bills.isEmpty()) {
-                Text(
-                    text = "No bills due right now",
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontSize = TextSize.sm,
-                    color = TextSecondary,
-                    modifier = Modifier.padding(Spacing.large),
-                )
-            } else {
-                bills.forEachIndexed { index, bill ->
-                    UpcomingBillRow(bill = bill, currency = currency)
-                    if (index != bills.lastIndex) {
-                        HorizontalDivider(color = RawColors.Slate.Slate900.copy(alpha = 0.06f))
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(Spacing.medium),
+                verticalArrangement = Arrangement.spacedBy(Spacing.medium),
+            ) {
+                categories.forEachIndexed { index, summary ->
+                    CategorySpendItem(
+                        summary = summary,
+                        total = total,
+                        currency = currency,
+                    )
+                    if (index != categories.lastIndex) {
+                        HorizontalDivider(color = RawColors.Slate.Slate200.copy(alpha = 0.4f))
                     }
                 }
             }
@@ -161,52 +290,73 @@ fun UpcomingBillsSection(
 }
 
 @Composable
-private fun UpcomingBillRow(
-    bill: UpcomingBill,
+private fun CategorySpendItem(
+    summary: ExpenseCategorySummary,
+    total: Double,
     currency: CurrencyOption,
 ) {
-    val dueText = dueLabel(bill.dueAtEpochMillis)
-    val isOverdue = bill.dueAtEpochMillis < System.currentTimeMillis()
-    val badgeColor = if (isOverdue) RawColors.Rose.Rose100 else RawColors.Slate.Slate100
-    val badgeTextColor = if (isOverdue) RawColors.Rose.Rose700 else TextSecondary
+    val percent = if (total > 0.0) ((summary.amount / total) * 100).roundToInt() else 0
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(Spacing.large),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(
-                text = bill.title,
-                style = MaterialTheme.typography.bodyLarge,
-                fontSize = TextSize.base,
-                fontWeight = FontWeight.Medium,
-                color = TextPrimary,
-            )
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Surface(
-                    color = badgeColor,
-                    shape = RoundedCornerShape(10.dp),
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.small)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Spacing.small),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(28.dp)
+                        .background(summary.color.copy(alpha = 0.14f), RoundedCornerShape(10.dp)),
+                    contentAlignment = Alignment.Center,
                 ) {
-                    Text(
-                        text = dueText,
-                        style = MaterialTheme.typography.labelSmall,
-                        fontSize = TextSize.xs,
-                        color = badgeTextColor,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                    Icon(
+                        imageVector = categoryIcon(summary.label),
+                        contentDescription = null,
+                        tint = summary.color,
+                        modifier = Modifier.size(14.dp),
                     )
                 }
+                Text(
+                    text = summary.label,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontSize = TextSize.sm,
+                    color = TextPrimary,
+                )
+            }
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    text = formatAmountNoDecimals(summary.amount, currency.code),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontSize = TextSize.sm,
+                    color = summary.color,
+                    fontWeight = FontWeight.Medium,
+                )
+                Text(
+                    text = "$percent%",
+                    style = MaterialTheme.typography.bodySmall,
+                    fontSize = 10.sp,
+                    color = TextSecondary,
+                )
             }
         }
-        Text(
-            text = formatAmount(bill.amount, currency.code),
-            style = MaterialTheme.typography.titleMedium,
-            fontSize = TextSize.sm,
-            fontWeight = FontWeight.Medium,
-            color = if (isOverdue) RawColors.Rose.Rose600 else TextPrimary,
-        )
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(4.dp)
+                .background(RawColors.Slate.Slate100, RoundedCornerShape(99.dp)),
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth((percent / 100f).coerceIn(0f, 1f))
+                    .height(4.dp)
+                    .background(summary.color, RoundedCornerShape(99.dp)),
+            )
+        }
     }
 }
 
@@ -216,13 +366,39 @@ fun RecentExpensesSection(
     currency: CurrencyOption,
     onViewAll: () -> Unit,
 ) {
-    Column {
-        SectionHeader(
-            title = "Recent expenses",
-            subtitle = "Latest payments",
-            actionText = "View all",
-            onActionClick = onViewAll,
-        )
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.medium)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column {
+                Text(
+                    text = "Recent Expenses",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontSize = TextSize.base,
+                    color = TextPrimary,
+                    fontWeight = FontWeight.Medium,
+                )
+                Text(
+                    text = "Latest transactions",
+                    style = MaterialTheme.typography.bodySmall,
+                    fontSize = TextSize.xs,
+                    color = TextSecondary,
+                )
+            }
+            Text(
+                text = "View all ›",
+                style = MaterialTheme.typography.labelMedium,
+                fontSize = 11.sp,
+                color = RawColors.Emerald.Emerald600,
+                modifier = Modifier
+                    .background(RawColors.Emerald.Emerald50, RoundedCornerShape(99.dp))
+                    .clickable(onClick = onViewAll)
+                    .padding(horizontal = 10.dp, vertical = 5.dp),
+            )
+        }
+
         GlassCard(modifier = Modifier.fillMaxWidth()) {
             if (expenses.isEmpty()) {
                 Text(
@@ -233,13 +409,68 @@ fun RecentExpensesSection(
                     modifier = Modifier.padding(Spacing.large),
                 )
             } else {
-                expenses.forEachIndexed { index, expense ->
-                    ExpenseLogItem(expense = expense, currency = currency)
-                    if (index != expenses.lastIndex) {
-                        HorizontalDivider(
-                            modifier = Modifier.padding(horizontal = Spacing.large),
-                            color = RawColors.Slate.Slate900.copy(alpha = 0.06f),
-                        )
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = Spacing.small),
+                ) {
+                    expenses.forEachIndexed { index, expense ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = Spacing.medium, vertical = Spacing.small),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .background(
+                                        categoryColor(expense.category).copy(alpha = 0.14f),
+                                        RoundedCornerShape(10.dp),
+                                    ),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Icon(
+                                    imageVector = categoryIcon(expense.category),
+                                    contentDescription = null,
+                                    tint = categoryColor(expense.category),
+                                    modifier = Modifier.size(14.dp),
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.width(Spacing.small))
+
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = expense.title,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontSize = TextSize.sm,
+                                    color = TextPrimary,
+                                    fontWeight = FontWeight.Medium,
+                                )
+                                Text(
+                                    text = buildRecentSubtitle(expense),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontSize = 10.sp,
+                                    color = TextSecondary,
+                                )
+                            }
+
+                            Text(
+                                text = "-${formatAmountNoDecimals(expense.amount, currency.code)}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontSize = TextSize.sm,
+                                color = categoryColor(expense.category),
+                                fontWeight = FontWeight.Medium,
+                            )
+                        }
+
+                        if (index != expenses.lastIndex) {
+                            HorizontalDivider(
+                                modifier = Modifier.padding(horizontal = Spacing.medium),
+                                color = RawColors.Slate.Slate200.copy(alpha = 0.4f),
+                            )
+                        }
                     }
                 }
             }
@@ -247,81 +478,39 @@ fun RecentExpensesSection(
     }
 }
 
-@Composable
-private fun ExpenseLogItem(
-    expense: RecentExpense,
-    currency: CurrencyOption,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(Spacing.large),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .background(
-                    color = RawColors.Rose.Rose500.copy(alpha = 0.14f),
-                    shape = RoundedCornerShape(14.dp),
-                ),
-            contentAlignment = Alignment.Center,
-        ) {
-            androidx.compose.material3.Icon(
-                imageVector = expenseIconFor(expense.category),
-                contentDescription = null,
-                tint = RawColors.Rose.Rose600,
-                modifier = Modifier.size(16.dp),
-            )
-        }
-
-        Spacer(modifier = Modifier.width(Spacing.medium))
-
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = expense.title,
-                style = MaterialTheme.typography.bodyLarge,
-                fontSize = TextSize.base,
-                fontWeight = FontWeight.Medium,
-                color = TextPrimary,
-                letterSpacing = (-0.07).sp,
-            )
-            Spacer(modifier = Modifier.height(2.dp))
-            Text(
-                text = buildExpenseSubtitle(expense),
-                style = MaterialTheme.typography.bodySmall,
-                fontSize = TextSize.xs,
-                color = TextSecondary,
-                letterSpacing = 0.06.sp,
-            )
-        }
-
-        Text(
-            text = "- ${formatAmount(expense.amount, currency.code)}",
-            style = MaterialTheme.typography.titleMedium,
-            fontSize = TextSize.sm,
-            fontWeight = FontWeight.Medium,
-            color = RawColors.Rose.Rose600,
-            letterSpacing = (-0.29).sp,
-        )
+private fun buildRecentSubtitle(expense: RecentExpense): String {
+    val date = formatDate(expense.spentAtEpochMillis)
+    return if (expense.merchant.isNullOrBlank()) {
+        "${expense.category} · $date"
+    } else {
+        "${expense.merchant} · $date"
     }
 }
 
-private fun buildExpenseSubtitle(expense: RecentExpense): String {
-    val parts = mutableListOf<String>()
-    if (!expense.merchant.isNullOrBlank()) {
-        parts.add(expense.merchant)
+private fun categoryColor(category: String): Color {
+    return when (category.trim().lowercase()) {
+        "food", "essentials" -> Color(0xFFF97316)
+        "transport" -> RawColors.Blue.Blue500
+        "utilities" -> RawColors.Violet.Violet500
+        "shopping", "lifestyle" -> RawColors.Rose.Rose500
+        "health" -> RawColors.Red.Red500
+        "fun", "subscriptions" -> RawColors.Emerald.Emerald500
+        else -> RawColors.Slate.Slate400
     }
-    parts.add(formatDate(expense.spentAtEpochMillis))
-    return parts.joinToString(" - ")
 }
 
-private fun expenseIconFor(category: String): ImageVector {
-    return when (category.lowercase()) {
-        "essentials" -> Icons.Outlined.ShoppingBag
-        "lifestyle" -> Icons.Outlined.Restaurant
-        "transport" -> Icons.Outlined.LocalGasStation
-        "subscriptions" -> Icons.Outlined.Subscriptions
-        else -> Icons.AutoMirrored.Outlined.ReceiptLong
+private fun categoryIcon(category: String): ImageVector {
+    return when (category.trim().lowercase()) {
+        "food", "essentials" -> Icons.Outlined.LocalPizza
+        "transport" -> Icons.Outlined.LocalTaxi
+        "utilities" -> Icons.Outlined.Bolt
+        "shopping", "lifestyle" -> Icons.Outlined.ShoppingBag
+        "health" -> Icons.Outlined.LocalHospital
+        "fun", "subscriptions" -> Icons.Outlined.SportsEsports
+        else -> Icons.Outlined.TipsAndUpdates
     }
+}
+
+private fun formatAmountNoDecimals(amount: Double, currencyCode: String): String {
+    return "$currencyCode ${String.format(java.util.Locale.getDefault(), "%,.0f", amount)}"
 }

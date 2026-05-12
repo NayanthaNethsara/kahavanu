@@ -39,3 +39,5 @@
 - ViewModels expose state and actions, not one-off events.
 - UI never touches Firebase/Room directly; use repositories.
 - Prefer constructor injection and Hilt modules for wiring.
+- **Standardized UI Patterns**: Always use `SectionHeader` and `GlassCard` for new content sections. Avoid ad-hoc styling and favor shared components in `ui/common/`.
+- **Decoupled Mapping**: When adding cloud-synced models, create a dedicated `FirestoreMappers.kt` file instead of embedding transformation logic inside repositories.

@@ -30,8 +30,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import com.kahavanu.R
-import com.kahavanu.ui.theme.OnboardingTokens
+import androidx.compose.ui.text.font.FontWeight
+import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
+import androidx.compose.ui.unit.dp
 
 @Composable
 fun AuthScaffold(
@@ -43,13 +45,13 @@ fun AuthScaffold(
 ) {
     Surface(
         modifier = modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background,
+        color = RawColors.Slate.Slate50,
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             AppDecorativeGradientOverlay(
                 modifier = Modifier.offset(
-                    x = OnboardingTokens.gradientLeftOffset,
-                    y = OnboardingTokens.gradientTopOffset,
+                    x = 96.dp,
+                    y = 80.dp,
                 ),
             )
 
@@ -67,9 +69,14 @@ fun AuthScaffold(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = null,
+                        tint = RawColors.Slate.Slate600,
                     )
                     Spacer(modifier = Modifier.width(Spacing.small))
-                    Text(text = "Back")
+                    Text(
+                        text = "Back",
+                        color = RawColors.Slate.Slate600,
+                        fontWeight = FontWeight.Medium,
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(Spacing.large))
@@ -81,7 +88,7 @@ fun AuthScaffold(
                     Image(
                         painter = painterResource(id = R.drawable.kahavanu_logo),
                         contentDescription = "Kahavanu logo",
-                        modifier = Modifier.height(OnboardingTokens.headerHeight),
+                        modifier = Modifier.height(64.dp),
                     )
                 }
 
@@ -90,12 +97,13 @@ fun AuthScaffold(
                 Text(
                     text = title,
                     style = MaterialTheme.typography.headlineMedium,
-                    color = MaterialTheme.colorScheme.onBackground,
+                    color = RawColors.Slate.Slate900,
+                    fontWeight = FontWeight.Medium,
                 )
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = RawColors.Slate.Slate600,
                 )
 
                 Spacer(modifier = Modifier.height(Spacing.huge))

@@ -14,6 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.font.FontWeight
+import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 
 @Composable
@@ -31,7 +33,8 @@ fun AuthTextField(
         Text(
             text = label,
             style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onBackground,
+            color = RawColors.Slate.Slate900,
+            fontWeight = FontWeight.Medium,
         )
         Spacer(modifier = Modifier.height(Spacing.small))
         OutlinedTextField(
@@ -41,7 +44,7 @@ fun AuthTextField(
                 Text(
                     text = placeholder,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                    color = RawColors.Slate.Slate400,
                 )
             },
             leadingIcon = {
@@ -57,10 +60,12 @@ fun AuthTextField(
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = Color.White.copy(alpha = 0.8f),
                 unfocusedContainerColor = Color.White.copy(alpha = 0.8f),
-                focusedBorderColor = Color(0x99E2E8F0),
-                unfocusedBorderColor = Color(0x99E2E8F0),
-                focusedLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                unfocusedLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                focusedBorderColor = RawColors.Slate.Slate200,
+                unfocusedBorderColor = RawColors.Slate.Slate200,
+                focusedLeadingIconColor = RawColors.Slate.Slate600,
+                unfocusedLeadingIconColor = RawColors.Slate.Slate600,
+                focusedTextColor = RawColors.Slate.Slate900,
+                unfocusedTextColor = RawColors.Slate.Slate900,
             ),
             singleLine = true,
         )

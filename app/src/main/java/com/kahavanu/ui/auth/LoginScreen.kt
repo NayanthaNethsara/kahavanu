@@ -26,10 +26,12 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.compose.ui.text.font.FontWeight
 import com.kahavanu.ui.common.AuthScaffold
 import com.kahavanu.ui.common.AuthOutlinedButton
 import com.kahavanu.ui.common.AuthPrimaryButton
 import com.kahavanu.ui.common.AuthTextField
+import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 
 @Composable
@@ -117,7 +119,8 @@ fun LoginScreen(
             ) {
                 Text(
                     text = "Forgot password?",
-                    color = MaterialTheme.colorScheme.secondary,
+                    color = RawColors.Emerald.Emerald600,
+                    fontWeight = FontWeight.Medium,
                 )
             }
         }
@@ -140,7 +143,7 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(Spacing.small))
             Text(
                 text = uiState.errorMessage ?: "",
-                color = MaterialTheme.colorScheme.error,
+                color = RawColors.Red.Red600,
                 style = MaterialTheme.typography.bodySmall,
             )
         }

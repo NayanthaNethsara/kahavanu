@@ -20,10 +20,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import com.kahavanu.ui.theme.OnboardingTokens
-import com.kahavanu.ui.theme.OnboardingButtonGreen
+import com.kahavanu.ui.theme.ButtonTokens
+import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
-import com.kahavanu.ui.theme.appButtonHighlightBrush
+import com.kahavanu.ui.theme.Primary
 
 @Composable
 fun AuthPrimaryButton(
@@ -36,14 +36,10 @@ fun AuthPrimaryButton(
         onClick = onClick,
         modifier = modifier
             .fillMaxWidth()
-            .height(OnboardingTokens.buttonHeight)
-            .background(
-                brush = appButtonHighlightBrush(),
-                shape = MaterialTheme.shapes.extraLarge,
-            ),
+            .height(ButtonTokens.height),
         shape = MaterialTheme.shapes.extraLarge,
         colors = ButtonDefaults.buttonColors(
-            containerColor = OnboardingButtonGreen,
+            containerColor = Primary,
             contentColor = Color.White,
         ),
     ) {
@@ -77,12 +73,12 @@ fun AuthOutlinedButton(
         onClick = onClick,
         modifier = modifier
             .fillMaxWidth()
-            .height(OnboardingTokens.buttonHeight),
+            .height(ButtonTokens.height),
         shape = MaterialTheme.shapes.extraLarge,
-        border = BorderStroke(1.dp, Color(0xB3E2E8F0)),
+        border = BorderStroke(1.dp, RawColors.Slate.Slate200.copy(alpha = 0.8f)),
         colors = ButtonDefaults.buttonColors(
             containerColor = Color.White.copy(alpha = 0.7f),
-            contentColor = MaterialTheme.colorScheme.onBackground,
+            contentColor = RawColors.Slate.Slate900,
         ),
         elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp),
     ) {
@@ -95,12 +91,14 @@ fun AuthOutlinedButton(
                 Icon(
                     imageVector = leadingIcon,
                     contentDescription = null,
+                    tint = RawColors.Slate.Slate700,
                 )
                 Spacer(modifier = Modifier.width(Spacing.small))
             }
             Text(
                 text = text,
                 style = MaterialTheme.typography.titleMedium,
+                color = RawColors.Slate.Slate900,
             )
         }
     }

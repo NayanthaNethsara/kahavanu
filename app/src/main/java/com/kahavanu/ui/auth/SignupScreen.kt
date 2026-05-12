@@ -18,19 +18,22 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.kahavanu.ui.common.AuthScaffold
 import com.kahavanu.ui.common.AuthOutlinedButton
 import com.kahavanu.ui.common.AuthPrimaryButton
 import com.kahavanu.ui.common.AuthTextField
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.dp
+import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
+import com.kahavanu.ui.theme.Primary
 
 @Composable
 fun SignupScreen(
@@ -88,6 +91,7 @@ fun SignupScreen(
                             Icons.Outlined.Visibility
                         },
                         contentDescription = null,
+                        tint = RawColors.Slate.Slate400,
                     )
                 }
             },
@@ -101,7 +105,7 @@ fun SignupScreen(
         Text(
             text = "Must be at least 8 characters",
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = RawColors.Slate.Slate500,
         )
 
         Spacer(modifier = Modifier.height(Spacing.medium))
@@ -122,7 +126,7 @@ fun SignupScreen(
             Spacer(modifier = Modifier.height(Spacing.small))
             Text(
                 text = uiState.errorMessage ?: "",
-                color = MaterialTheme.colorScheme.error,
+                color = RawColors.Red.Red600,
                 style = MaterialTheme.typography.bodySmall,
             )
         }

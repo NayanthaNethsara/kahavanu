@@ -334,15 +334,37 @@ private fun com.google.firebase.firestore.DocumentSnapshot.toIncomeSourceEntity(
 }
 
 private fun com.google.firebase.firestore.DocumentSnapshot.toScheduledIncomeEntity(uid: String, remoteId: String): ScheduledIncomeEntity {
+    val title = getString("title")
+        ?: getString("clientDescription")
+        ?: getString("description")
+        ?: getString("name")
+        ?: ""
+    val amount = getDouble("amount")
+        ?: getLong("amount")?.toDouble()
+        ?: (get("amount") as? Number)?.toDouble()
+        ?: 0.0
+    val currency = getString("currency")
+        ?: getString("currencyCode")
+        ?: ""
+    val type = getString("type")
+        ?: getString("incomeType")
+        ?: "pending"
+    val scheduledDate = getLong("scheduledDate")
+        ?: getLong("scheduledDateEpochMillis")
+        ?: getLong("scheduledAt")
+        ?: System.currentTimeMillis()
+    val lastGenerated = getLong("lastGenerated")
+        ?: getLong("lastGeneratedEpochMillis")
+        ?: getLong("receivedAt")
     return ScheduledIncomeEntity(
         userId = uid,
-        title = getString("title") ?: "",
-        amount = getDouble("amount") ?: 0.0,
-        currency = getString("currency") ?: "",
-        type = getString("type") ?: "pending",
+        title = title,
+        amount = amount,
+        currency = currency,
+        type = type,
         frequency = getString("frequency"),
-        scheduledDateEpochMillis = getLong("scheduledDate") ?: System.currentTimeMillis(),
-        lastGeneratedEpochMillis = getLong("lastGenerated") ?: getLong("receivedAt"),
+        scheduledDateEpochMillis = scheduledDate,
+        lastGeneratedEpochMillis = lastGenerated,
         occurrenceCount = (getLong("occurrenceCount") ?: 0L).toInt(),
         sourceId = getLong("sourceId"),
         sourceName = getString("sourceName"),

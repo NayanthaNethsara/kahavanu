@@ -52,7 +52,9 @@ fun IncomeHistoryScreen(
 
     val historyItems = remember(allLogs, allScheduled, selectedFilter, searchQuery) {
         val logs = allLogs.map { HistoryItem.Log(it) }
-        val scheduled = allScheduled.map { HistoryItem.Scheduled(it) }
+        val scheduled = allScheduled
+            .filter { it.type == IncomeSourceType.PENDING && it.lastGeneratedEpochMillis == null }
+            .map { HistoryItem.Scheduled(it) }
         
         (logs + scheduled).filter { item ->
             val matchesSearch = item.title.contains(searchQuery, ignoreCase = true) || 
@@ -205,13 +207,18 @@ fun IncomeHistoryScreen(
                 } else {
                     LazyColumn {
                         itemsIndexed(historyItems) { index, item ->
-                            val isLogOverdue = isOverdue(item.timestamp) && (item is HistoryItem.Scheduled)
+                            val isLogOverdue = item is HistoryItem.Scheduled &&
+                                isOverdue(item.scheduled.scheduledDateEpochMillis)
                             val canReceive = item is HistoryItem.Scheduled &&
                                 item.scheduled.type == IncomeSourceType.PENDING &&
                                 item.scheduled.lastGeneratedEpochMillis == null
+                            val dueText = when (item) {
+                                is HistoryItem.Scheduled -> getDueText(item.scheduled.scheduledDateEpochMillis)
+                                is HistoryItem.Log -> formatDate(item.log.receivedAtEpochMillis)
+                            }
                             PersistenceListItem(
                                 title = item.title,
-                                dueText = formatDate(item.timestamp),
+                                dueText = dueText,
                                 isOverdue = isLogOverdue,
                                 isPending = canReceive,
                                 isRecurrent = item is HistoryItem.Scheduled && item.scheduled.type == IncomeSourceType.RECURRENT,

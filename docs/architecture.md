@@ -28,3 +28,17 @@ Kahavanu is a single-activity Android app built with Kotlin and Jetpack Compose.
 
 - Navigation Compose with a single activity.
 - Destinations are defined in `AppDestination` and wired in `MainTabsScreen`.
+
+## Shared Components
+
+To maintain visual consistency and a premium feel, the app uses standardized UI components:
+- **GlassCard**: A frosted-glass effect surface for primary content.
+- **SectionHeader**: A unified header for content sections with support for action links and badges.
+- **MatchingSection**: A complex component for transaction/SMS matching across Income and Expense modules.
+- **SummaryItem**: Standardized row items for categorized data display.
+
+## Data Mapping & Transformation
+
+To keep repositories lean and maintainable:
+- **Firestore Mappers**: Dedicated mapper files (`IncomeFirestoreMappers.kt`, `ExpenseFirestoreMappers.kt`) handle the transformation between raw Firestore `DocumentSnapshot` objects and local Room entities.
+- **Defensive Mapping**: Mappers include fallback logic for field naming variations and type safety for numeric values.

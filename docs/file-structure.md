@@ -8,6 +8,7 @@ app/src/main/java/com/kahavanu/
     auth/             Firebase auth repository
     common/           Shared data utilities
     income/           Income repositories, mappers, sync, local
+    expenses/         Expenses repositories, mappers, sync, local
     settings/         Settings repositories and local storage
     sync/             Base sync abstractions
   di/                 Hilt modules

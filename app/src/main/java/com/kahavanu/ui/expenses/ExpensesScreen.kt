@@ -64,7 +64,6 @@ fun ExpensesScreen(
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.large)) {
                 ExpensesSummaryCard(
                     selectedPeriod = uiState.selectedPeriod,
-                    onPeriodChange = viewModel::onPeriodChange,
                     currency = uiState.currency,
                     totalSpent = uiState.totalSpent,
                     budgetLimit = uiState.budgetLimit,

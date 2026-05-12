@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -174,6 +175,36 @@ fun QuickActionButton(
             fontSize = TextSize.xs,
             color = TextSecondary,
             fontWeight = androidx.compose.ui.text.font.FontWeight.Medium
+        )
+    }
+}
+
+@Composable
+fun SummaryItem(label: String, value: String, color: Color) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier
+                    .size(6.dp)
+                    .background(color, CircleShape)
+            )
+            Spacer(modifier = Modifier.width(Spacing.small))
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodySmall,
+                fontSize = TextSize.xs,
+                color = TextSecondary
+            )
+        }
+        Text(
+            text = value,
+            fontSize = TextSize.sm,
+            fontWeight = androidx.compose.ui.text.font.FontWeight.Medium,
+            color = RawColors.Slate.Slate900
         )
     }
 }

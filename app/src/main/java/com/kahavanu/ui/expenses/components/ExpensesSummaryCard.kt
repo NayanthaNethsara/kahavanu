@@ -11,15 +11,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import com.kahavanu.ui.common.GlassCard
+import com.kahavanu.ui.common.SummaryItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.kahavanu.ui.common.GlassCard
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
@@ -38,7 +38,6 @@ import kotlin.math.roundToInt
 @Composable
 fun ExpensesSummaryCard(
     selectedPeriod: ExpensePeriod,
-    onPeriodChange: (ExpensePeriod) -> Unit,
     currency: CurrencyOption,
     totalSpent: Double,
     budgetLimit: Double,
@@ -116,6 +115,20 @@ fun ExpensesSummaryCard(
                         total = totalForDonut,
                         modifier = Modifier.weight(1f),
                     )
+                }
+            } else if (activeSummaries.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(Spacing.large))
+                HorizontalDivider(color = RawColors.Slate.Slate200.copy(alpha = 0.4f))
+                Spacer(modifier = Modifier.height(Spacing.medium))
+
+                Column(verticalArrangement = Arrangement.spacedBy(Spacing.small)) {
+                    activeSummaries.forEach { summary ->
+                        SummaryItem(
+                            label = summary.label,
+                            value = formatAmountNoDecimals(summary.amount, currency.code),
+                            color = summary.color
+                        )
+                    }
                 }
             }
         }

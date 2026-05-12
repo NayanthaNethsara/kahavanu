@@ -11,6 +11,9 @@ sealed class AppDestination(val route: String) {
     data object IncomeSources : AppDestination("income-sources")
     data object IncomeRecurrents : AppDestination("income-recurrents")
     data object Expenses : AppDestination("expenses")
+    data object ExpenseLog : AppDestination("expense-log")
+    data object ExpenseHistory : AppDestination("expense-history")
+    data object ExpenseGraph : AppDestination("expense-graph")
     data object Goals : AppDestination("goals")
     data object Profile : AppDestination("profile")
     data object IncomeHistory : AppDestination("income-history?filter={filter}") {

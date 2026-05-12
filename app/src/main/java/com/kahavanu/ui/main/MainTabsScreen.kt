@@ -15,6 +15,9 @@ import androidx.navigation.NavType
 import com.kahavanu.domain.model.UserSession
 import com.kahavanu.ui.common.BottomNavBar
 import com.kahavanu.ui.common.TopAppHeader
+import com.kahavanu.ui.expenses.ExpenseGraphScreen
+import com.kahavanu.ui.expenses.ExpenseHistoryScreen
+import com.kahavanu.ui.expenses.ExpenseLogScreen
 import com.kahavanu.ui.expenses.ExpensesScreen
 import com.kahavanu.ui.goals.GoalsScreen
 import com.kahavanu.ui.home.HomeScreen
@@ -42,7 +45,13 @@ fun MainTabsScreen(
         AppDestination.Goals.route,
         AppDestination.Profile.route,
     )
-    val showTopBar = showBottomBar
+    val showTopBar = currentRoute in setOf(
+        AppDestination.Home.route,
+        AppDestination.Income.route,
+        AppDestination.Expenses.route,
+        AppDestination.Goals.route,
+        AppDestination.Profile.route,
+    )
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -104,7 +113,28 @@ fun MainTabsScreen(
                 )
             }
             composable(AppDestination.Expenses.route) {
-                ExpensesScreen()
+                ExpensesScreen(
+                    onLogExpense = { navController.navigate(AppDestination.ExpenseLog.route) },
+                    onViewBills = { navController.navigate(AppDestination.ExpenseHistory.route) },
+                    onViewBudgets = { navController.navigate(AppDestination.ExpenseGraph.route) },
+                    onViewHistory = { navController.navigate(AppDestination.ExpenseHistory.route) },
+                )
+            }
+            composable(AppDestination.ExpenseLog.route) {
+                ExpenseLogScreen(
+                    onBack = { navController.popBackStack() },
+                    onLogged = { navController.popBackStack() },
+                )
+            }
+            composable(AppDestination.ExpenseHistory.route) {
+                ExpenseHistoryScreen(
+                    onBack = { navController.popBackStack() },
+                )
+            }
+            composable(AppDestination.ExpenseGraph.route) {
+                ExpenseGraphScreen(
+                    onBack = { navController.popBackStack() },
+                )
             }
             composable(AppDestination.Goals.route) {
                 GoalsScreen()

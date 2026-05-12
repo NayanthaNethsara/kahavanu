@@ -14,7 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kahavanu.ui.income.components.IncomeActionButtons
-import com.kahavanu.ui.income.components.IncomeHeader
+import com.kahavanu.ui.common.ScreenHeader
 import com.kahavanu.ui.income.components.IncomeLogSection
 import com.kahavanu.ui.income.components.MatchAndCatchSection
 import com.kahavanu.ui.income.components.PersistenceSection
@@ -68,7 +68,12 @@ fun IncomeScreen(
         ),
         verticalArrangement = Arrangement.spacedBy(Spacing.extraLarge)
     ) {
-        item { IncomeHeader() }
+        item { 
+            ScreenHeader(
+                label = "Income",
+                title = "Wealth in the Air"
+            ) 
+        }
         item {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.large)) {
                 TotalExpectedCard(

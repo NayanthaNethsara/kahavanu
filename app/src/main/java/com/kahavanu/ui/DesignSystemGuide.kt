@@ -47,7 +47,7 @@ package com.kahavanu.ui
  * ### AppSurfaces / AppControls / AppSelection / AppToggles
  * Shared UI building blocks split by category:
  * - AppSurfaces: GlassCard, SectionHeader, SectionLabel
- * - AppControls: CircularIconButton, PrimaryActionButton, GradientBlob, textFieldColors
+ * - AppControls: circularIconButton modifier, PrimaryActionButton, GradientBlob, textFieldColors
  * - AppSelection: SelectableChip, SelectableCard
  * - AppToggles: AppSegmentedToggle
  *

@@ -5,13 +5,16 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.QuerySnapshot
-import com.kahavanu.data.income.local.IncomeDatabase
+import com.kahavanu.data.local.AppDatabase
 import com.kahavanu.data.income.local.IncomeLogEntity
 import com.kahavanu.data.income.local.IncomeSourceEntity
 import com.kahavanu.data.income.local.ScheduledIncomeEntity
 import com.kahavanu.data.sync.FirebaseSyncManager
 import com.kahavanu.data.income.logKey
 import com.kahavanu.data.income.normalizeTypesCsv
+import com.kahavanu.data.income.toIncomeLogEntity
+import com.kahavanu.data.income.toIncomeSourceEntity
+import com.kahavanu.data.income.toScheduledIncomeEntity
 import com.kahavanu.data.sync.SyncState
 import com.kahavanu.data.sync.awaitResultVoid
 import com.kahavanu.data.sync.awaitResultDocRef
@@ -30,7 +33,7 @@ class IncomeSyncManager @Inject constructor(
     @ApplicationContext context: Context,
     firestore: FirebaseFirestore,
     auth: FirebaseAuth,
-    private val database: IncomeDatabase,
+    private val database: AppDatabase,
 ) : FirebaseSyncManager(context, firestore, auth) {
     
     override suspend fun sync(): Result<Unit> {
@@ -297,83 +300,4 @@ class IncomeSyncManager @Inject constructor(
     }
 }
 
-private fun com.google.firebase.firestore.DocumentSnapshot.toIncomeLogEntity(uid: String, remoteId: String): IncomeLogEntity {
-    return IncomeLogEntity(
-        userId = uid,
-        title = getString("title") ?: "",
-        amount = getDouble("amount") ?: 0.0,
-        currency = getString("currency") ?: "",
-        receivedAtEpochMillis = getLong("receivedAt") ?: System.currentTimeMillis(),
-        createdAtEpochMillis = getLong("createdAt") ?: System.currentTimeMillis(),
-        sourceId = getLong("sourceId"),
-        sourceName = getString("sourceName"),
-        sourceType = getString("sourceType"),
-        isInvoiceSent = getBoolean("isInvoiceSent") ?: false,
-        frequency = getString("frequency"),
-        contactName = getString("contactName"),
-        contactNumber = getString("contactNumber"),
-        clientId = getString("clientId") ?: remoteId,
-        remoteId = remoteId,
-        isSynced = true,
-    )
-}
 
-private fun com.google.firebase.firestore.DocumentSnapshot.toIncomeSourceEntity(uid: String, remoteId: String): IncomeSourceEntity {
-    val typesList = (get("types") as? List<*>)?.mapNotNull { it as? String }?.filter { it.isNotBlank() } ?: emptyList()
-    return IncomeSourceEntity(
-        userId = uid,
-        name = getString("name") ?: "",
-        typesCsv = normalizeTypesCsv(typesList),
-        createdAtEpochMillis = getLong("createdAt") ?: System.currentTimeMillis(),
-        updatedAtEpochMillis = getLong("updatedAt") ?: System.currentTimeMillis(),
-        clientId = getString("clientId") ?: remoteId,
-        remoteId = remoteId,
-        isSynced = true,
-        isDeleted = false,
-    )
-}
-
-private fun com.google.firebase.firestore.DocumentSnapshot.toScheduledIncomeEntity(uid: String, remoteId: String): ScheduledIncomeEntity {
-    val title = getString("title")
-        ?: getString("clientDescription")
-        ?: getString("description")
-        ?: getString("name")
-        ?: ""
-    val amount = getDouble("amount")
-        ?: getLong("amount")?.toDouble()
-        ?: (get("amount") as? Number)?.toDouble()
-        ?: 0.0
-    val currency = getString("currency")
-        ?: getString("currencyCode")
-        ?: ""
-    val type = getString("type")
-        ?: getString("incomeType")
-        ?: "pending"
-    val scheduledDate = getLong("scheduledDate")
-        ?: getLong("scheduledDateEpochMillis")
-        ?: getLong("scheduledAt")
-        ?: System.currentTimeMillis()
-    val lastGenerated = getLong("lastGenerated")
-        ?: getLong("lastGeneratedEpochMillis")
-        ?: getLong("receivedAt")
-    return ScheduledIncomeEntity(
-        userId = uid,
-        title = title,
-        amount = amount,
-        currency = currency,
-        type = type,
-        frequency = getString("frequency"),
-        scheduledDateEpochMillis = scheduledDate,
-        lastGeneratedEpochMillis = lastGenerated,
-        occurrenceCount = (getLong("occurrenceCount") ?: 0L).toInt(),
-        sourceId = getLong("sourceId"),
-        sourceName = getString("sourceName"),
-        isInvoiceSent = getBoolean("isInvoiceSent") ?: false,
-        contactName = getString("contactName"),
-        contactNumber = getString("contactNumber"),
-        clientId = getString("clientId") ?: remoteId,
-        remoteId = remoteId,
-        isSynced = true,
-        isDeleted = false,
-    )
-}

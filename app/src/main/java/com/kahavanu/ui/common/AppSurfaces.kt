@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.kahavanu.ui.theme.KahavanuShapes
 import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
@@ -131,4 +132,30 @@ fun SectionLabel(text: String) {
         fontWeight = FontWeight.Medium,
         color = TextSecondary,
     )
+}
+
+@Composable
+fun ScreenHeader(
+    label: String,
+    title: String,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier.fillMaxWidth()) {
+        Text(
+            text = label.uppercase(),
+            style = MaterialTheme.typography.labelSmall,
+            fontSize = 11.sp,
+            letterSpacing = 0.7.sp,
+            color = TextSecondary,
+        )
+        Spacer(modifier = Modifier.height(Spacing.extraSmall))
+        Text(
+            text = title,
+            style = MaterialTheme.typography.headlineMedium,
+            fontSize = 29.sp,
+            fontWeight = FontWeight.Medium,
+            color = TextPrimary,
+            letterSpacing = (-0.7).sp,
+        )
+    }
 }

@@ -5,8 +5,8 @@ import androidx.room.Room
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.kahavanu.data.income.DefaultIncomeRepository
-import com.kahavanu.data.income.local.IncomeDatabase
-import com.kahavanu.data.income.local.IncomeDatabaseMigrations
+import com.kahavanu.data.local.AppDatabase
+import com.kahavanu.data.local.AppDatabaseMigrations
 import com.kahavanu.data.income.local.IncomeLogDao
 import com.kahavanu.data.income.local.IncomeSourceDao
 import com.kahavanu.data.income.sync.IncomeSyncManager
@@ -37,41 +37,43 @@ abstract class IncomeModule {
 
         @Provides
         @Singleton
-        fun provideIncomeDatabase(
+        fun provideAppDatabase(
             @ApplicationContext context: Context,
-        ): IncomeDatabase = Room.databaseBuilder(
+        ): AppDatabase = Room.databaseBuilder(
             context,
-            IncomeDatabase::class.java,
-            IncomeDatabase.DB_NAME,
+            AppDatabase::class.java,
+            AppDatabase.DB_NAME,
         )
             .addMigrations(
-                IncomeDatabaseMigrations.MIGRATION_1_2,
-                IncomeDatabaseMigrations.MIGRATION_2_3,
-                IncomeDatabaseMigrations.MIGRATION_3_4,
-                IncomeDatabaseMigrations.MIGRATION_4_5,
-                IncomeDatabaseMigrations.MIGRATION_5_6,
-                IncomeDatabaseMigrations.MIGRATION_6_7,
-                IncomeDatabaseMigrations.MIGRATION_7_8,
-                IncomeDatabaseMigrations.MIGRATION_9_10,
-                IncomeDatabaseMigrations.MIGRATION_10_11,
-                IncomeDatabaseMigrations.MIGRATION_11_12
+                AppDatabaseMigrations.MIGRATION_1_2,
+                AppDatabaseMigrations.MIGRATION_2_3,
+                AppDatabaseMigrations.MIGRATION_3_4,
+                AppDatabaseMigrations.MIGRATION_4_5,
+                AppDatabaseMigrations.MIGRATION_5_6,
+                AppDatabaseMigrations.MIGRATION_6_7,
+                AppDatabaseMigrations.MIGRATION_7_8,
+                AppDatabaseMigrations.MIGRATION_9_10,
+                AppDatabaseMigrations.MIGRATION_10_11,
+                AppDatabaseMigrations.MIGRATION_11_12,
+                AppDatabaseMigrations.MIGRATION_12_13,
+                AppDatabaseMigrations.MIGRATION_13_14
             )
             .fallbackToDestructiveMigration(dropAllTables = true)
             .build()
 
         @Provides
         fun provideIncomeLogDao(
-            database: IncomeDatabase,
+            database: AppDatabase,
         ): IncomeLogDao = database.incomeLogDao()
 
         @Provides
         fun provideIncomeSourceDao(
-            database: IncomeDatabase,
+            database: AppDatabase,
         ): IncomeSourceDao = database.incomeSourceDao()
 
         @Provides
         fun provideScheduledIncomeDao(
-            database: IncomeDatabase,
+            database: AppDatabase,
         ): com.kahavanu.data.income.local.ScheduledIncomeDao = database.scheduledIncomeDao()
 
         @Provides
@@ -80,7 +82,7 @@ abstract class IncomeModule {
             @ApplicationContext context: Context,
             firestore: FirebaseFirestore,
             auth: FirebaseAuth,
-            database: IncomeDatabase,
+            database: AppDatabase,
         ): IncomeSyncManager = IncomeSyncManager(context, firestore, auth, database)
 
         @Provides

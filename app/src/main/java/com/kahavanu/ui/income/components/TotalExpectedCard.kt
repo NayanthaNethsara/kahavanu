@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.sp
 import com.kahavanu.ui.income.IncomeBreakdownItem
 import com.kahavanu.ui.common.AppSegmentedToggle
 import com.kahavanu.ui.common.GlassCard
+import com.kahavanu.ui.common.SummaryItem
 import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
@@ -160,32 +161,4 @@ fun TotalExpectedCard(
     }
 }
 
-@Composable
-private fun SummaryItem(label: String, value: String, color: Color) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                modifier = Modifier
-                    .size(6.dp)
-                    .background(color, CircleShape)
-            )
-            Spacer(modifier = Modifier.width(Spacing.small))
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodySmall,
-                fontSize = TextSize.xs,
-                color = TextSecondary
-            )
-        }
-        Text(
-            text = value,
-            fontSize = TextSize.sm,
-            fontWeight = FontWeight.Medium,
-            color = TextPrimary
-        )
-    }
-}
+

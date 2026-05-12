@@ -4,11 +4,18 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -26,46 +33,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kahavanu.ui.theme.KahavanuShapes
 import com.kahavanu.ui.theme.RawColors
+import com.kahavanu.ui.theme.Spacing
+import com.kahavanu.ui.theme.TextPrimaryEmerald
 import com.kahavanu.ui.theme.TextSecondary
 import com.kahavanu.ui.theme.TextSize
 
-@Composable
-fun CircularIconButton(
-    icon: ImageVector,
-    contentDescription: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    size: Dp = 40.dp,
-    iconSize: Dp = 20.dp,
-    shadowElevation: Dp = 4.dp,
-    backgroundColor: Color = Color.White,
-    borderColor: Color = RawColors.Slate.Slate200.copy(alpha = 0.7f),
-    borderWidth: Dp = 0.7.dp,
-    tint: Color = TextSecondary,
-) {
-    Box(
-        modifier = modifier
-            .size(size)
-            .shadow(
-                elevation = shadowElevation,
-                shape = CircleShape,
-                ambientColor = Color.Black.copy(alpha = 0.12f),
-                spotColor = Color.Black.copy(alpha = 0.12f),
-            )
-            .background(backgroundColor, CircleShape)
-            .border(borderWidth, borderColor, CircleShape)
-            .clip(CircleShape)
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        androidx.compose.material3.Icon(
-            imageVector = icon,
-            contentDescription = contentDescription,
-            tint = tint,
-            modifier = Modifier.size(iconSize),
-        )
-    }
-}
+
 
 @Composable
 fun PrimaryActionButton(
@@ -156,3 +129,82 @@ fun textFieldColors() = OutlinedTextFieldDefaults.colors(
     errorBorderColor = MaterialTheme.colorScheme.error,
     errorContainerColor = Color.White.copy(alpha = 0.7f),
 )
+
+@Composable
+fun QuickActionButton(
+    icon: ImageVector,
+    label: String,
+    onClick: () -> Unit,
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(65.dp)
+                .shadow(
+                    elevation = 20.dp,
+                    spotColor = RawColors.Gray.Gray400,
+                    ambientColor = RawColors.Gray.Gray500,
+                    shape = KahavanuShapes.large
+                )
+                .background(
+                    color = Color.White.copy(alpha = 0.85f),
+                    shape = KahavanuShapes.large
+                )
+                .border(
+                    width = 0.5.dp,
+                    color = Color.White.copy(alpha = 0.5f),
+                    shape = KahavanuShapes.large
+                )
+                .clickable(onClick = onClick)
+                .padding(Spacing.small),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = TextSecondary,
+                modifier = Modifier.size(25.dp)
+            )
+        }
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            fontSize = TextSize.xs,
+            color = TextSecondary,
+            fontWeight = androidx.compose.ui.text.font.FontWeight.Medium
+        )
+    }
+}
+
+@Composable
+fun SummaryItem(label: String, value: String, color: Color) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier
+                    .size(6.dp)
+                    .background(color, CircleShape)
+            )
+            Spacer(modifier = Modifier.width(Spacing.small))
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodySmall,
+                fontSize = TextSize.xs,
+                color = TextSecondary
+            )
+        }
+        Text(
+            text = value,
+            fontSize = TextSize.sm,
+            fontWeight = androidx.compose.ui.text.font.FontWeight.Medium,
+            color = RawColors.Slate.Slate900
+        )
+    }
+}

@@ -1,9 +1,9 @@
-package com.kahavanu.data.income.local
+package com.kahavanu.data.local
 
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-object IncomeDatabaseMigrations {
+object AppDatabaseMigrations {
     val MIGRATION_1_2 = object : Migration(1, 2) {
         override fun migrate(db: SupportSQLiteDatabase) {
             db.execSQL(
@@ -189,6 +189,87 @@ object IncomeDatabaseMigrations {
     val MIGRATION_11_12 = object : Migration(11, 12) {
         override fun migrate(db: SupportSQLiteDatabase) {
             db.execSQL("ALTER TABLE scheduled_income ADD COLUMN occurrenceCount INTEGER NOT NULL DEFAULT 0")
+        }
+    }
+
+    val MIGRATION_12_13 = object : Migration(12, 13) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS expense_logs (
+                    localId INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    userId TEXT NOT NULL,
+                    title TEXT NOT NULL,
+                    amount REAL NOT NULL,
+                    currency TEXT NOT NULL,
+                    spentAtEpochMillis INTEGER NOT NULL,
+                    createdAtEpochMillis INTEGER NOT NULL,
+                    merchant TEXT,
+                    category TEXT NOT NULL,
+                    notes TEXT,
+                    paymentMethod TEXT NOT NULL,
+                    clientId TEXT NOT NULL,
+                    remoteId TEXT,
+                    isSynced INTEGER NOT NULL DEFAULT 0,
+                    isDeleted INTEGER NOT NULL DEFAULT 0,
+                    updatedAtEpochMillis INTEGER NOT NULL
+                )
+                """.trimIndent()
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS index_expense_logs_userId ON expense_logs(userId)"
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS index_expense_logs_spentAt ON expense_logs(spentAtEpochMillis)"
+            )
+        }
+    }
+
+    // Recreates expense_logs to match the entity exactly:
+    //   - paymentMethod is nullable (TEXT, no NOT NULL)
+    //   - isSynced / isDeleted have no explicit DEFAULT clause
+    //   - drops the extra index_expense_logs_spentAt that was created in 12->13
+    val MIGRATION_13_14 = object : Migration(13, 14) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS expense_logs_new (
+                    localId INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    userId TEXT NOT NULL,
+                    title TEXT NOT NULL,
+                    amount REAL NOT NULL,
+                    currency TEXT NOT NULL,
+                    spentAtEpochMillis INTEGER NOT NULL,
+                    createdAtEpochMillis INTEGER NOT NULL,
+                    merchant TEXT,
+                    category TEXT NOT NULL,
+                    notes TEXT,
+                    paymentMethod TEXT,
+                    clientId TEXT NOT NULL,
+                    remoteId TEXT,
+                    isSynced INTEGER NOT NULL,
+                    isDeleted INTEGER NOT NULL,
+                    updatedAtEpochMillis INTEGER NOT NULL
+                )
+                """.trimIndent()
+            )
+            db.execSQL(
+                """
+                INSERT INTO expense_logs_new
+                    (localId, userId, title, amount, currency, spentAtEpochMillis,
+                     createdAtEpochMillis, merchant, category, notes, paymentMethod,
+                     clientId, remoteId, isSynced, isDeleted, updatedAtEpochMillis)
+                SELECT  localId, userId, title, amount, currency, spentAtEpochMillis,
+                        createdAtEpochMillis, merchant, category, notes, paymentMethod,
+                        clientId, remoteId, isSynced, isDeleted, updatedAtEpochMillis
+                FROM expense_logs
+                """.trimIndent()
+            )
+            db.execSQL("DROP TABLE expense_logs")
+            db.execSQL("ALTER TABLE expense_logs_new RENAME TO expense_logs")
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS index_expense_logs_userId ON expense_logs(userId)"
+            )
         }
     }
 }

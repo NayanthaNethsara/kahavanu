@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.kahavanu.ui.common.CircularIconButton
+import com.kahavanu.ui.theme.circularIconButton
 import com.kahavanu.ui.common.GlassCard
 import com.kahavanu.ui.common.GradientBlob
 import com.kahavanu.ui.income.components.*
@@ -98,11 +98,16 @@ fun IncomeHistoryScreen(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                CircularIconButton(
-                    icon = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
-                    onClick = onBack
-                )
+                IconButton(
+                    onClick = onBack,
+                    modifier = Modifier.circularIconButton()
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = RawColors.Emerald.Emerald600
+                    )
+                }
                 Spacer(modifier = Modifier.width(Spacing.medium))
                 Column {
                     Text(

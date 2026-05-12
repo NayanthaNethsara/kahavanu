@@ -18,7 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
+import com.kahavanu.ui.common.GlassCard
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -65,22 +65,13 @@ fun ExpensesSummaryCard(
         ExpensePeriod.Year -> "Total spent · ${java.time.Year.now().value}"
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .shadow(
-                elevation = 16.dp,
-                spotColor = RawColors.Slate.Slate900.copy(alpha = 0.1f),
-                ambientColor = RawColors.Slate.Slate900.copy(alpha = 0.1f),
-                shape = RoundedCornerShape(24.dp),
-            )
-            .background(
-                color = Color.White.copy(alpha = 0.72f),
-                shape = RoundedCornerShape(24.dp),
-            )
-            .padding(Spacing.large),
+    GlassCard(
+        modifier = Modifier.fillMaxWidth()
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(Spacing.medium)) {
+        Column(
+            modifier = Modifier.padding(Spacing.large),
+            verticalArrangement = Arrangement.spacedBy(Spacing.medium)
+        ) {
             Text(
                 text = headerLabel,
                 style = MaterialTheme.typography.bodySmall,

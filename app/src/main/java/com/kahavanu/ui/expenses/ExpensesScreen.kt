@@ -73,6 +73,9 @@ fun ExpensesScreen(
                 )
                 ExpensesActionButtons(
                     onLogExpense = onLogExpense,
+                    onViewBills = onViewBills,
+                    onViewBudgets = onViewBudgets,
+                    onViewHistory = onViewHistory,
                 )
             }
         }

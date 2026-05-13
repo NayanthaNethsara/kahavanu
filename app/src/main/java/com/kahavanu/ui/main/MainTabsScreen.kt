@@ -62,11 +62,13 @@ fun MainTabsScreen(
                 )
             }
         },
-    ) {
+    ) { innerPadding ->
         NavHost(
             navController = navController,
             startDestination = AppDestination.Home.route,
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
         ) {
             composable(AppDestination.Home.route) {
                 HomeScreen(

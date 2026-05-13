@@ -70,6 +70,11 @@ class DefaultAuthRepository @Inject constructor(
         auth.signOut()
     }
 
+    override suspend fun deleteAccount(): Result<Unit> {
+        return auth.currentUser?.delete()?.awaitUnitResult()
+            ?: Result.failure(IllegalStateException("No user logged in"))
+    }
+
     fun cleanup() {
         auth.removeAuthStateListener(authStateListener)
     }

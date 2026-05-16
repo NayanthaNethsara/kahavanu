@@ -7,7 +7,10 @@ import com.kahavanu.data.sync.SyncEntity
 
 @Entity(
     tableName = "goal_logs",
-    indices = [Index("userId")],
+    indices = [
+        Index("userId"),
+        Index("clientId", unique = true),
+    ],
 )
 data class GoalLogEntity(
     @PrimaryKey(autoGenerate = true)

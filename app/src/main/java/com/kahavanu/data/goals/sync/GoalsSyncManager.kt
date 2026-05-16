@@ -70,7 +70,7 @@ class GoalsSyncManager @Inject constructor(
 
         snapshot.documents.forEach { doc ->
             val remoteId = doc.id
-            val existing = dao.getByRemoteId(remoteId)
+            val existing = dao.getByRemoteId(remoteId) ?: dao.getByClientId(remoteId)
             val entity = doc.toGoalLogEntity(uid, remoteId, localId = existing?.localId ?: 0L)
             dao.upsert(entity)
         }

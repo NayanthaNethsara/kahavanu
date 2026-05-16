@@ -164,7 +164,7 @@ class DefaultGoalsRepository @Inject constructor(
                     snapshot.documentChanges.forEach { change ->
                         val doc = change.document
                         val remoteId = doc.id
-                        val existing = goalLogDao.getByRemoteId(remoteId)
+                        val existing = goalLogDao.getByRemoteId(remoteId) ?: goalLogDao.getByClientId(remoteId)
                         when (change.type) {
                             DocumentChange.Type.ADDED, DocumentChange.Type.MODIFIED -> {
                                 val entity = doc.toGoalLogEntity(uid, remoteId, existing?.localId ?: 0L)

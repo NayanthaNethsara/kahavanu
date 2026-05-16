@@ -122,6 +122,17 @@ class DefaultGoalsRepository @Inject constructor(
         return Result.success(Unit)
     }
 
+    override suspend fun adjustSavedAmount(goalId: String, delta: Double): Result<Unit> {
+        val existing = goalLogDao.getByClientId(goalId) ?: goalLogDao.getByRemoteId(goalId)
+            ?: return Result.failure(IllegalArgumentException("Goal not found: $goalId"))
+        val newAmount = (existing.currentAmount + delta).coerceAtLeast(0.0)
+        val updated = existing.toDomain().copy(
+            currentAmount = newAmount,
+            isCompleted = existing.targetAmount > 0.0 && newAmount >= existing.targetAmount,
+        )
+        return updateGoal(updated)
+    }
+
     override suspend fun deleteGoal(id: String): Result<Unit> {
         val uid = auth.currentUser?.uid
             ?: return Result.failure(IllegalStateException("User not authenticated"))

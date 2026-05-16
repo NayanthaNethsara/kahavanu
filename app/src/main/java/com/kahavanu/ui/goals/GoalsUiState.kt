@@ -11,6 +11,8 @@ data class GoalsUiState(
     val totalTargetAmount: Double = 0.0,
     val totalSavedAmount: Double = 0.0,
     val currency: CurrencyOption = CurrencyOption.LKR,
+    val activeGoalSoftLimit: Int = 5,
+    val isAtActiveGoalLimit: Boolean = false,
 )
 
 data class GoalSetupUiState(

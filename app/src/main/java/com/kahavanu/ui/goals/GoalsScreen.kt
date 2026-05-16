@@ -74,7 +74,10 @@ fun GoalsScreen(
             ActiveGoalsSection(
                 goals = uiState.activeGoals,
                 currency = uiState.currency,
+                softLimit = uiState.activeGoalSoftLimit,
+                isAtLimit = uiState.isAtActiveGoalLimit,
                 onAddGoal = onAddGoal,
+                onAdjustSaved = viewModel::adjustSavedAmount,
             )
         }
         item {

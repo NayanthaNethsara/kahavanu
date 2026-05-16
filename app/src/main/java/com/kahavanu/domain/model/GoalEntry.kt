@@ -20,4 +20,5 @@ data class GoalEntry(
     val targetDateEpochMillis: Long?,
     val isCompleted: Boolean,
     val createdAtEpochMillis: Long,
+    val lastUpdatedEpochMillis: Long = createdAtEpochMillis,
 )

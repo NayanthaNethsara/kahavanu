@@ -16,6 +16,7 @@ fun GoalLogEntity.toDomain(): GoalEntry = GoalEntry(
     targetDateEpochMillis = targetDateEpochMillis,
     isCompleted = isCompleted,
     createdAtEpochMillis = createdAtEpochMillis,
+    lastUpdatedEpochMillis = updatedAtEpochMillis,
 )
 
 fun GoalEntry.toEntity(userId: String): GoalLogEntity = GoalLogEntity(

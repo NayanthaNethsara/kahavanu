@@ -20,6 +20,8 @@ import com.kahavanu.ui.expenses.ExpenseHistoryScreen
 import com.kahavanu.ui.expenses.ExpenseLogScreen
 import com.kahavanu.ui.expenses.ExpensesScreen
 import com.kahavanu.ui.goals.GoalsScreen
+import com.kahavanu.ui.goals.GoalSetupScreen
+import com.kahavanu.ui.goals.GoalStatsScreen
 import com.kahavanu.ui.home.HomeScreen
 import com.kahavanu.ui.income.IncomeLogScreen
 import com.kahavanu.ui.income.IncomeHistoryScreen
@@ -137,7 +139,21 @@ fun MainTabsScreen(
                 )
             }
             composable(AppDestination.Goals.route) {
-                GoalsScreen()
+                GoalsScreen(
+                    onAddGoal = { navController.navigate(AppDestination.GoalSetup.route) },
+                    onViewStats = { navController.navigate(AppDestination.GoalStats.route) },
+                )
+            }
+            composable(AppDestination.GoalSetup.route) {
+                GoalSetupScreen(
+                    onBack = { navController.popBackStack() },
+                    onSaved = { navController.popBackStack() },
+                )
+            }
+            composable(AppDestination.GoalStats.route) {
+                GoalStatsScreen(
+                    onBack = { navController.popBackStack() },
+                )
             }
             composable(AppDestination.Profile.route) {
                 ProfileScreen()

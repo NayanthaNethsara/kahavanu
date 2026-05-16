@@ -272,4 +272,61 @@ object AppDatabaseMigrations {
             )
         }
     }
+
+    val MIGRATION_16_17 = object : Migration(16, 17) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS goal_adjustment_logs (
+                    localId INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    goalClientId TEXT NOT NULL,
+                    userId TEXT NOT NULL,
+                    delta REAL NOT NULL,
+                    newAmount REAL NOT NULL,
+                    timestampEpochMillis INTEGER NOT NULL
+                )
+                """.trimIndent()
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS index_goal_adjustment_logs_goalClientId ON goal_adjustment_logs(goalClientId)"
+            )
+        }
+    }
+
+    val MIGRATION_15_16 = object : Migration(15, 16) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                "CREATE UNIQUE INDEX IF NOT EXISTS index_goal_logs_clientId ON goal_logs(clientId)"
+            )
+        }
+    }
+
+    val MIGRATION_14_15 = object : Migration(14, 15) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS goal_logs (
+                    localId INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    userId TEXT NOT NULL,
+                    title TEXT NOT NULL,
+                    targetAmount REAL NOT NULL,
+                    currentAmount REAL NOT NULL,
+                    currency TEXT NOT NULL,
+                    category TEXT NOT NULL,
+                    targetDateEpochMillis INTEGER,
+                    isCompleted INTEGER NOT NULL,
+                    createdAtEpochMillis INTEGER NOT NULL,
+                    clientId TEXT NOT NULL,
+                    remoteId TEXT,
+                    isSynced INTEGER NOT NULL,
+                    isDeleted INTEGER NOT NULL,
+                    updatedAtEpochMillis INTEGER NOT NULL
+                )
+                """.trimIndent()
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS index_goal_logs_userId ON goal_logs(userId)"
+            )
+        }
+    }
 }

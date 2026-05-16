@@ -10,6 +10,8 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.SetOptions
 import com.kahavanu.data.common.awaitResult
+import com.kahavanu.data.goals.local.GoalAdjustmentLogDao
+import com.kahavanu.data.goals.local.GoalAdjustmentLogEntity
 import com.kahavanu.data.goals.local.GoalLogDao
 import com.kahavanu.data.goals.sync.GoalsSyncScheduler
 import com.kahavanu.domain.model.GoalEntry
@@ -33,6 +35,7 @@ class DefaultGoalsRepository @Inject constructor(
     private val firestore: FirebaseFirestore,
     private val auth: FirebaseAuth,
     private val goalLogDao: GoalLogDao,
+    private val goalAdjustmentLogDao: GoalAdjustmentLogDao,
     private val syncScheduler: GoalsSyncScheduler,
     @ApplicationContext private val appContext: Context,
 ) : GoalsRepository {
@@ -56,6 +59,9 @@ class DefaultGoalsRepository @Inject constructor(
         auth.addAuthStateListener(authStateListener)
         auth.currentUser?.uid?.let { startRealtimeListeners(it) }
     }
+
+    override fun observeAdjustmentLogs(goalClientId: String): Flow<List<GoalAdjustmentLogEntity>> =
+        goalAdjustmentLogDao.observeLogsForGoal(goalClientId)
 
     override fun observeGoals(): Flow<List<GoalEntry>> {
         val uid = auth.currentUser?.uid ?: return flowOf(emptyList())
@@ -123,12 +129,22 @@ class DefaultGoalsRepository @Inject constructor(
     }
 
     override suspend fun adjustSavedAmount(goalId: String, delta: Double): Result<Unit> {
+        val uid = auth.currentUser?.uid
+            ?: return Result.failure(IllegalStateException("User not authenticated"))
         val existing = goalLogDao.getByClientId(goalId) ?: goalLogDao.getByRemoteId(goalId)
             ?: return Result.failure(IllegalArgumentException("Goal not found: $goalId"))
         val newAmount = (existing.currentAmount + delta).coerceAtLeast(0.0)
         val updated = existing.toDomain().copy(
             currentAmount = newAmount,
             isCompleted = existing.targetAmount > 0.0 && newAmount >= existing.targetAmount,
+        )
+        goalAdjustmentLogDao.insert(
+            GoalAdjustmentLogEntity(
+                goalClientId = existing.clientId,
+                userId = uid,
+                delta = delta,
+                newAmount = newAmount,
+            )
         )
         return updateGoal(updated)
     }

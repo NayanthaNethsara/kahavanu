@@ -4,6 +4,7 @@ import android.content.Context
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.kahavanu.data.goals.DefaultGoalsRepository
+import com.kahavanu.data.goals.local.GoalAdjustmentLogDao
 import com.kahavanu.data.goals.local.GoalLogDao
 import com.kahavanu.data.goals.sync.GoalsSyncManager
 import com.kahavanu.data.goals.sync.GoalsSyncScheduler
@@ -30,6 +31,9 @@ abstract class GoalsModule {
     companion object {
         @Provides
         fun provideGoalLogDao(database: AppDatabase): GoalLogDao = database.goalLogDao()
+
+        @Provides
+        fun provideGoalAdjustmentLogDao(database: AppDatabase): GoalAdjustmentLogDao = database.goalAdjustmentLogDao()
 
         @Provides
         @Singleton

@@ -24,6 +24,8 @@ import com.kahavanu.ui.theme.Spacing
 @Composable
 fun GoalsScreen(
     onAddGoal: () -> Unit = {},
+    onViewCompleted: () -> Unit = {},
+    onViewStats: () -> Unit = {},
     viewModel: GoalsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -65,8 +67,9 @@ fun GoalsScreen(
                 )
                 GoalsActionButtons(
                     onAddGoal = onAddGoal,
-                    onViewCompleted = {},
-                    onViewAll = {},
+                    onViewCompleted = onViewCompleted,
+                    onViewStats = onViewStats,
+                    onToggleSort = viewModel::toggleSortMode,
                 )
             }
         }

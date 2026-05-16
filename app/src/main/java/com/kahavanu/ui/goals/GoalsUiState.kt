@@ -5,6 +5,12 @@ import com.kahavanu.domain.model.GoalCategory
 import com.kahavanu.domain.model.GoalEntry
 import java.time.LocalDate
 
+enum class GoalSortMode(val label: String) {
+    BY_PROGRESS("Progress"),
+    BY_REMAINING("Remaining"),
+    BY_DATE("Target Date"),
+}
+
 data class GoalsUiState(
     val activeGoals: List<GoalEntry> = emptyList(),
     val completedGoals: List<GoalEntry> = emptyList(),
@@ -13,6 +19,7 @@ data class GoalsUiState(
     val currency: CurrencyOption = CurrencyOption.LKR,
     val activeGoalSoftLimit: Int = 5,
     val isAtActiveGoalLimit: Boolean = false,
+    val sortMode: GoalSortMode = GoalSortMode.BY_PROGRESS,
 )
 
 data class GoalSetupUiState(

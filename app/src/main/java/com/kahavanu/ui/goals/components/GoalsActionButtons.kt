@@ -6,7 +6,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.CheckCircle
-import androidx.compose.material.icons.outlined.Flag
+import androidx.compose.material.icons.outlined.BarChart
+import androidx.compose.material.icons.outlined.Sort
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.kahavanu.ui.common.QuickActionButton
@@ -15,7 +16,8 @@ import com.kahavanu.ui.common.QuickActionButton
 fun GoalsActionButtons(
     onAddGoal: () -> Unit,
     onViewCompleted: () -> Unit,
-    onViewAll: () -> Unit,
+    onViewStats: () -> Unit,
+    onToggleSort: () -> Unit,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -32,9 +34,14 @@ fun GoalsActionButtons(
             onClick = onViewCompleted,
         )
         QuickActionButton(
-            icon = Icons.Outlined.Flag,
-            label = "All Goals",
-            onClick = onViewAll,
+            icon = Icons.Outlined.BarChart,
+            label = "Stats",
+            onClick = onViewStats,
+        )
+        QuickActionButton(
+            icon = Icons.Outlined.Sort,
+            label = "Sort",
+            onClick = onToggleSort,
         )
     }
 }

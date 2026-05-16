@@ -4,6 +4,8 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import com.kahavanu.data.expenses.local.ExpenseLogEntity
 import com.kahavanu.data.expenses.local.ExpenseLogDao
+import com.kahavanu.data.goals.local.GoalLogDao
+import com.kahavanu.data.goals.local.GoalLogEntity
 import com.kahavanu.data.income.local.IncomeLogEntity
 import com.kahavanu.data.income.local.IncomeLogDao
 import com.kahavanu.data.income.local.IncomeSourceEntity
@@ -15,13 +17,14 @@ import com.kahavanu.data.settings.local.UserSettingsEntity
 
 @Database(
     entities = [
-        IncomeLogEntity::class, 
-        IncomeSourceEntity::class, 
+        IncomeLogEntity::class,
+        IncomeSourceEntity::class,
         UserSettingsEntity::class,
         ScheduledIncomeEntity::class,
-        ExpenseLogEntity::class
+        ExpenseLogEntity::class,
+        GoalLogEntity::class,
     ],
-    version = 14,
+    version = 15,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -30,6 +33,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun userSettingsDao(): UserSettingsDao
     abstract fun scheduledIncomeDao(): ScheduledIncomeDao
     abstract fun expenseLogDao(): ExpenseLogDao
+    abstract fun goalLogDao(): GoalLogDao
 
     companion object {
         const val DB_NAME = "kahavanu.db"

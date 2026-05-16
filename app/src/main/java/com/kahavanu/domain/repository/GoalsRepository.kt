@@ -1,0 +1,11 @@
+package com.kahavanu.domain.repository
+
+import com.kahavanu.domain.model.GoalEntry
+import kotlinx.coroutines.flow.Flow
+
+interface GoalsRepository {
+    fun observeGoals(): Flow<List<GoalEntry>>
+    suspend fun addGoal(goal: GoalEntry): Result<Unit>
+    suspend fun updateGoal(goal: GoalEntry): Result<Unit>
+    suspend fun deleteGoal(id: String): Result<Unit>
+}

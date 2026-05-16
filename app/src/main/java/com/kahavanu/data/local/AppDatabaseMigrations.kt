@@ -272,4 +272,33 @@ object AppDatabaseMigrations {
             )
         }
     }
+
+    val MIGRATION_14_15 = object : Migration(14, 15) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS goal_logs (
+                    localId INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    userId TEXT NOT NULL,
+                    title TEXT NOT NULL,
+                    targetAmount REAL NOT NULL,
+                    currentAmount REAL NOT NULL,
+                    currency TEXT NOT NULL,
+                    category TEXT NOT NULL,
+                    targetDateEpochMillis INTEGER,
+                    isCompleted INTEGER NOT NULL,
+                    createdAtEpochMillis INTEGER NOT NULL,
+                    clientId TEXT NOT NULL,
+                    remoteId TEXT,
+                    isSynced INTEGER NOT NULL,
+                    isDeleted INTEGER NOT NULL,
+                    updatedAtEpochMillis INTEGER NOT NULL
+                )
+                """.trimIndent()
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS index_goal_logs_userId ON goal_logs(userId)"
+            )
+        }
+    }
 }

@@ -163,7 +163,7 @@ fun TreasureCard(
                             text = "You are earning faster than you are spending this week. Keep it up!",
                             style = MaterialTheme.typography.bodySmall,
                             color = RawColors.Emerald.Emerald700,
-                            fontSize = 11.5.sp
+                            fontSize = 12.sp
                         )
                     }
                 }

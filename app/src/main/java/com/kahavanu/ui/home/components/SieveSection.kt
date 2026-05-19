@@ -2,6 +2,7 @@ package com.kahavanu.ui.home.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,15 +26,13 @@ import androidx.compose.material.icons.automirrored.outlined.TrendingUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -42,6 +41,7 @@ import androidx.compose.ui.unit.sp
 import com.kahavanu.ui.home.SieveItem
 import com.kahavanu.ui.home.SieveType
 import com.kahavanu.ui.common.SectionHeader
+import com.kahavanu.ui.common.GlassCard
 import com.kahavanu.ui.theme.CornerRadius
 import com.kahavanu.ui.theme.Elevation
 import com.kahavanu.ui.theme.RawColors
@@ -65,6 +65,8 @@ fun SieveSection(
                 badgeCount = items.size.toString()
             )
         }
+
+        Spacer(modifier = Modifier.height(Spacing.small))
 
         LazyRow(
             modifier = Modifier.fillMaxWidth(),
@@ -92,127 +94,60 @@ fun SieveCard(
     val isExpense = item.type == SieveType.EXPENSE
     
     val icon = if (isExpense) Icons.AutoMirrored.Outlined.TrendingDown else Icons.AutoMirrored.Outlined.TrendingUp
-    val categoryColor = if (isExpense) RawColors.Red.Red500 else RawColors.Emerald.Emerald600
-    val categoryBg = if (isExpense) RawColors.Red.Red50.copy(alpha = 0.5f) else RawColors.Emerald.Emerald50.copy(alpha = 0.5f)
+    val accentColor = if (isExpense) RawColors.Red.Red600 else RawColors.Emerald.Emerald600
+    val badgeBg = if (isExpense) RawColors.Red.Red50.copy(alpha = 0.6f) else RawColors.Emerald.Emerald50.copy(alpha = 0.6f)
     val badgeLabel = if (isExpense) "Expense" else "Income"
 
-    Surface(
-        modifier = modifier
-            .width(240.dp)
-            .shadow(Elevation.level3, shape = RoundedCornerShape(CornerRadius.large)),
-        shape = RoundedCornerShape(CornerRadius.large),
-        color = Color.White.copy(alpha = 0.85f),
-        border = androidx.compose.foundation.BorderStroke(1.dp, RawColors.Slate.Slate200.copy(alpha = 0.8f))
+    GlassCard(
+        modifier = modifier.width(180.dp),
+        backgroundColor = Color.White.copy(alpha = 0.9f),
+        borderColor = RawColors.Slate.Slate200.copy(alpha = 0.6f),
+        shadowElevation = Elevation.level1
     ) {
         Column(
             modifier = Modifier.padding(Spacing.medium)
         ) {
+            // Top Row: Category/Type Badge + Close Button
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(28.dp)
-                        .background(categoryBg, RoundedCornerShape(8.dp)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = badgeLabel,
-                        tint = categoryColor,
-                        modifier = Modifier.size(14.dp)
-                    )
-                }
-
+                // Compact Category/Type Badge
                 Surface(
-                    color = categoryBg,
-                    shape = CircleShape
-                ) {
-                    Text(
-                        text = badgeLabel.uppercase(),
-                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = categoryColor,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 9.sp,
-                        letterSpacing = 0.5.sp
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(Spacing.medium))
-
-            Text(
-                text = item.title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Medium,
-                color = TextPrimary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            Text(
-                text = "${item.currency} ${String.format("%,.0f", item.amount)}",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = TextPrimary
-            )
-
-            Spacer(modifier = Modifier.height(Spacing.extraSmall))
-
-            Text(
-                text = item.detectedFrom,
-                style = MaterialTheme.typography.bodySmall,
-                color = TextTertiary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            Spacer(modifier = Modifier.height(Spacing.medium))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(Spacing.small),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Button(
-                    onClick = onConfirm,
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(36.dp),
-                    shape = CircleShape,
-                    colors = ButtonDefaults.buttonColors(containerColor = RawColors.Emerald.Emerald500),
-                    contentPadding = PaddingValues(horizontal = Spacing.small)
+                    color = badgeBg,
+                    shape = RoundedCornerShape(CornerRadius.small)
                 ) {
                     Row(
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Filled.Check,
-                            contentDescription = "Confirm",
-                            tint = Color.White,
-                            modifier = Modifier.size(14.dp)
+                            imageVector = icon,
+                            contentDescription = null,
+                            tint = accentColor,
+                            modifier = Modifier.size(10.dp)
                         )
-                        Spacer(modifier = Modifier.width(Spacing.extraSmall))
                         Text(
-                            text = "Confirm",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = Color.White,
+                            text = badgeLabel,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = accentColor,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 12.sp
+                            fontSize = 11.sp,
+                            letterSpacing = 0.2.sp
                         )
                     }
                 }
 
-                IconButton(
-                    onClick = onIgnore,
+                // Small minimal dismiss button with improved touch target size (28.dp)
+                Box(
                     modifier = Modifier
-                        .size(36.dp)
-                        .border(1.dp, RawColors.Slate.Slate200, CircleShape),
-                    colors = IconButtonDefaults.iconButtonColors(containerColor = Color.White)
+                        .size(28.dp)
+                        .clip(CircleShape)
+                        .background(RawColors.Slate.Slate100.copy(alpha = 0.5f))
+                        .clickable { onIgnore() },
+                    contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.Close,
@@ -222,6 +157,74 @@ fun SieveCard(
                     )
                 }
             }
+
+            Spacer(modifier = Modifier.height(Spacing.small))
+
+            // Transaction Details
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = "${item.currency} ${String.format("%,.0f", item.amount)}",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary,
+                    fontSize = 16.sp
+                )
+                
+                Spacer(modifier = Modifier.height(2.dp))
+
+                Text(
+                    text = item.title,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                    color = TextPrimary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Text(
+                    text = item.detectedFrom,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextTertiary,
+                    fontSize = 12.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+
+            Spacer(modifier = Modifier.height(Spacing.medium))
+
+            // Confirm Button (Full Width, Sleek)
+            Button(
+                onClick = onConfirm,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(32.dp),
+                shape = RoundedCornerShape(CornerRadius.medium),
+                colors = ButtonDefaults.buttonColors(containerColor = RawColors.Emerald.Emerald500),
+                contentPadding = PaddingValues(0.dp)
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Check,
+                        contentDescription = "Confirm",
+                        tint = Color.White,
+                        modifier = Modifier.size(12.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "Confirm",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 12.sp
+                    )
+                }
+            }
         }
     }
 }
+

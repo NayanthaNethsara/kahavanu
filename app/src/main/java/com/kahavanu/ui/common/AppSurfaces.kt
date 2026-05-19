@@ -120,7 +120,7 @@ fun SectionHeader(
             )
         }
     }
-    Spacer(modifier = Modifier.height(Spacing.large))
+    Spacer(modifier = Modifier.height(Spacing.small))
 }
 
 @Composable

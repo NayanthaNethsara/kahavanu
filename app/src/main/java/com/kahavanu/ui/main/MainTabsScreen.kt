@@ -87,6 +87,20 @@ fun MainTabsScreen(
             composable(AppDestination.Home.route) {
                 HomeScreen(
                     currentSession = currentSession,
+                    onGoalClick = {
+                        navController.navigate(AppDestination.Goals.route) {
+                            popUpTo(AppDestination.Home.route) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    onIncomeClick = {
+                        navController.navigate(AppDestination.Income.route) {
+                            popUpTo(AppDestination.Home.route) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
                 )
             }
             composable(AppDestination.Income.route) {

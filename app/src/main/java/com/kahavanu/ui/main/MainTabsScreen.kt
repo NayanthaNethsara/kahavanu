@@ -87,6 +87,8 @@ fun MainTabsScreen(
             composable(AppDestination.Home.route) {
                 HomeScreen(
                     currentSession = currentSession,
+                    onGoalClick = { navController.navigate(AppDestination.Goals.route) },
+                    onIncomeClick = { navController.navigate(AppDestination.Income.route) },
                 )
             }
             composable(AppDestination.Income.route) {

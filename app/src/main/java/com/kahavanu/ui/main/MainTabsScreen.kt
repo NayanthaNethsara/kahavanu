@@ -31,6 +31,7 @@ import com.kahavanu.ui.income.IncomeSourcesScreen
 import com.kahavanu.ui.income.HistoryFilter
 import com.kahavanu.ui.navigation.AppDestination
 import com.kahavanu.ui.profile.ProfileScreen
+import com.kahavanu.ui.sieve.SmsSenderSettingsScreen
 
 @Composable
 fun MainTabsScreen(
@@ -72,7 +73,7 @@ fun MainTabsScreen(
                         navController.navigate(destination.route) {
                             popUpTo(AppDestination.Home.route) { saveState = true }
                             launchSingleTop = true
-                            restoreState = true
+                            restoreState = destination.route != AppDestination.Home.route
                         }
                     },
                 )
@@ -170,7 +171,16 @@ fun MainTabsScreen(
                 )
             }
             composable(AppDestination.Profile.route) {
-                ProfileScreen()
+                ProfileScreen(
+                    onNavigateToSmsSenders = {
+                        navController.navigate(AppDestination.SmsSenderSettings.route)
+                    }
+                )
+            }
+            composable(AppDestination.SmsSenderSettings.route) {
+                SmsSenderSettingsScreen(
+                    onBack = { navController.popBackStack() }
+                )
             }
             composable(
                 route = AppDestination.IncomeHistory.route,

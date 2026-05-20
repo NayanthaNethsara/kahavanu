@@ -16,4 +16,10 @@ interface UserSettingsDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(settings: UserSettingsEntity)
+
+    @Query("UPDATE user_settings SET lastSmsScanEpochMillis = :epochMillis WHERE userId = :userId")
+    suspend fun updateLastSmsScan(userId: String, epochMillis: Long)
+
+    @Query("SELECT lastSmsScanEpochMillis FROM user_settings WHERE userId = :userId")
+    suspend fun getLastSmsScan(userId: String): Long?
 }

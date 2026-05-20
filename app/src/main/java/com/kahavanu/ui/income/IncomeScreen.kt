@@ -34,6 +34,7 @@ fun IncomeScreen(
 ) {
     val logs by viewModel.incomeLogs.collectAsStateWithLifecycle()
     val scheduledIncomes by viewModel.scheduledIncomes.collectAsStateWithLifecycle()
+    val incomeSuggestions by viewModel.incomeSuggestions.collectAsStateWithLifecycle()
     val totalIncomeByCurrency by viewModel.totalIncomeByCurrency.collectAsStateWithLifecycle()
     val totalReceivedByCurrency by viewModel.totalReceivedByCurrency.collectAsStateWithLifecycle()
     val breakdownsByCurrency by viewModel.breakdownsByCurrency.collectAsStateWithLifecycle()
@@ -91,7 +92,14 @@ fun IncomeScreen(
                 )
             }
         }
-        item { MatchAndCatchSection() }
+        item {
+            MatchAndCatchSection(
+                items = incomeSuggestions,
+                onConfirm = viewModel::confirmIncomeSuggestion,
+                onLogAsNew = viewModel::confirmIncomeSuggestion,
+                onDismiss = viewModel::dismissIncomeSuggestion,
+            )
+        }
         item { 
             PersistenceSection(
                 scheduledItems = pendingScheduled,

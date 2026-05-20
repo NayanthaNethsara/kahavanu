@@ -29,27 +29,31 @@ import kotlin.math.roundToInt
 fun MatchAndCategorizeSection(
     items: List<PendingExpenseMatch>,
     currency: CurrencyOption,
+    onConfirm: (String) -> Unit = {},
+    onDismiss: (String) -> Unit = {},
 ) {
+    if (items.isEmpty()) return
+
     MatchingSection(
         title = "Match & Categorize",
-        subtitle = "Uncategorized expenses from SMS",
+        subtitle = "Expenses detected from SMS",
         items = items.map { item ->
             MatchItemState(
                 id = item.id,
-                title = "Unknown Merchant",
+                title = item.title,
                 subtitle = item.receivedAtLabel,
                 amount = formatAmountNoDecimals(item.amount, currency.code),
                 matchPercent = item.confidencePercent,
                 likelyFor = "Likely ${item.category}",
                 icon = categoryIcon(item.category),
                 iconTint = categoryColor(item.category),
-                primaryActionLabel = "Categorize",
-                secondaryActionLabel = "Edit"
+                primaryActionLabel = "Confirm",
+                secondaryActionLabel = "Edit",
             )
         },
-        onPrimaryAction = { },
-        onSecondaryAction = { },
-        onDismiss = { }
+        onPrimaryAction = { onConfirm(it.id) },
+        onSecondaryAction = { onConfirm(it.id) },
+        onDismiss = { onDismiss(it.id) },
     )
 }
 

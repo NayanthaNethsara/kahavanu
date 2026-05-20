@@ -14,20 +14,22 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.FilterList
-import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -36,25 +38,31 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kahavanu.domain.model.ExpenseLogEntry
+import com.kahavanu.ui.common.AmountRangeSection
+import com.kahavanu.ui.common.FilterBottomSheet
+import com.kahavanu.ui.common.FilterChips
+import com.kahavanu.ui.common.FilterSection
 import com.kahavanu.ui.common.GlassCard
+import com.kahavanu.ui.common.HistoryDateRange
 import com.kahavanu.ui.common.KahavanuSubScreen
+import com.kahavanu.ui.common.MorphingIconButton
+import com.kahavanu.ui.common.NestedSearchField
 import com.kahavanu.ui.common.categoryColor
 import com.kahavanu.ui.common.categoryIcon
-import com.kahavanu.ui.common.textFieldColors
 import com.kahavanu.ui.theme.AccentIncomeBorder
 import com.kahavanu.ui.theme.AccentIncomeSoft
 import com.kahavanu.ui.theme.Spacing
-import com.kahavanu.ui.theme.SurfaceIcon
-import com.kahavanu.ui.theme.SurfaceIconBorder
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
 import com.kahavanu.ui.theme.TextSize
+import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExpenseHistoryScreen(
     onBack: () -> Unit,
@@ -67,23 +75,23 @@ fun ExpenseHistoryScreen(
             .toLocalDate()
     }.toSortedMap(compareByDescending { it })
 
+    var isFilterSheetOpen by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val scope = rememberCoroutineScope()
+
     KahavanuSubScreen(
         label = "All Expenses",
         title = "${uiState.transactionCount} transactions",
         onBack = onBack,
         trailing = {
-            IconButton(
-                onClick = {},
-                modifier = Modifier
-                    .background(SurfaceIcon, CircleShape)
-                    .border(0.7.dp, SurfaceIconBorder, CircleShape),
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.FilterList,
-                    contentDescription = "Filter",
-                    tint = TextSecondary,
-                )
-            }
+            MorphingIconButton(
+                icon = Icons.Outlined.FilterList,
+                contentDescription = "Filter",
+                onClick = { isFilterSheetOpen = true },
+                nested = true,
+                badge = uiState.hasActiveFilter,
+                tint = if (uiState.hasActiveFilter) MaterialTheme.colorScheme.primary else TextSecondary,
+            )
         },
     ) {
         LazyColumn(
@@ -93,9 +101,10 @@ fun ExpenseHistoryScreen(
             verticalArrangement = Arrangement.spacedBy(Spacing.medium),
         ) {
             item {
-                SearchBar(
-                    query = uiState.query,
-                    onQueryChange = viewModel::onQueryChange,
+                NestedSearchField(
+                    value = uiState.query,
+                    onValueChange = viewModel::onQueryChange,
+                    placeholder = "Search expenses...",
                 )
             }
 
@@ -107,9 +116,7 @@ fun ExpenseHistoryScreen(
             }
 
             if (grouped.isEmpty()) {
-                item {
-                    EmptyHistoryState()
-                }
+                item { EmptyHistoryState() }
             } else {
                 grouped.forEach { (date, entries) ->
                     item { DateHeader(date = date) }
@@ -125,30 +132,75 @@ fun ExpenseHistoryScreen(
             item { Spacer(modifier = Modifier.height(96.dp)) }
         }
     }
+
+    if (isFilterSheetOpen) {
+        FilterBottomSheet(
+            title = "Filter expenses",
+            subtitle = "Refine by category, date, payment, or amount",
+            sheetState = sheetState,
+            onDismiss = { isFilterSheetOpen = false },
+            onClear = {
+                viewModel.clearFilters()
+                scope.launch { sheetState.hide() }.invokeOnCompletion {
+                    if (!sheetState.isVisible) isFilterSheetOpen = false
+                }
+            },
+            onApply = {
+                scope.launch { sheetState.hide() }.invokeOnCompletion {
+                    if (!sheetState.isVisible) isFilterSheetOpen = false
+                }
+            },
+        ) {
+            FilterSection(title = "Category") {
+                FilterChips(
+                    options = uiState.availableCategories,
+                    selected = uiState.filters.category,
+                    onSelect = { newCategory ->
+                        viewModel.onFiltersChange { it.copy(category = newCategory) }
+                    },
+                    labelFor = { it },
+                )
+            }
+            FilterSection(title = "Date range") {
+                FilterChips(
+                    options = HistoryDateRange.entries.toList(),
+                    selected = uiState.filters.dateRange,
+                    onSelect = { newRange ->
+                        viewModel.onFiltersChange { it.copy(dateRange = newRange) }
+                    },
+                    labelFor = { it.label },
+                )
+            }
+            if (uiState.availablePaymentMethods.size > 1) {
+                FilterSection(title = "Payment method") {
+                    FilterChips(
+                        options = uiState.availablePaymentMethods,
+                        selected = uiState.filters.paymentMethod,
+                        onSelect = { newMethod ->
+                            viewModel.onFiltersChange { it.copy(paymentMethod = newMethod) }
+                        },
+                        labelFor = { it },
+                    )
+                }
+            }
+            FilterSection(title = "Amount") {
+                AmountRangeSection(
+                    minValue = uiState.filters.minAmount,
+                    maxValue = uiState.filters.maxAmount,
+                    onMinChange = { value ->
+                        viewModel.onFiltersChange { it.copy(minAmount = value.filterAmount()) }
+                    },
+                    onMaxChange = { value ->
+                        viewModel.onFiltersChange { it.copy(maxAmount = value.filterAmount()) }
+                    },
+                    currencyCode = uiState.currencyCode,
+                )
+            }
+        }
+    }
 }
 
-@Composable
-private fun SearchBar(
-    query: String,
-    onQueryChange: (String) -> Unit,
-) {
-    OutlinedTextField(
-        value = query,
-        onValueChange = onQueryChange,
-        modifier = Modifier.fillMaxWidth(),
-        placeholder = { Text("Search expenses...") },
-        leadingIcon = {
-            Icon(
-                imageVector = Icons.Outlined.Search,
-                contentDescription = null,
-                tint = TextSecondary,
-            )
-        },
-        singleLine = true,
-        shape = RoundedCornerShape(14.dp),
-        colors = textFieldColors(),
-    )
-}
+private fun String.filterAmount(): String = filter { it.isDigit() || it == '.' }
 
 @Composable
 private fun TotalExpensesCard(

@@ -1,7 +1,6 @@
 package com.kahavanu.ui.common
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -14,11 +13,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,8 +26,6 @@ import com.kahavanu.ui.theme.AmbientGlowSecondary
 import com.kahavanu.ui.theme.AmbientGlowTertiary
 import com.kahavanu.ui.theme.ScreenBackground
 import com.kahavanu.ui.theme.Spacing
-import com.kahavanu.ui.theme.SurfaceIcon
-import com.kahavanu.ui.theme.SurfaceIconBorder
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
 import com.kahavanu.ui.theme.TextSize
@@ -91,18 +83,7 @@ fun KahavanuSubScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(Spacing.medium),
                 ) {
-                    IconButton(
-                        onClick = onBack,
-                        modifier = Modifier
-                            .background(SurfaceIcon, RoundedCornerShape(99.dp))
-                            .border(0.7.dp, SurfaceIconBorder, RoundedCornerShape(99.dp)),
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = MaterialTheme.colorScheme.primary,
-                        )
-                    }
+                    MorphingBackButton(onClick = onBack)
                     Column {
                         Text(
                             text = label.uppercase(),

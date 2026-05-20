@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -180,13 +181,16 @@ fun ExpenseLogScreen(
                 OutlinedTextField(
                     value = uiState.amount,
                     onValueChange = viewModel::onAmountChange,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 80.dp),
                     placeholder = {
-                        Text("0", fontSize = 34.sp, color = TextSecondary.copy(alpha = 0.8f))
+                        Text("0", fontSize = 34.sp, lineHeight = 40.sp, color = TextSecondary.copy(alpha = 0.8f))
                     },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     textStyle = MaterialTheme.typography.headlineMedium.copy(
                         fontSize = 34.sp,
+                        lineHeight = 40.sp,
                         fontWeight = FontWeight.Medium,
                         color = TextPrimary,
                     ),

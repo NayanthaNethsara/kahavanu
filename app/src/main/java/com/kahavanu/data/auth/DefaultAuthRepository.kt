@@ -91,9 +91,9 @@ private suspend fun <T> com.google.android.gms.tasks.Task<T>.awaitResult(): Resu
         addOnCompleteListener { task ->
             if (!continuation.isActive) return@addOnCompleteListener
             if (task.isSuccessful) {
-                continuation.resumeWith(kotlin.Result.success(Result.success(task.result)))
+                continuation.resumeWith(Result.success(Result.success(task.result)))
             } else {
-                continuation.resumeWith(kotlin.Result.success(Result.failure(task.exception ?: Exception("Unknown error"))))
+                continuation.resumeWith(Result.success(Result.failure(task.exception ?: Exception("Unknown error"))))
             }
         }
     }
@@ -104,9 +104,9 @@ private suspend fun com.google.android.gms.tasks.Task<*>.awaitUnitResult(): Resu
         addOnCompleteListener { task ->
             if (!continuation.isActive) return@addOnCompleteListener
             if (task.isSuccessful) {
-                continuation.resumeWith(kotlin.Result.success(Result.success(Unit)))
+                continuation.resumeWith(Result.success(Result.success(Unit)))
             } else {
-                continuation.resumeWith(kotlin.Result.success(Result.failure(task.exception ?: Exception("Unknown error"))))
+                continuation.resumeWith(Result.success(Result.failure(task.exception ?: Exception("Unknown error"))))
             }
         }
     }

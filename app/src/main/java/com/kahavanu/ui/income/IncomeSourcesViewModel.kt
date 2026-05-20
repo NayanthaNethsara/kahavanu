@@ -2,9 +2,11 @@ package com.kahavanu.ui.income
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.kahavanu.domain.model.CurrencyOption
 import com.kahavanu.domain.model.IncomeSource
 import com.kahavanu.domain.model.IncomeSourceType
 import com.kahavanu.domain.repository.IncomeRepository
+import com.kahavanu.domain.repository.SettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,20 +16,65 @@ import javax.inject.Inject
 
 @HiltViewModel
 class IncomeSourcesViewModel @Inject constructor(
-    private val repository: IncomeRepository,
+    private val incomeRepository: IncomeRepository,
+    private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(IncomeSourcesUiState())
     val uiState: StateFlow<IncomeSourcesUiState> = _uiState
 
     init {
         viewModelScope.launch {
-            repository.ensureDefaultSources()
+            incomeRepository.ensureDefaultSources()
         }
 
         viewModelScope.launch {
-            repository.observeIncomeSources().collect { sources ->
+            incomeRepository.observeIncomeSources().collect { sources ->
                 _uiState.update { current -> current.copy(sources = sources) }
             }
+        }
+
+        viewModelScope.launch {
+            settingsRepository.observeCurrencySettings().collect { (primary, secondary) ->
+                _uiState.update { 
+                    it.copy(
+                        primaryCurrency = primary, 
+                        secondaryCurrency = secondary,
+                        primaryCurrencyDraft = primary,
+                        secondaryCurrencyDraft = secondary
+                    ) 
+                }
+            }
+        }
+    }
+
+    fun startCurrencyEdit() {
+        updateState { 
+            it.copy(
+                isCurrencyEditing = true,
+                primaryCurrencyDraft = it.primaryCurrency,
+                secondaryCurrencyDraft = it.secondaryCurrency
+            ) 
+        }
+    }
+
+    fun cancelCurrencyEdit() {
+        updateState { it.copy(isCurrencyEditing = false) }
+    }
+
+    fun onPrimaryCurrencyDraftChange(currency: CurrencyOption) {
+        updateState { it.copy(primaryCurrencyDraft = currency) }
+    }
+
+    fun onSecondaryCurrencyDraftChange(currency: CurrencyOption) {
+        updateState { it.copy(secondaryCurrencyDraft = currency) }
+    }
+
+    fun saveCurrencySettings() {
+        viewModelScope.launch {
+            val primary = _uiState.value.primaryCurrencyDraft
+            val secondary = _uiState.value.secondaryCurrencyDraft
+            settingsRepository.updateCurrencySettings(primary, secondary)
+            updateState { it.copy(isCurrencyEditing = false) }
         }
     }
 
@@ -47,12 +94,30 @@ class IncomeSourcesViewModel @Inject constructor(
         }
     }
 
+    fun openSheet() {
+        updateState { it.copy(isSheetOpen = true) }
+    }
+
+    fun closeSheet() {
+        cancelEdit()
+        updateState { it.copy(isSheetOpen = false) }
+    }
+
+    fun showDeleteConfirmation(source: IncomeSource) {
+        updateState { it.copy(sourceToDelete = source) }
+    }
+
+    fun dismissDeleteConfirmation() {
+        updateState { it.copy(sourceToDelete = null) }
+    }
+
     fun startEdit(source: IncomeSource) {
         updateState {
             it.copy(
                 editingSourceId = source.id,
                 nameInput = source.name,
                 selectedTypes = source.types,
+                isSheetOpen = true,
             )
         }
     }
@@ -87,7 +152,7 @@ class IncomeSourcesViewModel @Inject constructor(
                 name = name,
                 types = current.selectedTypes,
             )
-            val result = repository.upsertIncomeSource(source)
+            val result = incomeRepository.upsertIncomeSource(source)
             _uiState.update {
                 if (result.isSuccess) {
                     it.copy(
@@ -95,6 +160,7 @@ class IncomeSourcesViewModel @Inject constructor(
                         selectedTypes = IncomeSourceType.values().toSet(),
                         editingSourceId = null,
                         isSaving = false,
+                        isSheetOpen = false,
                         successMessage = if (current.editingSourceId == null) {
                             "Source added"
                         } else {
@@ -114,10 +180,15 @@ class IncomeSourcesViewModel @Inject constructor(
 
     fun deleteSource(source: IncomeSource) {
         viewModelScope.launch {
-            val result = repository.deleteIncomeSource(source.id)
-            if (result.isFailure) {
-                _uiState.update {
-                    it.copy(errorMessage = result.exceptionOrNull()?.message ?: "Could not delete")
+            val result = incomeRepository.deleteIncomeSource(source.id)
+            _uiState.update { current ->
+                if (result.isFailure) {
+                    current.copy(
+                        errorMessage = result.exceptionOrNull()?.message ?: "Could not delete",
+                        sourceToDelete = null
+                    )
+                } else {
+                    current.copy(sourceToDelete = null)
                 }
             }
         }

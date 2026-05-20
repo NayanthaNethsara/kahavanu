@@ -20,10 +20,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.kahavanu.ui.theme.OnboardingButtonGreen
-import com.kahavanu.ui.theme.OnboardingTokens
+import com.kahavanu.ui.theme.Primary
+import com.kahavanu.ui.theme.ButtonTokens
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.appButtonHighlightBrush
+
+import androidx.compose.foundation.shape.RoundedCornerShape
 
 @Composable
 fun AppPrimaryButton(
@@ -31,20 +33,22 @@ fun AppPrimaryButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val buttonShape = RoundedCornerShape(ButtonTokens.radius)
+    
     Button(
         onClick = onClick,
         modifier = modifier
             .fillMaxWidth()
-            .height(OnboardingTokens.buttonHeight)
+            .height(ButtonTokens.height)
             .background(
-                color = OnboardingButtonGreen,
-                shape = MaterialTheme.shapes.extraLarge,
+                color = Primary,
+                shape = buttonShape,
             )
             .background(
                 brush = appButtonHighlightBrush(),
-                shape = MaterialTheme.shapes.extraLarge,
+                shape = buttonShape,
             ),
-        shape = MaterialTheme.shapes.extraLarge,
+        shape = buttonShape,
         colors = ButtonDefaults.buttonColors(
             containerColor = Color.Transparent,
             contentColor = Color.White,

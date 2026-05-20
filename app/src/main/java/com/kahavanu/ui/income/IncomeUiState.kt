@@ -1,13 +1,9 @@
 package com.kahavanu.ui.income
 
+import com.kahavanu.domain.model.CurrencyOption
 import com.kahavanu.domain.model.IncomeSource
 import com.kahavanu.domain.model.IncomeSourceType
 import java.time.LocalDate
-
-enum class CurrencyOption(val code: String) {
-    LKR("LKR"),
-    USD("USD"),
-}
 
 enum class RecurrenceFrequency(val label: String) {
     DAILY("Daily"),
@@ -23,10 +19,13 @@ data class IncomeUiState(
     val clientDescription: String = "",
     val amount: String = "",
     val currency: CurrencyOption = CurrencyOption.LKR,
-    val receivedDate: LocalDate? = null,
+    val receivedDate: LocalDate = LocalDate.now(),
     val frequency: RecurrenceFrequency = RecurrenceFrequency.MONTHLY,
     val isDatePickerOpen: Boolean = false,
     val isSaving: Boolean = false,
     val errorMessage: String? = null,
     val successMessage: String? = null,
+    val availableCurrencies: List<CurrencyOption> = listOf(CurrencyOption.LKR, CurrencyOption.USD),
+    val contactName: String? = null,
+    val contactNumber: String? = null,
 )

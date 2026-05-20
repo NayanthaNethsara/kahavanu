@@ -3,6 +3,7 @@ package com.kahavanu.domain.repository
 import com.kahavanu.domain.model.IncomeLogEntry
 import com.kahavanu.domain.model.IncomeLogResult
 import com.kahavanu.domain.model.IncomeSource
+import com.kahavanu.domain.model.ScheduledIncome
 import kotlinx.coroutines.flow.Flow
 
 interface IncomeRepository {
@@ -13,4 +14,11 @@ interface IncomeRepository {
     suspend fun ensureDefaultSources()
     suspend fun upsertIncomeSource(source: IncomeSource): Result<Unit>
     suspend fun deleteIncomeSource(sourceId: Long): Result<Unit>
+
+    // Scheduled & Recurrent Income
+    fun observeScheduledIncomes(): Flow<List<ScheduledIncome>>
+    suspend fun upsertScheduledIncome(scheduled: ScheduledIncome): Result<Unit>
+    suspend fun deleteScheduledIncome(id: Long): Result<Unit>
+    suspend fun markScheduledAsReceived(id: Long): Result<Unit>
+    suspend fun processScheduledIncomes(): Result<Unit>
 }

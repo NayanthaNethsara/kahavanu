@@ -27,6 +27,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kahavanu.domain.model.IncomeLogEntry
+import com.kahavanu.ui.common.GlassCard
+import com.kahavanu.ui.common.SectionHeader
 import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
@@ -35,12 +37,16 @@ import com.kahavanu.ui.theme.TextTertiaryEmerald
 import com.kahavanu.ui.theme.TextSize
 
 @Composable
-fun IncomeLogSection(logs: List<IncomeLogEntry>) {
+fun IncomeLogSection(
+    logs: List<IncomeLogEntry>,
+    onViewAll: () -> Unit
+) {
     Column {
         SectionHeader(
             title = "Income Log",
             subtitle = "Recent payments",
-            actionText = "View all"
+            actionText = "View all",
+            onActionClick = onViewAll
         )
         GlassCard(modifier = Modifier.fillMaxWidth()) {
             if (logs.isEmpty()) {
@@ -60,10 +66,17 @@ fun IncomeLogSection(logs: List<IncomeLogEntry>) {
                         else -> Icons.Outlined.AccountBalanceWallet
                     }
                     
+                    val subtitle = buildString {
+                        if (!log.sourceName.isNullOrBlank()) {
+                            append(log.sourceName)
+                            append(" • ")
+                        }
+                        append(formatDate(log.receivedAtEpochMillis))
+                    }
+
                     LogItem(
                         title = log.title,
-                        type = log.note?.takeIf { it.isNotBlank() } ?: "Income",
-                        date = formatDate(log.receivedAtEpochMillis),
+                        subtitle = subtitle,
                         amount = formatAmount(log.amount, log.currency),
                         icon = icon
                     )
@@ -82,8 +95,7 @@ fun IncomeLogSection(logs: List<IncomeLogEntry>) {
 @Composable
 private fun LogItem(
     title: String,
-    type: String,
-    date: String,
+    subtitle: String,
     amount: String,
     icon: ImageVector
 ) {
@@ -125,7 +137,7 @@ private fun LogItem(
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
-                text = "$type • $date",
+                text = subtitle,
                 style = MaterialTheme.typography.bodySmall,
                 fontSize = TextSize.xs,
                 color = TextSecondary,

@@ -14,7 +14,7 @@ import javax.inject.Singleton
 
 @Singleton
 class IncomeSyncScheduler @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
 ) {
     fun enqueue() {
         val constraints = Constraints.Builder()
@@ -33,7 +33,26 @@ class IncomeSyncScheduler @Inject constructor(
             .enqueueUniqueWork(WORK_NAME, ExistingWorkPolicy.KEEP, request)
     }
 
+    fun scheduleIncomeProcessing() {
+        val request = androidx.work.PeriodicWorkRequestBuilder<IncomeScheduleWorker>(
+            java.time.Duration.ofHours(24)
+        )
+            .setBackoffCriteria(
+                BackoffPolicy.EXPONENTIAL,
+                Duration.ofMinutes(15)
+            )
+            .build()
+
+        WorkManager.getInstance(context)
+            .enqueueUniquePeriodicWork(
+                SCHEDULE_WORK_NAME,
+                androidx.work.ExistingPeriodicWorkPolicy.KEEP,
+                request
+            )
+    }
+
     companion object {
         private const val WORK_NAME = "income-sync"
+        private const val SCHEDULE_WORK_NAME = "income-schedule"
     }
 }

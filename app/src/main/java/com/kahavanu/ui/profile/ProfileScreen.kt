@@ -168,3 +168,52 @@ private fun DeleteAccountConfirmationDialog(
         }
     )
 }
+
+@Composable
+private fun ProfileButton(
+    text: String,
+    icon: ImageVector,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    colors: androidx.compose.material3.ButtonColors = ButtonDefaults.buttonColors()
+) {
+    Button(
+        onClick = onClick,
+        modifier = modifier.height(56.dp),
+        colors = colors,
+        shape = MaterialTheme.shapes.medium
+    ) {
+        Icon(imageVector = icon, contentDescription = null)
+        Spacer(modifier = Modifier.size(Spacing.small))
+        Text(text = text)
+    }
+}
+
+@Composable
+private fun DeleteAccountConfirmationDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(text = "Delete Account") },
+        text = {
+            Text(
+                text = "Are you sure you want to delete your account? This action is permanent and cannot be undone."
+            )
+        },
+        confirmButton = {
+            TextButton(
+                onClick = onConfirm,
+                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+            ) {
+                Text(text = "Delete")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(text = "Cancel")
+            }
+        }
+    )
+}

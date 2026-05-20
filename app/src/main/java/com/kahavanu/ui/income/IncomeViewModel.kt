@@ -2,11 +2,16 @@ package com.kahavanu.ui.income
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.kahavanu.domain.model.CurrencyOption
 import com.kahavanu.domain.model.IncomeLogEntry
 import com.kahavanu.domain.model.IncomeLogResult
 import com.kahavanu.domain.model.IncomeSource
 import com.kahavanu.domain.model.IncomeSourceType
+import com.kahavanu.domain.model.ScheduledIncome
 import com.kahavanu.domain.repository.IncomeRepository
+import com.kahavanu.domain.repository.SettingsRepository
+import com.kahavanu.ui.income.components.isPending
+import com.kahavanu.ui.income.components.isRecurrent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,18 +23,19 @@ import javax.inject.Inject
 
 @HiltViewModel
 class IncomeViewModel @Inject constructor(
-    private val repository: IncomeRepository,
+    private val incomeRepository: IncomeRepository,
+    private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(IncomeUiState())
     val uiState: StateFlow<IncomeUiState> = _uiState
 
     init {
         viewModelScope.launch {
-            repository.ensureDefaultSources()
+            incomeRepository.ensureDefaultSources()
         }
 
         viewModelScope.launch {
-            repository.observeIncomeSources().collect { sources ->
+            incomeRepository.observeIncomeSources().collect { sources ->
                 _uiState.update { current ->
                     val selectedSourceId = resolveSelectedSourceId(
                         sources = sources,
@@ -43,10 +49,31 @@ class IncomeViewModel @Inject constructor(
                 }
             }
         }
+
+        viewModelScope.launch {
+            settingsRepository.observeCurrencySettings().collect { (primary, secondary) ->
+                _uiState.update { current ->
+                    val available = listOf(primary, secondary)
+                    val newCurrency = if (current.currency !in available) primary else current.currency
+                    current.copy(
+                        availableCurrencies = available,
+                        currency = newCurrency
+                    )
+                }
+            }
+        }
+
     }
 
     fun onAmountChange(value: String) {
-        updateState { it.copy(amount = value) }
+        val sanitized = value.filter { it.isDigit() || it == '.' }
+        val parts = sanitized.split('.')
+        val finalValue = if (parts.size > 2) {
+            parts[0] + "." + parts[1]
+        } else {
+            sanitized
+        }
+        updateState { it.copy(amount = finalValue) }
     }
 
     fun onClientDescriptionChange(value: String) {
@@ -84,26 +111,32 @@ class IncomeViewModel @Inject constructor(
         updateState { it.copy(frequency = frequency) }
     }
 
-    fun onContactSelected(name: String) {
-        updateState { current ->
-            val newDescription = if (current.clientDescription.isBlank()) {
-                name
-            } else {
-                "${current.clientDescription} ($name)"
-            }
-            current.copy(clientDescription = newDescription)
+    fun onContactSaved(name: String, phoneNumber: String?) {
+        updateState { 
+            it.copy(
+                contactName = name,
+                contactNumber = phoneNumber
+            ) 
+        }
+    }
+
+    fun onClearContact() {
+        updateState { 
+            it.copy(
+                contactName = null, 
+                contactNumber = null
+            ) 
         }
     }
 
     fun logIncome() {
         viewModelScope.launch {
             val current = _uiState.value
-            val clientDescription = current.clientDescription.trim()
+            val clientDescription = current.clientDescription.ifBlank { current.contactName ?: "" }.trim()
             val amountValue = current.amount.trim().toDoubleOrNull()
             val currency = current.currency.code
-            val receivedDate = current.receivedDate ?: LocalDate.now()
+            val receivedDate = current.receivedDate
             val selectedSource = current.sources.firstOrNull { it.id == current.selectedSourceId }
-            val note = "${current.incomeType.label} - ${selectedSource?.name ?: "Source"}"
 
             if (clientDescription.isBlank() || amountValue == null || amountValue <= 0.0) {
                 _uiState.update {
@@ -124,37 +157,54 @@ class IncomeViewModel @Inject constructor(
                 .toInstant()
                 .toEpochMilli()
 
-            val entry = IncomeLogEntry(
-                title = clientDescription,
-                amount = amountValue,
-                currency = currency,
-                note = if (current.incomeType == IncomeSourceType.RECURRENT) {
-                    "$note (Frequency: ${current.frequency.label})"
-                } else {
-                    note
-                },
-                receivedAtEpochMillis = receivedAtEpochMillis,
-            )
-
-            val result = repository.logIncome(entry)
-            _uiState.update {
-                if (result.isSuccess) {
-                    val successMessage = when (result.getOrThrow()) {
+            val result = if (current.incomeType == IncomeSourceType.ONE_TIME) {
+                val entry = IncomeLogEntry(
+                    title = clientDescription,
+                    amount = amountValue,
+                    currency = currency,
+                    receivedAtEpochMillis = receivedAtEpochMillis,
+                    sourceId = current.selectedSourceId,
+                    sourceName = selectedSource?.name,
+                    sourceType = current.incomeType.id,
+                    contactName = current.contactName,
+                    contactNumber = current.contactNumber,
+                )
+                incomeRepository.logIncome(entry).map { 
+                    when(it) {
                         IncomeLogResult.SYNCED -> "Income logged"
                         IncomeLogResult.LOCAL_ONLY -> "Saved offline. Will sync when online."
                     }
+                }
+            } else {
+                val scheduled = ScheduledIncome(
+                    title = clientDescription,
+                    amount = amountValue,
+                    currency = currency,
+                    type = current.incomeType,
+                    frequency = if (current.incomeType == IncomeSourceType.RECURRENT) current.frequency.label else null,
+                    scheduledDateEpochMillis = receivedAtEpochMillis,
+                    sourceId = current.selectedSourceId,
+                    sourceName = selectedSource?.name,
+                    contactName = current.contactName,
+                    contactNumber = current.contactNumber,
+                )
+                incomeRepository.upsertScheduledIncome(scheduled).map { "Scheduled income saved" }
+            }
+
+            _uiState.update {
+                if (result.isSuccess) {
                     it.copy(
                         clientDescription = "",
                         amount = "",
                         currency = current.currency,
-                        receivedDate = null,
+                        receivedDate = LocalDate.now(),
                         isSaving = false,
-                        successMessage = successMessage,
+                        successMessage = result.getOrThrow(),
                     )
                 } else {
                     it.copy(
                         isSaving = false,
-                        errorMessage = result.exceptionOrNull()?.message ?: "Could not log income",
+                        errorMessage = result.exceptionOrNull()?.message ?: "Could not save income",
                     )
                 }
             }

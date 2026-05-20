@@ -188,7 +188,7 @@ fun SieveCard(
                             style = MaterialTheme.typography.labelSmall,
                             color = accentColor,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 9.sp,
+                            fontSize = 11.sp,
                             letterSpacing = 0.1.sp,
                         )
                     }
@@ -235,7 +235,7 @@ fun SieveCard(
                     text = item.detectedFrom,
                     style = MaterialTheme.typography.bodySmall,
                     color = TextTertiary,
-                    fontSize = 10.sp,
+                    fontSize = 11.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )

@@ -141,7 +141,7 @@ private fun CategorySpendItem(
                 Text(
                     text = "$percent%",
                     style = MaterialTheme.typography.bodySmall,
-                    fontSize = 10.sp,
+                    fontSize = 11.sp,
                     color = TextSecondary,
                 )
             }
@@ -229,7 +229,7 @@ fun RecentExpensesSection(
                                 Text(
                                     text = buildRecentSubtitle(expense),
                                     style = MaterialTheme.typography.bodySmall,
-                                    fontSize = 10.sp,
+                                    fontSize = 11.sp,
                                     color = TextSecondary,
                                 )
                             }

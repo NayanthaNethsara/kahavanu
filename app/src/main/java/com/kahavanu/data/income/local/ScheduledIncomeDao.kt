@@ -26,6 +26,12 @@ interface ScheduledIncomeDao {
     @Query("SELECT * FROM scheduled_income WHERE localId = :localId LIMIT 1")
     suspend fun getById(localId: Long): ScheduledIncomeEntity?
 
+    @Query(
+        "SELECT * FROM scheduled_income WHERE userId = :userId AND isDeleted = 0 " +
+            "AND scheduledDateEpochMillis BETWEEN :windowStart AND :windowEnd"
+    )
+    suspend fun getActiveInWindow(userId: String, windowStart: Long, windowEnd: Long): List<ScheduledIncomeEntity>
+
     @Query("SELECT * FROM scheduled_income WHERE remoteId = :remoteId LIMIT 1")
     suspend fun getByRemoteId(remoteId: String): ScheduledIncomeEntity?
 

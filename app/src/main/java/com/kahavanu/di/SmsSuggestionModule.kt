@@ -1,10 +1,10 @@
 package com.kahavanu.di
 
-import android.content.ContentResolver
 import android.content.Context
 import com.kahavanu.data.local.AppDatabase
 import com.kahavanu.data.sieve.DefaultSmsSuggestionRepository
 import com.kahavanu.data.sieve.local.SmsSuggestionDao
+import com.kahavanu.data.sieve.sms.SmsScanScheduler
 import com.kahavanu.data.sieve.sms.SmsReader
 import com.kahavanu.domain.repository.SmsSuggestionRepository
 import dagger.Binds
@@ -35,5 +35,10 @@ abstract class SmsSuggestionModule {
         @Singleton
         fun provideSmsReader(@ApplicationContext context: Context): SmsReader =
             SmsReader(context.contentResolver)
+
+        @Provides
+        @Singleton
+        fun provideSmsScanScheduler(@ApplicationContext context: Context): SmsScanScheduler =
+            SmsScanScheduler(context)
     }
 }

@@ -18,6 +18,8 @@ import com.kahavanu.data.settings.local.UserSettingsDao
 import com.kahavanu.data.settings.local.UserSettingsEntity
 import com.kahavanu.data.sieve.local.SmsSenderDao
 import com.kahavanu.data.sieve.local.SmsSenderEntity
+import com.kahavanu.data.sieve.local.SmsSuggestionDao
+import com.kahavanu.data.sieve.local.SmsSuggestionEntity
 
 @Database(
     entities = [
@@ -29,8 +31,9 @@ import com.kahavanu.data.sieve.local.SmsSenderEntity
         GoalLogEntity::class,
         GoalAdjustmentLogEntity::class,
         SmsSenderEntity::class,
+        SmsSuggestionEntity::class,
     ],
-    version = 18,
+    version = 19,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -42,6 +45,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun goalLogDao(): GoalLogDao
     abstract fun goalAdjustmentLogDao(): GoalAdjustmentLogDao
     abstract fun smsSenderDao(): SmsSenderDao
+    abstract fun smsSuggestionDao(): SmsSuggestionDao
 
     companion object {
         const val DB_NAME = "kahavanu.db"

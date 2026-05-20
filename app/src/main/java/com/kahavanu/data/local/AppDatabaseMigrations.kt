@@ -330,6 +330,40 @@ object AppDatabaseMigrations {
         }
     }
 
+    val MIGRATION_18_19 = object : Migration(18, 19) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE user_settings ADD COLUMN lastSmsScanEpochMillis INTEGER NOT NULL DEFAULT 0")
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS sms_suggestions (
+                    localId INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    userId TEXT NOT NULL,
+                    smsSenderName TEXT NOT NULL,
+                    smsBodyHash TEXT NOT NULL,
+                    smsReceivedAtEpochMillis INTEGER NOT NULL,
+                    kind TEXT NOT NULL,
+                    amount REAL NOT NULL,
+                    currency TEXT NOT NULL,
+                    title TEXT NOT NULL,
+                    merchant TEXT,
+                    txnAtEpochMillis INTEGER NOT NULL,
+                    matchedScheduledIncomeId INTEGER,
+                    status TEXT NOT NULL,
+                    confidence REAL NOT NULL,
+                    createdAtEpochMillis INTEGER NOT NULL,
+                    updatedAtEpochMillis INTEGER NOT NULL
+                )
+                """.trimIndent()
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS index_sms_suggestions_userId ON sms_suggestions(userId)"
+            )
+            db.execSQL(
+                "CREATE UNIQUE INDEX IF NOT EXISTS index_sms_suggestions_smsBodyHash ON sms_suggestions(smsBodyHash)"
+            )
+        }
+    }
+
     val MIGRATION_17_18 = object : Migration(17, 18) {
         override fun migrate(db: SupportSQLiteDatabase) {
             db.execSQL(

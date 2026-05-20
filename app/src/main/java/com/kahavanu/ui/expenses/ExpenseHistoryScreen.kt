@@ -13,38 +13,23 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.outlined.Bolt
-import androidx.compose.material.icons.outlined.FilterList
-import androidx.compose.material.icons.outlined.HealthAndSafety
-import androidx.compose.material.icons.outlined.LocalPizza
-import androidx.compose.material.icons.outlined.LocalTaxi
-import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material.icons.outlined.ShoppingBag
-import androidx.compose.material.icons.outlined.SportsEsports
-import androidx.compose.material.icons.outlined.TipsAndUpdates
 import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material.icons.outlined.FilterList
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -52,9 +37,15 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kahavanu.domain.model.ExpenseLogEntry
 import com.kahavanu.ui.common.GlassCard
+import com.kahavanu.ui.common.KahavanuSubScreen
+import com.kahavanu.ui.common.categoryColor
+import com.kahavanu.ui.common.categoryIcon
 import com.kahavanu.ui.common.textFieldColors
-import com.kahavanu.ui.theme.RawColors
+import com.kahavanu.ui.theme.AccentIncomeBorder
+import com.kahavanu.ui.theme.AccentIncomeSoft
 import com.kahavanu.ui.theme.Spacing
+import com.kahavanu.ui.theme.SurfaceIcon
+import com.kahavanu.ui.theme.SurfaceIconBorder
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
 import com.kahavanu.ui.theme.TextSize
@@ -76,26 +67,31 @@ fun ExpenseHistoryScreen(
             .toLocalDate()
     }.toSortedMap(compareByDescending { it })
 
-    Surface(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surface),
+    KahavanuSubScreen(
+        label = "All Expenses",
+        title = "${uiState.transactionCount} transactions",
+        onBack = onBack,
+        trailing = {
+            IconButton(
+                onClick = {},
+                modifier = Modifier
+                    .background(SurfaceIcon, CircleShape)
+                    .border(0.7.dp, SurfaceIconBorder, CircleShape),
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.FilterList,
+                    contentDescription = "Filter",
+                    tint = TextSecondary,
+                )
+            }
+        },
     ) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .windowInsetsPadding(WindowInsets.systemBars)
-                .padding(horizontal = Spacing.large),
+                .padding(horizontal = Spacing.extraLarge),
             verticalArrangement = Arrangement.spacedBy(Spacing.medium),
         ) {
-            item {
-                Spacer(modifier = Modifier.height(24.dp))
-                HeaderRow(
-                    transactionCount = uiState.transactionCount,
-                    onBack = onBack,
-                )
-            }
-
             item {
                 SearchBar(
                     query = uiState.query,
@@ -116,9 +112,7 @@ fun ExpenseHistoryScreen(
                 }
             } else {
                 grouped.forEach { (date, entries) ->
-                    item {
-                        DateHeader(date = date)
-                    }
+                    item { DateHeader(date = date) }
                     item {
                         DayTransactionsCard(
                             entries = entries,
@@ -128,69 +122,7 @@ fun ExpenseHistoryScreen(
                 }
             }
 
-            item {
-                Spacer(modifier = Modifier.height(96.dp))
-            }
-        }
-    }
-}
-
-@Composable
-private fun HeaderRow(
-    transactionCount: Int,
-    onBack: () -> Unit,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(Spacing.medium),
-        ) {
-            IconButton(
-                onClick = onBack,
-                modifier = Modifier
-                    .background(Color.White.copy(alpha = 0.8f), CircleShape)
-                    .border(0.7.dp, RawColors.Slate.Slate200.copy(alpha = 0.8f), CircleShape),
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
-                    tint = RawColors.Emerald.Emerald600,
-                )
-            }
-            Column {
-                Text(
-                    text = "ALL EXPENSES",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontSize = 11.sp,
-                    color = TextSecondary,
-                    letterSpacing = 0.72.sp,
-                )
-                Text(
-                    text = "$transactionCount transactions",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontSize = TextSize.xl,
-                    color = TextPrimary,
-                    fontWeight = FontWeight.Medium,
-                    letterSpacing = (-0.8).sp,
-                )
-            }
-        }
-
-        IconButton(
-            onClick = {},
-            modifier = Modifier
-                .background(Color.White.copy(alpha = 0.8f), CircleShape)
-                .border(0.7.dp, RawColors.Slate.Slate200.copy(alpha = 0.8f), CircleShape),
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.FilterList,
-                contentDescription = "Filter",
-                tint = TextSecondary,
-            )
+            item { Spacer(modifier = Modifier.height(96.dp)) }
         }
     }
 }
@@ -226,8 +158,8 @@ private fun TotalExpensesCard(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0x1A00BC7D), RoundedCornerShape(16.dp))
-            .border(0.7.dp, Color(0x3300BC7D), RoundedCornerShape(16.dp))
+            .background(AccentIncomeSoft, RoundedCornerShape(16.dp))
+            .border(0.7.dp, AccentIncomeBorder, RoundedCornerShape(16.dp))
             .padding(horizontal = Spacing.large, vertical = 14.dp),
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -235,7 +167,7 @@ private fun TotalExpensesCard(
                 text = "Total Expenses",
                 style = MaterialTheme.typography.labelSmall,
                 fontSize = 11.sp,
-                color = RawColors.Emerald.Emerald600,
+                color = MaterialTheme.colorScheme.primary,
             )
             Text(
                 text = "$currencyCode ${String.format(Locale.getDefault(), "%,.0f", totalAmount)}",
@@ -273,7 +205,7 @@ private fun DateHeader(date: LocalDate) {
         )
         HorizontalDivider(
             modifier = Modifier.weight(1f),
-            color = RawColors.Slate.Slate200.copy(alpha = 0.6f),
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
         )
     }
 }
@@ -297,7 +229,7 @@ private fun DayTransactionsCard(
                 if (index != entries.lastIndex) {
                     HorizontalDivider(
                         modifier = Modifier.padding(horizontal = Spacing.medium),
-                        color = RawColors.Slate.Slate200.copy(alpha = 0.5f),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
                     )
                 }
             }
@@ -375,29 +307,5 @@ private fun EmptyHistoryState() {
             style = MaterialTheme.typography.bodyLarge,
             color = TextSecondary,
         )
-    }
-}
-
-private fun categoryColor(category: String): Color {
-    return when (category.trim().lowercase()) {
-        "food", "essentials" -> Color(0xFFF97316)
-        "transport" -> RawColors.Blue.Blue500
-        "utilities" -> RawColors.Violet.Violet500
-        "shopping", "lifestyle" -> RawColors.Rose.Rose500
-        "health" -> RawColors.Red.Red500
-        "fun", "subscriptions" -> RawColors.Emerald.Emerald500
-        else -> RawColors.Slate.Slate400
-    }
-}
-
-private fun categoryIcon(category: String): ImageVector {
-    return when (category.trim().lowercase()) {
-        "food", "essentials" -> Icons.Outlined.LocalPizza
-        "transport" -> Icons.Outlined.LocalTaxi
-        "utilities" -> Icons.Outlined.Bolt
-        "shopping", "lifestyle" -> Icons.Outlined.ShoppingBag
-        "health" -> Icons.Outlined.HealthAndSafety
-        "fun", "subscriptions" -> Icons.Outlined.SportsEsports
-        else -> Icons.Outlined.TipsAndUpdates
     }
 }

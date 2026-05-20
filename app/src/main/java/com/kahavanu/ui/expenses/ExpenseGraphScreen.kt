@@ -10,18 +10,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -29,14 +20,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kahavanu.ui.common.GlassCard
-import com.kahavanu.ui.theme.RawColors
+import com.kahavanu.ui.common.KahavanuSubScreen
+import com.kahavanu.ui.common.categoryColor
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
-import com.kahavanu.ui.theme.TextPrimaryEmerald
 import com.kahavanu.ui.theme.TextSecondary
 import com.kahavanu.ui.theme.TextSize
 
@@ -48,51 +38,18 @@ fun ExpenseGraphScreen(
     val stats by viewModel.stats.collectAsStateWithLifecycle()
     val scrollState = rememberScrollState()
 
-    Surface(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surface),
+    KahavanuSubScreen(
+        label = "Expense Analytics",
+        title = "Spending patterns & insights",
+        onBack = onBack,
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .windowInsetsPadding(WindowInsets.systemBars)
                 .verticalScroll(scrollState)
-                .padding(horizontal = Spacing.extraLarge, vertical = 30.dp),
+                .padding(horizontal = Spacing.extraLarge, vertical = Spacing.medium),
             verticalArrangement = Arrangement.spacedBy(Spacing.large),
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                IconButton(onClick = onBack) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
-                    )
-                }
-                Spacer(modifier = Modifier.width(Spacing.medium))
-                Column {
-                    Text(
-                        text = "EXPENSE ANALYTICS",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontSize = TextSize.xs,
-                        color = TextSecondary,
-                        letterSpacing = 0.72.sp,
-                        fontWeight = FontWeight.Medium,
-                    )
-                    Text(
-                        text = "Spending patterns & insights",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontSize = TextSize.lg,
-                        fontWeight = FontWeight.Medium,
-                        letterSpacing = (-0.8).sp,
-                        color = TextPrimary,
-                    )
-                }
-            }
-
-            // Total Spending Card
             GlassCard(modifier = Modifier.fillMaxWidth()) {
                 Column(
                     modifier = Modifier
@@ -122,7 +79,6 @@ fun ExpenseGraphScreen(
                 }
             }
 
-            // Category Breakdown
             GlassCard(modifier = Modifier.fillMaxWidth()) {
                 Column(
                     modifier = Modifier
@@ -149,7 +105,6 @@ fun ExpenseGraphScreen(
                 }
             }
 
-            // Chart Placeholder
             GlassCard(modifier = Modifier.fillMaxWidth()) {
                 Box(
                     modifier = Modifier
@@ -192,13 +147,7 @@ private fun CategorySpendRow(
     currencyCode: String,
 ) {
     val percentage = if (total > 0) (amount / total * 100).toInt() else 0
-    val categoryColor = when (category) {
-        "Essentials" -> RawColors.Rose.Rose500
-        "Transport" -> RawColors.Blue.Blue500
-        "Lifestyle" -> RawColors.Amber.Amber500
-        "Subscriptions" -> RawColors.Indigo.Indigo400
-        else -> RawColors.Gray.Gray400
-    }
+    val color = categoryColor(category)
 
     Column(
         verticalArrangement = Arrangement.spacedBy(Spacing.small),
@@ -217,7 +166,7 @@ private fun CategorySpendRow(
                 text = "$currencyCode ${String.format("%.2f", amount)} ($percentage%)",
                 style = MaterialTheme.typography.bodySmall,
                 fontSize = TextSize.sm,
-                color = categoryColor,
+                color = color,
                 fontWeight = FontWeight.Medium,
             )
         }
@@ -226,7 +175,7 @@ private fun CategorySpendRow(
                 .fillMaxWidth()
                 .height(4.dp)
                 .background(
-                    color = categoryColor.copy(alpha = 0.2f),
+                    color = color.copy(alpha = 0.2f),
                     shape = MaterialTheme.shapes.extraSmall,
                 ),
         ) {
@@ -235,7 +184,7 @@ private fun CategorySpendRow(
                     .fillMaxWidth(percentage / 100f)
                     .height(4.dp)
                     .background(
-                        color = categoryColor,
+                        color = color,
                         shape = MaterialTheme.shapes.extraSmall,
                     ),
             )

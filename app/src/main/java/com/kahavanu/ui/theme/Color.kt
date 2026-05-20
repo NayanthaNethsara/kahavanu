@@ -45,3 +45,35 @@ val TextTertiary = RawColors.Slate.Slate400
 val TextPrimaryEmerald = RawColors.Emerald.Emerald900
 val TextSecondaryEmerald = RawColors.Emerald.Emerald700
 val TextTertiaryEmerald = RawColors.Emerald.Emerald500
+
+// Ambient glow tokens for the Kahavanu screen scaffold. Centralized here so
+// screens never reach for RawColors directly.
+val ScreenBackground = Color(0xFFFFFFFF)
+val AmbientGlowPrimary = RawColors.Emerald.Emerald400.copy(alpha = 0.18f)
+val AmbientGlowSecondary = RawColors.Emerald.Emerald400.copy(alpha = 0.12f)
+val AmbientGlowTertiary = RawColors.Slate.Slate900.copy(alpha = 0.06f)
+
+// Surface tokens used by scaffolded cards / back buttons.
+val SurfaceCard = Color(0xFFFFFFFF).copy(alpha = 0.85f)
+val SurfaceCardBorder = Color(0xFFFFFFFF).copy(alpha = 0.5f)
+val SurfaceIcon = Color(0xFFFFFFFF).copy(alpha = 0.8f)
+val SurfaceIconBorder = RawColors.Slate.Slate200.copy(alpha = 0.8f)
+
+// Accent — orange "Expense" accent and emerald "Income" accent.
+val AccentExpense = Color(0xFFF97316)
+val AccentExpenseSoft = AccentExpense.copy(alpha = 0.13f)
+val AccentExpenseBorder = AccentExpense.copy(alpha = 0.2f)
+val AccentIncome = Color(0xFF00BC7D)
+val AccentIncomeSoft = AccentIncome.copy(alpha = 0.12f)
+val AccentIncomeBorder = AccentIncome.copy(alpha = 0.3f)
+
+// Category palette. Centralized so screens don't pick RawColors by hand.
+val CategoryFood = Color(0xFFF97316)
+val CategoryTransport = RawColors.Blue.Blue500
+val CategoryUtilities = RawColors.Violet.Violet500
+val CategoryShopping = RawColors.Rose.Rose500
+val CategoryLifestyle = RawColors.Amber.Amber500
+val CategoryHealth = RawColors.Red.Red500
+val CategorySubscriptions = RawColors.Indigo.Indigo400
+val CategoryFun = RawColors.Emerald.Emerald500
+val CategoryOther = RawColors.Slate.Slate400

@@ -9,6 +9,7 @@ import com.kahavanu.domain.repository.ExpensesRepository
 import com.kahavanu.domain.repository.GoalsRepository
 import com.kahavanu.domain.repository.IncomeRepository
 import com.kahavanu.domain.repository.SettingsRepository
+import com.kahavanu.domain.repository.SmsSenderRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -56,6 +57,7 @@ class HomeViewModel @Inject constructor(
     private val incomeRepository: IncomeRepository,
     private val expensesRepository: ExpensesRepository,
     private val settingsRepository: SettingsRepository,
+    private val smsSenderRepository: SmsSenderRepository,
 ) : ViewModel() {
 
     private val mutableSieveItems = MutableStateFlow(
@@ -97,12 +99,19 @@ class HomeViewModel @Inject constructor(
         goalsRepository.observeGoals(),
         incomeRepository.observeIncomeLogs(),
         mutableSieveItems,
-    ) { goals, incomeLogs, sieveItems ->
-        // 1. Get featured active goal (e.g. sorted by progress or just the first active one)
+        smsSenderRepository.observeAuthorizedSenders(),
+    ) { goals, incomeLogs, sieveItems, authorizedSenders ->
         val featured = goals.firstOrNull { !it.isCompleted }
 
-        // 2. Build Income Streams dynamically or formatted exactly as Figma
-        // To ensure Figma-perfect values while backing it with actual database records if available
+        val activeSenderNames = authorizedSenders
+            .filter { it.isEnabled }
+            .map { it.senderName.lowercase().trim() }
+            .toSet()
+
+        val filteredSieveItems = sieveItems.filter { item ->
+            activeSenderNames.contains(item.merchantOrSource.lowercase().trim())
+        }
+
         val localReceived = incomeLogs.filter { it.currency == "LKR" && it.sourceType != "pending" }.sumOf { it.amount }
         val localPending = incomeLogs.filter { it.currency == "LKR" && it.sourceType == "pending" }.sumOf { it.amount }
 
@@ -111,7 +120,6 @@ class HomeViewModel @Inject constructor(
 
         val cryptoReceived = incomeLogs.filter { it.currency == "USDT" || it.currency == "BTC" || it.currency == "ETH" }.sumOf { it.amount }
 
-        // Formatting fallback to match Figma visual spec if database is empty
         val finalLkrRec = if (localReceived > 0) localReceived else 122400.0
         val finalLkrPend = if (localPending > 0) localPending else 18000.0
         val finalUsdRec = if (usdReceived > 0) usdReceived else 480.0
@@ -147,7 +155,7 @@ class HomeViewModel @Inject constructor(
 
         HomeUiState(
             featuredGoal = featured,
-            sieveItems = sieveItems,
+            sieveItems = filteredSieveItems,
             incomeStreams = streams
         )
     }.stateIn(

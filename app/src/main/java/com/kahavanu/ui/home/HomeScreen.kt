@@ -64,7 +64,7 @@ fun HomeScreen(
                 top = 140.dp,
                 bottom = 120.dp
             ),
-            verticalArrangement = Arrangement.spacedBy(Spacing.extraLarge)
+            verticalArrangement = Arrangement.spacedBy(Spacing.large)
         ) {
             item {
                 Box(

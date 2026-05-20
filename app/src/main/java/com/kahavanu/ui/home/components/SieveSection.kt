@@ -66,8 +66,6 @@ fun SieveSection(
             )
         }
 
-        Spacer(modifier = Modifier.height(Spacing.small))
-
         LazyRow(
             modifier = Modifier.fillMaxWidth(),
             contentPadding = PaddingValues(horizontal = Spacing.extraLarge),
@@ -99,51 +97,48 @@ fun SieveCard(
     val badgeLabel = if (isExpense) "Expense" else "Income"
 
     GlassCard(
-        modifier = modifier.width(180.dp),
+        modifier = modifier.width(156.dp),
         backgroundColor = Color.White.copy(alpha = 0.9f),
         borderColor = RawColors.Slate.Slate200.copy(alpha = 0.6f),
         shadowElevation = Elevation.level1
     ) {
         Column(
-            modifier = Modifier.padding(Spacing.medium)
+            modifier = Modifier.padding(10.dp)
         ) {
-            // Top Row: Category/Type Badge + Close Button
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Compact Category/Type Badge
                 Surface(
                     color = badgeBg,
-                    shape = RoundedCornerShape(CornerRadius.small)
+                    shape = RoundedCornerShape(CornerRadius.extraSmall)
                 ) {
                     Row(
-                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp),
+                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        horizontalArrangement = Arrangement.spacedBy(2.dp)
                     ) {
                         Icon(
                             imageVector = icon,
                             contentDescription = null,
                             tint = accentColor,
-                            modifier = Modifier.size(10.dp)
+                            modifier = Modifier.size(8.dp)
                         )
                         Text(
                             text = badgeLabel,
                             style = MaterialTheme.typography.labelSmall,
                             color = accentColor,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 11.sp,
-                            letterSpacing = 0.2.sp
+                            fontSize = 9.sp,
+                            letterSpacing = 0.1.sp
                         )
                     }
                 }
 
-                // Small minimal dismiss button with improved touch target size (28.dp)
                 Box(
                     modifier = Modifier
-                        .size(28.dp)
+                        .size(22.dp)
                         .clip(CircleShape)
                         .background(RawColors.Slate.Slate100.copy(alpha = 0.5f))
                         .clickable { onIgnore() },
@@ -153,21 +148,20 @@ fun SieveCard(
                         imageVector = Icons.Outlined.Close,
                         contentDescription = "Ignore",
                         tint = TextTertiary,
-                        modifier = Modifier.size(14.dp)
+                        modifier = Modifier.size(10.dp)
                     )
                 }
             }
 
             Spacer(modifier = Modifier.height(Spacing.small))
 
-            // Transaction Details
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
                     text = "${item.currency} ${String.format("%,.0f", item.amount)}",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = TextPrimary,
-                    fontSize = 16.sp
+                    fontSize = 14.sp
                 )
                 
                 Spacer(modifier = Modifier.height(2.dp))
@@ -177,6 +171,7 @@ fun SieveCard(
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Medium,
                     color = TextPrimary,
+                    fontSize = 12.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -185,7 +180,7 @@ fun SieveCard(
                     text = item.detectedFrom,
                     style = MaterialTheme.typography.bodySmall,
                     color = TextTertiary,
-                    fontSize = 12.sp,
+                    fontSize = 10.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -193,13 +188,12 @@ fun SieveCard(
 
             Spacer(modifier = Modifier.height(Spacing.medium))
 
-            // Confirm Button (Full Width, Sleek)
             Button(
                 onClick = onConfirm,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(32.dp),
-                shape = RoundedCornerShape(CornerRadius.medium),
+                    .height(28.dp),
+                shape = RoundedCornerShape(CornerRadius.small),
                 colors = ButtonDefaults.buttonColors(containerColor = RawColors.Emerald.Emerald500),
                 contentPadding = PaddingValues(0.dp)
             ) {
@@ -212,7 +206,7 @@ fun SieveCard(
                         imageVector = Icons.Filled.Check,
                         contentDescription = "Confirm",
                         tint = Color.White,
-                        modifier = Modifier.size(12.dp)
+                        modifier = Modifier.size(10.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
@@ -220,7 +214,7 @@ fun SieveCard(
                         style = MaterialTheme.typography.labelMedium,
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 12.sp
+                        fontSize = 11.sp
                     )
                 }
             }

@@ -329,4 +329,31 @@ object AppDatabaseMigrations {
             )
         }
     }
+
+    val MIGRATION_17_18 = object : Migration(17, 18) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS sms_senders (
+                    localId INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    userId TEXT NOT NULL,
+                    senderName TEXT NOT NULL,
+                    isEnabled INTEGER NOT NULL,
+                    createdAtEpochMillis INTEGER NOT NULL,
+                    clientId TEXT NOT NULL,
+                    remoteId TEXT,
+                    isSynced INTEGER NOT NULL,
+                    isDeleted INTEGER NOT NULL,
+                    updatedAtEpochMillis INTEGER NOT NULL
+                )
+                """.trimIndent()
+            )
+            db.execSQL(
+                "CREATE UNIQUE INDEX IF NOT EXISTS index_sms_senders_clientId ON sms_senders(clientId)"
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS index_sms_senders_userId ON sms_senders(userId)"
+            )
+        }
+    }
 }

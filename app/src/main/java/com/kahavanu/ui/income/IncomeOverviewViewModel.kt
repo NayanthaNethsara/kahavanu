@@ -4,8 +4,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kahavanu.domain.model.IncomeLogEntry
+import com.kahavanu.domain.model.SmsSuggestion
+import com.kahavanu.domain.model.SuggestionKind
 import com.kahavanu.domain.repository.IncomeRepository
 import com.kahavanu.domain.repository.SettingsRepository
+import com.kahavanu.domain.repository.SmsSuggestionRepository
+import com.kahavanu.ui.common.MatchItemState
+import com.kahavanu.ui.home.inferExpenseCategory
 import com.kahavanu.ui.theme.RawColors
 import dagger.hilt.android.lifecycle.HiltViewModel
 import com.kahavanu.ui.income.components.isPending
@@ -32,6 +37,7 @@ data class IncomeBreakdownItem(
 class IncomeOverviewViewModel @Inject constructor(
     private val incomeRepository: IncomeRepository,
     private val settingsRepository: SettingsRepository,
+    private val smsSuggestionRepository: SmsSuggestionRepository,
 ) : ViewModel() {
     val incomeLogs: StateFlow<List<IncomeLogEntry>> = incomeRepository.observeIncomeLogs()
         .stateIn(
@@ -62,6 +68,37 @@ class IncomeOverviewViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = "",
         )
+
+    val incomeSuggestions: StateFlow<List<MatchItemState>> =
+        smsSuggestionRepository.observePendingByKinds(
+            listOf(SuggestionKind.INCOME, SuggestionKind.SETTLE_PENDING)
+        ).map { list -> list.map { it.toMatchItemState() } }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000),
+                initialValue = emptyList(),
+            )
+
+    fun confirmIncomeSuggestion(id: String) {
+        viewModelScope.launch {
+            val localId = id.toLongOrNull() ?: return@launch
+            val suggestion = smsSuggestionRepository.getById(localId) ?: return@launch
+            when (suggestion.kind) {
+                SuggestionKind.SETTLE_PENDING -> {
+                    suggestion.matchedScheduledIncomeId?.let { incomeRepository.markScheduledAsReceived(it) }
+                        ?: incomeRepository.logIncome(suggestion.toLogEntry())
+                }
+                else -> incomeRepository.logIncome(suggestion.toLogEntry())
+            }
+            smsSuggestionRepository.confirm(localId)
+        }
+    }
+
+    fun dismissIncomeSuggestion(id: String) {
+        viewModelScope.launch {
+            smsSuggestionRepository.dismiss(id.toLongOrNull() ?: return@launch)
+        }
+    }
 
     fun markAsReceived(id: Long) {
         viewModelScope.launch {
@@ -157,3 +194,27 @@ class IncomeOverviewViewModel @Inject constructor(
         return date.year == month.year && date.month == month.month
     }
 }
+
+private fun SmsSuggestion.toMatchItemState(): MatchItemState {
+    val isSettle = kind == SuggestionKind.SETTLE_PENDING
+    return MatchItemState(
+        id = localId.toString(),
+        title = smsSenderName,
+        subtitle = java.text.SimpleDateFormat("dd MMM", java.util.Locale.getDefault())
+            .format(java.util.Date(smsReceivedAtEpochMillis)),
+        amount = "$currency ${String.format("%,.0f", amount)}",
+        matchPercent = (confidence * 100).toInt(),
+        likelyFor = if (isSettle) "Settles a pending income" else title,
+        primaryActionLabel = if (isSettle) "Settle pending" else "Confirm income",
+        secondaryActionLabel = "Log as new",
+    )
+}
+
+private fun SmsSuggestion.toLogEntry() = IncomeLogEntry(
+    title = title,
+    amount = amount,
+    currency = currency,
+    receivedAtEpochMillis = txnAtEpochMillis,
+    sourceName = merchant ?: smsSenderName,
+    sourceType = "sms",
+)

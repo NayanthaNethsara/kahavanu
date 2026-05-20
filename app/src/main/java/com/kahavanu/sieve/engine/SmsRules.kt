@@ -16,7 +16,7 @@ object SmsRules {
 
     // Matches "at MERCHANT NAME on" or "at MERCHANT NAME." or "POS: MERCHANT"
     private val MERCHANT_RE = Regex(
-        """(?:at|to|POS[:\s]+)\s+([A-Za-z0-9][\w\s&'-]{1,40?})(?:\s+(?:on|via|Merchant|Ltd\.?|Pvt\.?)|\.|,|$)""",
+        """(?:at|to|POS[:\s]+)\s+([A-Za-z0-9][\w\s&'\-]{1,40})(?:\s+(?:on|via|Merchant|Ltd\.?|Pvt\.?)|\.|,|$)""",
         RegexOption.IGNORE_CASE,
     )
 

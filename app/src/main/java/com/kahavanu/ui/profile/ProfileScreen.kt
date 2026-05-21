@@ -23,14 +23,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kahavanu.ui.theme.Spacing
-import com.kahavanu.ui.theme.TextPrimary
-import com.kahavanu.ui.theme.TextTertiary
 
 @Composable
 fun ProfileScreen(
-    onNavigateToAccount: () -> Unit,
-    onNavigateToNotifications: () -> Unit,
-    onNavigateToTheme: () -> Unit,
+    onNavigateToSmsSenders: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -68,16 +64,8 @@ fun ProfileScreen(
                 verticalArrangement = Arrangement.spacedBy(Spacing.medium),
             ) {
                 ProfileMenuRow(
-                    title = "Account",
-                    onClick = onNavigateToAccount,
-                )
-                ProfileMenuRow(
-                    title = "Notifications",
-                    onClick = onNavigateToNotifications,
-                )
-                ProfileMenuRow(
-                    title = "Theme",
-                    onClick = onNavigateToTheme,
+                    title = "SMS Sender Settings",
+                    onClick = onNavigateToSmsSenders,
                 )
             }
         }

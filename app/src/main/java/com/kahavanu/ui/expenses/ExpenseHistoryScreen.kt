@@ -13,57 +13,57 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.outlined.Bolt
-import androidx.compose.material.icons.outlined.FilterList
-import androidx.compose.material.icons.outlined.HealthAndSafety
-import androidx.compose.material.icons.outlined.LocalPizza
-import androidx.compose.material.icons.outlined.LocalTaxi
-import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material.icons.outlined.ShoppingBag
-import androidx.compose.material.icons.outlined.SportsEsports
-import androidx.compose.material.icons.outlined.TipsAndUpdates
 import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kahavanu.domain.model.ExpenseLogEntry
+import com.kahavanu.ui.common.ActiveFilterChip
+import com.kahavanu.ui.common.AmountRangeSection
+import com.kahavanu.ui.common.FilterBottomSheet
+import com.kahavanu.ui.common.FilterChips
+import com.kahavanu.ui.common.FilterSection
 import com.kahavanu.ui.common.GlassCard
-import com.kahavanu.ui.common.textFieldColors
-import com.kahavanu.ui.theme.RawColors
+import com.kahavanu.ui.common.HistoryDateRange
+import com.kahavanu.ui.common.KahavanuSubScreen
+import com.kahavanu.ui.common.SearchWithFiltersBar
+import com.kahavanu.ui.common.categoryColor
+import com.kahavanu.ui.common.categoryIcon
+import com.kahavanu.ui.expenses.components.ExpenseListItem
+import com.kahavanu.ui.expenses.components.formatDate
+import com.kahavanu.ui.theme.AccentIncomeBorder
+import com.kahavanu.ui.theme.AccentIncomeSoft
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
 import com.kahavanu.ui.theme.TextSize
+import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExpenseHistoryScreen(
     onBack: () -> Unit,
@@ -76,49 +76,60 @@ fun ExpenseHistoryScreen(
             .toLocalDate()
     }.toSortedMap(compareByDescending { it })
 
-    Surface(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surface),
+    var isFilterSheetOpen by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val scope = rememberCoroutineScope()
+
+    val activeChips = buildList {
+        if (uiState.filters.category != EXPENSE_FILTER_ALL)
+            add(ActiveFilterChip(uiState.filters.category) {
+                viewModel.onFiltersChange { it.copy(category = EXPENSE_FILTER_ALL) }
+            })
+        if (uiState.filters.dateRange != HistoryDateRange.ALL)
+            add(ActiveFilterChip(uiState.filters.dateRange.label) {
+                viewModel.onFiltersChange { it.copy(dateRange = HistoryDateRange.ALL) }
+            })
+        if (uiState.filters.paymentMethod != EXPENSE_FILTER_ALL)
+            add(ActiveFilterChip(uiState.filters.paymentMethod) {
+                viewModel.onFiltersChange { it.copy(paymentMethod = EXPENSE_FILTER_ALL) }
+            })
+        if (uiState.filters.minAmount.isNotBlank())
+            add(ActiveFilterChip("Min ${uiState.filters.minAmount}") {
+                viewModel.onFiltersChange { it.copy(minAmount = "") }
+            })
+        if (uiState.filters.maxAmount.isNotBlank())
+            add(ActiveFilterChip("Max ${uiState.filters.maxAmount}") {
+                viewModel.onFiltersChange { it.copy(maxAmount = "") }
+            })
+    }
+
+    KahavanuSubScreen(
+        label = "All Expenses",
+        title = "${uiState.transactionCount} transactions",
+        onBack = onBack,
     ) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .windowInsetsPadding(WindowInsets.systemBars)
-                .padding(horizontal = Spacing.large),
+                .padding(horizontal = Spacing.extraLarge),
             verticalArrangement = Arrangement.spacedBy(Spacing.medium),
         ) {
             item {
-                Spacer(modifier = Modifier.height(24.dp))
-                HeaderRow(
-                    transactionCount = uiState.transactionCount,
-                    onBack = onBack,
-                )
-            }
-
-            item {
-                SearchBar(
+                SearchWithFiltersBar(
                     query = uiState.query,
                     onQueryChange = viewModel::onQueryChange,
-                )
-            }
-
-            item {
-                TotalExpensesCard(
-                    totalAmount = uiState.totalExpenses,
-                    currencyCode = uiState.currencyCode,
+                    onFilterClick = { isFilterSheetOpen = true },
+                    filterActive = uiState.hasActiveFilter,
+                    activeChips = activeChips,
+                    placeholder = "Search expenses...",
                 )
             }
 
             if (grouped.isEmpty()) {
-                item {
-                    EmptyHistoryState()
-                }
+                item { EmptyHistoryState() }
             } else {
                 grouped.forEach { (date, entries) ->
-                    item {
-                        DateHeader(date = date)
-                    }
+                    item { DateHeader(date = date) }
                     item {
                         DayTransactionsCard(
                             entries = entries,
@@ -128,95 +139,78 @@ fun ExpenseHistoryScreen(
                 }
             }
 
-            item {
-                Spacer(modifier = Modifier.height(96.dp))
+            item { Spacer(modifier = Modifier.height(96.dp)) }
+        }
+    }
+
+    if (isFilterSheetOpen) {
+        FilterBottomSheet(
+            title = "Filter expenses",
+            subtitle = "Refine by category, date, payment, or amount",
+            sheetState = sheetState,
+            onDismiss = { isFilterSheetOpen = false },
+            onClear = {
+                viewModel.clearFilters()
+                scope.launch { sheetState.hide() }.invokeOnCompletion {
+                    if (!sheetState.isVisible) isFilterSheetOpen = false
+                }
+            },
+            onApply = {
+                scope.launch { sheetState.hide() }.invokeOnCompletion {
+                    if (!sheetState.isVisible) isFilterSheetOpen = false
+                }
+            },
+        ) {
+            FilterSection(title = "Category") {
+                FilterChips(
+                    options = uiState.availableCategories,
+                    selected = uiState.filters.category,
+                    onSelect = { newCategory ->
+                        viewModel.onFiltersChange { it.copy(category = newCategory) }
+                    },
+                    labelFor = { it },
+                )
+            }
+            FilterSection(title = "Date range") {
+                FilterChips(
+                    options = HistoryDateRange.entries.toList(),
+                    selected = uiState.filters.dateRange,
+                    onSelect = { newRange ->
+                        viewModel.onFiltersChange { it.copy(dateRange = newRange) }
+                    },
+                    labelFor = { it.label },
+                )
+            }
+            if (uiState.availablePaymentMethods.size > 1) {
+                FilterSection(title = "Payment method") {
+                    FilterChips(
+                        options = uiState.availablePaymentMethods,
+                        selected = uiState.filters.paymentMethod,
+                        onSelect = { newMethod ->
+                            viewModel.onFiltersChange { it.copy(paymentMethod = newMethod) }
+                        },
+                        labelFor = { it },
+                    )
+                }
+            }
+            FilterSection(title = "Amount") {
+                AmountRangeSection(
+                    minValue = uiState.filters.minAmount,
+                    maxValue = uiState.filters.maxAmount,
+                    onMinChange = { value ->
+                        viewModel.onFiltersChange { it.copy(minAmount = value.filterAmount()) }
+                    },
+                    onMaxChange = { value ->
+                        viewModel.onFiltersChange { it.copy(maxAmount = value.filterAmount()) }
+                    },
+                    currencyCode = uiState.currencyCode,
+                )
             }
         }
     }
 }
 
-@Composable
-private fun HeaderRow(
-    transactionCount: Int,
-    onBack: () -> Unit,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(Spacing.medium),
-        ) {
-            IconButton(
-                onClick = onBack,
-                modifier = Modifier
-                    .background(Color.White.copy(alpha = 0.8f), CircleShape)
-                    .border(0.7.dp, RawColors.Slate.Slate200.copy(alpha = 0.8f), CircleShape),
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
-                    tint = RawColors.Emerald.Emerald600,
-                )
-            }
-            Column {
-                Text(
-                    text = "ALL EXPENSES",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontSize = 11.sp,
-                    color = TextSecondary,
-                    letterSpacing = 0.72.sp,
-                )
-                Text(
-                    text = "$transactionCount transactions",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontSize = TextSize.xl,
-                    color = TextPrimary,
-                    fontWeight = FontWeight.Medium,
-                    letterSpacing = (-0.8).sp,
-                )
-            }
-        }
-
-        IconButton(
-            onClick = {},
-            modifier = Modifier
-                .background(Color.White.copy(alpha = 0.8f), CircleShape)
-                .border(0.7.dp, RawColors.Slate.Slate200.copy(alpha = 0.8f), CircleShape),
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.FilterList,
-                contentDescription = "Filter",
-                tint = TextSecondary,
-            )
-        }
-    }
-}
-
-@Composable
-private fun SearchBar(
-    query: String,
-    onQueryChange: (String) -> Unit,
-) {
-    OutlinedTextField(
-        value = query,
-        onValueChange = onQueryChange,
-        modifier = Modifier.fillMaxWidth(),
-        placeholder = { Text("Search expenses...") },
-        leadingIcon = {
-            Icon(
-                imageVector = Icons.Outlined.Search,
-                contentDescription = null,
-                tint = TextSecondary,
-            )
-        },
-        singleLine = true,
-        shape = RoundedCornerShape(14.dp),
-        colors = textFieldColors(),
-    )
-}
+private fun String.filterAmount(): String = filter { it.isDigit() || it == '.' }
 
 @Composable
 private fun TotalExpensesCard(
@@ -226,8 +220,8 @@ private fun TotalExpensesCard(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0x1A00BC7D), RoundedCornerShape(16.dp))
-            .border(0.7.dp, Color(0x3300BC7D), RoundedCornerShape(16.dp))
+            .background(AccentIncomeSoft, RoundedCornerShape(16.dp))
+            .border(0.7.dp, AccentIncomeBorder, RoundedCornerShape(16.dp))
             .padding(horizontal = Spacing.large, vertical = 14.dp),
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -235,7 +229,7 @@ private fun TotalExpensesCard(
                 text = "Total Expenses",
                 style = MaterialTheme.typography.labelSmall,
                 fontSize = 11.sp,
-                color = RawColors.Emerald.Emerald600,
+                color = MaterialTheme.colorScheme.primary,
             )
             Text(
                 text = "$currencyCode ${String.format(Locale.getDefault(), "%,.0f", totalAmount)}",
@@ -273,7 +267,7 @@ private fun DateHeader(date: LocalDate) {
         )
         HorizontalDivider(
             modifier = Modifier.weight(1f),
-            color = RawColors.Slate.Slate200.copy(alpha = 0.6f),
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
         )
     }
 }
@@ -290,14 +284,20 @@ private fun DayTransactionsCard(
                 .padding(vertical = 8.dp),
         ) {
             entries.forEachIndexed { index, entry ->
-                TransactionRow(
-                    entry = entry,
+                ExpenseListItem(
+                    title = entry.title,
+                    category = entry.category,
+                    amount = entry.amount,
                     currencyCode = currencyCode,
+                    spentAtEpochMillis = entry.spentAtEpochMillis,
+                    merchant = entry.merchant,
+                    paymentMethod = entry.paymentMethod,
+                    notes = entry.notes,
                 )
                 if (index != entries.lastIndex) {
                     HorizontalDivider(
                         modifier = Modifier.padding(horizontal = Spacing.medium),
-                        color = RawColors.Slate.Slate200.copy(alpha = 0.5f),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
                     )
                 }
             }
@@ -315,50 +315,60 @@ private fun TransactionRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = Spacing.medium, vertical = 12.dp),
+            .padding(horizontal = Spacing.medium, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Spacing.medium),
     ) {
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .background(tint.copy(alpha = 0.14f), RoundedCornerShape(14.dp)),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                imageVector = categoryIcon(entry.category),
-                contentDescription = null,
-                tint = tint,
-                modifier = Modifier.size(16.dp),
-            )
-        }
-
-        Spacer(modifier = Modifier.width(Spacing.medium))
-
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = entry.title,
-                style = MaterialTheme.typography.bodyMedium,
-                fontSize = TextSize.sm,
-                color = TextPrimary,
-                fontWeight = FontWeight.Medium,
-            )
-            Text(
-                text = entry.category,
-                style = MaterialTheme.typography.bodySmall,
-                fontSize = 11.sp,
-                color = TextSecondary,
-            )
-        }
-
-        Text(
-            text = "-$currencyCode ${String.format(Locale.getDefault(), "%,.0f", entry.amount)}",
-            style = MaterialTheme.typography.bodyMedium,
-            fontSize = 21.sp,
-            lineHeight = 22.sp,
-            fontWeight = FontWeight.Medium,
-            color = tint,
-            letterSpacing = (-0.38).sp,
+        Icon(
+            imageVector = categoryIcon(entry.category),
+            contentDescription = null,
+            tint = tint,
+            modifier = Modifier.size(22.dp),
         )
+
+        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = entry.title,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontSize = TextSize.sm,
+                    color = TextPrimary,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    modifier = Modifier.weight(1f, fill = false),
+                )
+                Text(
+                    text = entry.category,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontSize = 11.sp,
+                    color = tint,
+                )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = entry.merchant?.takeIf { it.isNotBlank() }
+                        ?: formatDate(entry.spentAtEpochMillis),
+                    style = MaterialTheme.typography.labelSmall,
+                    fontSize = 11.sp,
+                    color = TextSecondary,
+                )
+                Text(
+                    text = "-$currencyCode ${String.format(Locale.getDefault(), "%,.0f", entry.amount)}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontSize = TextSize.sm,
+                    fontWeight = FontWeight.SemiBold,
+                    color = TextPrimary,
+                )
+            }
+        }
     }
 }
 
@@ -375,29 +385,5 @@ private fun EmptyHistoryState() {
             style = MaterialTheme.typography.bodyLarge,
             color = TextSecondary,
         )
-    }
-}
-
-private fun categoryColor(category: String): Color {
-    return when (category.trim().lowercase()) {
-        "food", "essentials" -> Color(0xFFF97316)
-        "transport" -> RawColors.Blue.Blue500
-        "utilities" -> RawColors.Violet.Violet500
-        "shopping", "lifestyle" -> RawColors.Rose.Rose500
-        "health" -> RawColors.Red.Red500
-        "fun", "subscriptions" -> RawColors.Emerald.Emerald500
-        else -> RawColors.Slate.Slate400
-    }
-}
-
-private fun categoryIcon(category: String): ImageVector {
-    return when (category.trim().lowercase()) {
-        "food", "essentials" -> Icons.Outlined.LocalPizza
-        "transport" -> Icons.Outlined.LocalTaxi
-        "utilities" -> Icons.Outlined.Bolt
-        "shopping", "lifestyle" -> Icons.Outlined.ShoppingBag
-        "health" -> Icons.Outlined.HealthAndSafety
-        "fun", "subscriptions" -> Icons.Outlined.SportsEsports
-        else -> Icons.Outlined.TipsAndUpdates
     }
 }

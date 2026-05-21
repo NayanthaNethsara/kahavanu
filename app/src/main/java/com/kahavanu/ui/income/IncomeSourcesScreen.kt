@@ -325,7 +325,7 @@ private fun IncomeSourceRow(
                     Text(
                         text = type.label,
                         style = MaterialTheme.typography.labelSmall,
-                        fontSize = 10.sp,
+                        fontSize = 11.sp,
                         color = RawColors.Emerald.Emerald700,
                         modifier = Modifier
                             .background(RawColors.Emerald.Emerald50, CircleShape)

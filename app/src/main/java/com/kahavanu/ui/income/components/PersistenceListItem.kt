@@ -135,7 +135,7 @@ fun PersistenceListItem(
                     text = if (isInvoiceSent) "Invoice sent" else "No invoice",
                     style = MaterialTheme.typography.labelSmall,
                     color = if (isInvoiceSent) TextSecondary else RawColors.Red.Red600,
-                    fontSize = 10.sp
+                    fontSize = 11.sp
                 )
             }
         }
@@ -166,7 +166,7 @@ fun PersistenceListItem(
                                 "Receive",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = RawColors.Emerald.Emerald700,
-                                fontSize = 10.sp,
+                                fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold
                             )
                         }
@@ -213,7 +213,7 @@ fun PersistenceListItem(
                                     style = MaterialTheme.typography.labelSmall,
                                     color = Color.White,
                                     fontWeight = FontWeight.Medium,
-                                    fontSize = 10.sp
+                                    fontSize = 11.sp
                                 )
                             }
                         }

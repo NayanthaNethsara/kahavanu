@@ -398,7 +398,7 @@ private fun SmsSenderRowItem(
                 indicatorShadow = 1.dp,
                 selectedTextColor = Color.White,
                 unselectedTextColor = TextSecondary,
-                textStyle = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                textStyle = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
                 itemWidth = 55.dp,
             )
             IconButton(

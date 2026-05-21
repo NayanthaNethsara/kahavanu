@@ -12,19 +12,15 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Bolt
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.CreditCard
@@ -41,10 +37,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -61,9 +55,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.kahavanu.ui.common.KahavanuSubScreen
 import com.kahavanu.ui.common.textFieldColors
-import com.kahavanu.ui.theme.RawColors
+import com.kahavanu.ui.theme.AccentExpense
+import com.kahavanu.ui.theme.AccentExpenseBorder
+import com.kahavanu.ui.theme.AccentExpenseSoft
 import com.kahavanu.ui.theme.Spacing
+import com.kahavanu.ui.theme.SurfaceCard
+import com.kahavanu.ui.theme.SurfaceIconBorder
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
 import com.kahavanu.ui.theme.TextSize
@@ -145,56 +144,19 @@ fun ExpenseLogScreen(
         }
     }
 
-    Surface(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surface),
+    KahavanuSubScreen(
+        label = "Add Expense",
+        title = "Track your spending",
+        onBack = onBack,
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .windowInsetsPadding(WindowInsets.systemBars)
                 .imePadding()
                 .verticalScroll(scrollState)
-                .padding(horizontal = Spacing.large, vertical = 24.dp),
+                .padding(horizontal = Spacing.extraLarge, vertical = Spacing.medium),
             verticalArrangement = Arrangement.spacedBy(Spacing.large),
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(Spacing.medium),
-            ) {
-                IconButton(
-                    onClick = onBack,
-                    modifier = Modifier
-                        .background(Color.White.copy(alpha = 0.8f), RoundedCornerShape(99.dp))
-                        .border(0.7.dp, RawColors.Slate.Slate200.copy(alpha = 0.8f), RoundedCornerShape(99.dp)),
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
-                        tint = RawColors.Emerald.Emerald600,
-                    )
-                }
-                Column {
-                    Text(
-                        text = "ADD EXPENSE",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontSize = 11.sp,
-                        letterSpacing = 0.72.sp,
-                        color = TextSecondary,
-                    )
-                    Text(
-                        text = "Track your spending",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontSize = TextSize.xl,
-                        color = TextPrimary,
-                        letterSpacing = (-0.8).sp,
-                        fontWeight = FontWeight.Medium,
-                    )
-                }
-            }
-
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.small)) {
                 FieldLabel("Category")
                 expenseCategories.chunked(4).forEach { rowItems ->
@@ -219,13 +181,16 @@ fun ExpenseLogScreen(
                 OutlinedTextField(
                     value = uiState.amount,
                     onValueChange = viewModel::onAmountChange,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 80.dp),
                     placeholder = {
-                        Text("0", fontSize = 34.sp, color = TextSecondary.copy(alpha = 0.8f))
+                        Text("0", fontSize = 34.sp, lineHeight = 40.sp, color = TextSecondary.copy(alpha = 0.8f))
                     },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     textStyle = MaterialTheme.typography.headlineMedium.copy(
                         fontSize = 34.sp,
+                        lineHeight = 40.sp,
                         fontWeight = FontWeight.Medium,
                         color = TextPrimary,
                     ),
@@ -329,8 +294,8 @@ fun ExpenseLogScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0x21F97316), RoundedCornerShape(16.dp))
-                    .border(0.7.dp, Color(0x33F97316), RoundedCornerShape(16.dp))
+                    .background(AccentExpenseSoft, RoundedCornerShape(16.dp))
+                    .border(0.7.dp, AccentExpenseBorder, RoundedCornerShape(16.dp))
                     .padding(horizontal = Spacing.medium, vertical = 14.dp),
             ) {
                 Text(
@@ -338,7 +303,7 @@ fun ExpenseLogScreen(
                     style = MaterialTheme.typography.bodySmall,
                     fontSize = 14.sp,
                     lineHeight = 20.sp,
-                    color = Color(0xFFF97316),
+                    color = AccentExpense,
                 )
             }
 
@@ -354,7 +319,7 @@ fun ExpenseLogScreen(
             uiState.successMessage?.let { successMessage ->
                 Text(
                     text = successMessage,
-                    color = RawColors.Emerald.Emerald700,
+                    color = MaterialTheme.colorScheme.primary,
                     style = MaterialTheme.typography.bodySmall,
                     fontSize = TextSize.sm,
                 )
@@ -368,9 +333,9 @@ fun ExpenseLogScreen(
                     .height(52.dp),
                 shape = RoundedCornerShape(99.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFF97316),
+                    containerColor = AccentExpense,
                     contentColor = Color.White,
-                    disabledContainerColor = Color(0xFFF97316).copy(alpha = 0.5f),
+                    disabledContainerColor = AccentExpense.copy(alpha = 0.5f),
                     disabledContentColor = Color.White,
                 ),
             ) {
@@ -406,11 +371,11 @@ private fun CategoryButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val borderColor = if (selected) Color(0xFFF97316) else RawColors.Slate.Slate200.copy(alpha = 0.9f)
-    val containerColor = if (selected) Color(0x21F97316) else Color.White.copy(alpha = 0.72f)
-    val iconContainerColor = if (selected) Color(0xFFF97316) else RawColors.Slate.Slate900.copy(alpha = 0.06f)
-    val iconColor = if (selected) Color.White else RawColors.Slate.Slate500
-    val textColor = if (selected) Color(0xFFF97316) else RawColors.Slate.Slate600
+    val borderColor = if (selected) AccentExpense else SurfaceIconBorder
+    val containerColor = if (selected) AccentExpenseSoft else SurfaceCard
+    val iconContainerColor = if (selected) AccentExpense else MaterialTheme.colorScheme.surfaceVariant
+    val iconColor = if (selected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+    val textColor = if (selected) AccentExpense else TextSecondary
 
     Box(
         modifier = modifier
@@ -456,9 +421,9 @@ private fun PaymentMethodButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val borderColor = if (selected) Color(0x4D00BC7D) else RawColors.Slate.Slate200.copy(alpha = 0.9f)
-    val containerColor = if (selected) Color(0x1F00BC7D) else RawColors.Slate.Slate900.copy(alpha = 0.04f)
-    val textColor = if (selected) Color(0xFF00BC7D) else RawColors.Slate.Slate600
+    val borderColor = if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.3f) else SurfaceIconBorder
+    val containerColor = if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
+    val textColor = if (selected) MaterialTheme.colorScheme.primary else TextSecondary
 
     Box(
         modifier = modifier

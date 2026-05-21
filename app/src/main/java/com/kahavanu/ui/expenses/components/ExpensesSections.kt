@@ -141,7 +141,7 @@ private fun CategorySpendItem(
                 Text(
                     text = "$percent%",
                     style = MaterialTheme.typography.bodySmall,
-                    fontSize = 10.sp,
+                    fontSize = 11.sp,
                     color = TextSecondary,
                 )
             }
@@ -193,56 +193,14 @@ fun RecentExpensesSection(
                         .padding(vertical = Spacing.small),
                 ) {
                     expenses.forEachIndexed { index, expense ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = Spacing.medium, vertical = Spacing.small),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(32.dp)
-                                    .background(
-                                        categoryColor(expense.category).copy(alpha = 0.14f),
-                                        RoundedCornerShape(10.dp),
-                                    ),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Icon(
-                                    imageVector = categoryIcon(expense.category),
-                                    contentDescription = null,
-                                    tint = categoryColor(expense.category),
-                                    modifier = Modifier.size(14.dp),
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.width(Spacing.small))
-
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = expense.title,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontSize = TextSize.sm,
-                                    color = TextPrimary,
-                                    fontWeight = FontWeight.Medium,
-                                )
-                                Text(
-                                    text = buildRecentSubtitle(expense),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    fontSize = 10.sp,
-                                    color = TextSecondary,
-                                )
-                            }
-
-                            Text(
-                                text = "-${formatAmountNoDecimals(expense.amount, currency.code)}",
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontSize = TextSize.sm,
-                                color = categoryColor(expense.category),
-                                fontWeight = FontWeight.Medium,
-                            )
-                        }
-
+                        ExpenseListItem(
+                            title = expense.title,
+                            category = expense.category,
+                            amount = expense.amount,
+                            currencyCode = currency.code,
+                            spentAtEpochMillis = expense.spentAtEpochMillis,
+                            merchant = expense.merchant,
+                        )
                         if (index != expenses.lastIndex) {
                             HorizontalDivider(
                                 modifier = Modifier.padding(horizontal = Spacing.medium),

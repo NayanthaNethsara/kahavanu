@@ -75,7 +75,7 @@ fun MainTabsScreen(
                         navController.navigate(destination.route) {
                             popUpTo(AppDestination.Home.route) { saveState = true }
                             launchSingleTop = true
-                            restoreState = true
+                            restoreState = destination.route != AppDestination.Home.route
                         }
                     },
                 )

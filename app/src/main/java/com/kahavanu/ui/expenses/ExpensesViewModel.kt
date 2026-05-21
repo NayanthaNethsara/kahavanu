@@ -3,8 +3,11 @@ package com.kahavanu.ui.expenses
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kahavanu.domain.model.ExpenseLogEntry
+import com.kahavanu.domain.model.SuggestionKind
 import com.kahavanu.domain.repository.ExpensesRepository
 import com.kahavanu.domain.repository.SettingsRepository
+import com.kahavanu.domain.repository.SmsSuggestionRepository
+import com.kahavanu.ui.home.inferExpenseCategory
 import com.kahavanu.ui.theme.RawColors
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.LocalDate
@@ -13,41 +16,49 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
 class ExpensesViewModel @Inject constructor(
     private val expensesRepository: ExpensesRepository,
     private val settingsRepository: SettingsRepository,
+    private val smsSuggestionRepository: SmsSuggestionRepository,
 ) : ViewModel() {
-    private val pendingMatches = listOf(
-        PendingExpenseMatch(
-            id = "sms-1",
-            title = "Keells Super",
-            amount = 4_250.0,
-            category = "Food",
-            confidencePercent = 92,
-            receivedAtLabel = "Keells Super · Today, 14:30",
-        ),
-        PendingExpenseMatch(
-            id = "sms-2",
-            title = "Uber",
-            amount = 850.0,
-            category = "Transport",
-            confidencePercent = 98,
-            receivedAtLabel = "Uber · Today, 09:15",
-        ),
-    )
 
     private val selectedPeriod = MutableStateFlow(ExpensePeriod.Month)
+
+    val pendingExpenseMatches: StateFlow<List<PendingExpenseMatch>> =
+        smsSuggestionRepository.observePendingByKinds(listOf(SuggestionKind.EXPENSE))
+            .map { suggestions ->
+                suggestions.map { s ->
+                    PendingExpenseMatch(
+                        id = s.localId.toString(),
+                        title = s.title,
+                        amount = s.amount,
+                        category = inferExpenseCategory(s.smsSenderName, s.merchant),
+                        confidencePercent = (s.confidence * 100).toInt(),
+                        receivedAtLabel = buildLabel(s.merchant ?: s.smsSenderName, s.smsReceivedAtEpochMillis),
+                    )
+                }
+            }.stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000),
+                initialValue = emptyList(),
+            )
 
     val uiState: StateFlow<ExpensesUiState> = combine(
         selectedPeriod,
         settingsRepository.observeCurrencySettings(),
         expensesRepository.observeExpenseLogs(),
-    ) { period, (primaryCurrency, _), allExpenses ->
+        pendingExpenseMatches,
+    ) { period, (primaryCurrency, _), allExpenses, pendingMatches ->
         val filtered = allExpenses.filter { isWithinPeriod(it.spentAtEpochMillis, period) }
         val categorySummaries = buildCategorySummaries(filtered)
 
@@ -76,7 +87,6 @@ class ExpensesViewModel @Inject constructor(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = ExpensesUiState(
-            pendingMatches = pendingMatches,
             budgetLimit = budgetFor(ExpensePeriod.Month),
             categorySummaries = defaultCategorySummaries(),
         ),
@@ -84,6 +94,30 @@ class ExpensesViewModel @Inject constructor(
 
     fun onPeriodChange(period: ExpensePeriod) {
         selectedPeriod.update { period }
+    }
+
+    fun confirmExpenseSuggestion(id: String) {
+        viewModelScope.launch {
+            val localId = id.toLongOrNull() ?: return@launch
+            val s = smsSuggestionRepository.getById(localId) ?: return@launch
+            expensesRepository.logExpense(
+                ExpenseLogEntry(
+                    title = s.title,
+                    amount = s.amount,
+                    currency = s.currency,
+                    spentAtEpochMillis = s.txnAtEpochMillis,
+                    merchant = s.merchant,
+                    category = inferExpenseCategory(s.smsSenderName, s.merchant),
+                )
+            )
+            smsSuggestionRepository.confirm(localId)
+        }
+    }
+
+    fun dismissExpenseSuggestion(id: String) {
+        viewModelScope.launch {
+            smsSuggestionRepository.dismiss(id.toLongOrNull() ?: return@launch)
+        }
     }
 
     private fun buildCategorySummaries(entries: List<ExpenseLogEntry>): List<ExpenseCategorySummary> {
@@ -115,7 +149,7 @@ class ExpensesViewModel @Inject constructor(
             "shopping", "lifestyle" -> "Shopping"
             "health" -> "Health"
             "fun", "subscriptions" -> "Fun"
-            else -> "Food"
+            else -> "Shopping"
         }
     }
 
@@ -138,5 +172,9 @@ class ExpensesViewModel @Inject constructor(
             ExpensePeriod.Year -> date.year == today.year
         }
     }
+}
 
+private fun buildLabel(merchant: String, epochMillis: Long): String {
+    val dateStr = SimpleDateFormat("dd MMM", Locale.getDefault()).format(Date(epochMillis))
+    return "$merchant · $dateStr"
 }

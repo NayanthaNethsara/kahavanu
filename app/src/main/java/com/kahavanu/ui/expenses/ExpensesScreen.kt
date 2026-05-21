@@ -82,6 +82,8 @@ fun ExpensesScreen(
             MatchAndCategorizeSection(
                 items = uiState.pendingMatches,
                 currency = uiState.currency,
+                onConfirm = viewModel::confirmExpenseSuggestion,
+                onDismiss = viewModel::dismissExpenseSuggestion,
             )
         }
         item {

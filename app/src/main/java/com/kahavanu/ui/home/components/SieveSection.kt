@@ -19,13 +19,16 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.automirrored.outlined.TrendingDown
 import androidx.compose.material.icons.automirrored.outlined.TrendingUp
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -38,15 +41,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.kahavanu.ui.common.GlassCard
+import com.kahavanu.ui.common.SectionHeader
 import com.kahavanu.ui.home.SieveItem
 import com.kahavanu.ui.home.SieveType
-import com.kahavanu.ui.common.SectionHeader
-import com.kahavanu.ui.common.GlassCard
 import com.kahavanu.ui.theme.CornerRadius
 import com.kahavanu.ui.theme.Elevation
 import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
+import com.kahavanu.ui.theme.TextSecondary
 import com.kahavanu.ui.theme.TextTertiary
 
 @Composable
@@ -54,31 +58,86 @@ fun SieveSection(
     items: List<SieveItem>,
     onConfirm: (String) -> Unit,
     onIgnore: (String) -> Unit,
-    modifier: Modifier = Modifier
+    onScanClick: () -> Unit,
+    isScanning: Boolean = false,
+    modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         Box(modifier = Modifier.padding(horizontal = Spacing.extraLarge)) {
-            SectionHeader(
-                title = "The Sieve",
-                subtitle = "SMS suggestions to confirm",
-                actionText = "See all",
-                badgeCount = items.size.toString()
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top,
+            ) {
+                Box(modifier = Modifier.weight(1f)) {
+                    SectionHeader(
+                        title = "The Sieve",
+                        subtitle = if (items.isEmpty()) "Tap scan to find new transactions" else "SMS suggestions to confirm",
+                        badgeCount = if (items.isNotEmpty()) items.size.toString() else null,
+                    )
+                }
+                IconButton(
+                    onClick = onScanClick,
+                    enabled = !isScanning,
+                    modifier = Modifier
+                        .padding(top = Spacing.extraSmall)
+                        .size(32.dp),
+                ) {
+                    if (isScanning) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(16.dp),
+                            strokeWidth = 2.dp,
+                            color = RawColors.Emerald.Emerald500,
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Outlined.Refresh,
+                            contentDescription = "Scan SMS",
+                            tint = RawColors.Emerald.Emerald600,
+                            modifier = Modifier.size(18.dp),
+                        )
+                    }
+                }
+            }
         }
 
-        Spacer(modifier = Modifier.height(Spacing.small))
-
-        LazyRow(
-            modifier = Modifier.fillMaxWidth(),
-            contentPadding = PaddingValues(horizontal = Spacing.extraLarge),
-            horizontalArrangement = Arrangement.spacedBy(Spacing.medium)
-        ) {
-            items(items) { item ->
-                SieveCard(
-                    item = item,
-                    onConfirm = { onConfirm(item.id) },
-                    onIgnore = { onIgnore(item.id) }
-                )
+        if (items.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .padding(horizontal = Spacing.extraLarge)
+                    .fillMaxWidth(),
+            ) {
+                GlassCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    shadowElevation = Elevation.level1,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(Spacing.large),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            text = "No pending suggestions",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = TextSecondary,
+                        )
+                    }
+                }
+            }
+        } else {
+            LazyRow(
+                modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(horizontal = Spacing.extraLarge),
+                horizontalArrangement = Arrangement.spacedBy(Spacing.medium),
+            ) {
+                items(items) { item ->
+                    SieveCard(
+                        item = item,
+                        onConfirm = { onConfirm(item.id) },
+                        onIgnore = { onIgnore(item.id) },
+                    )
+                }
             }
         }
     }
@@ -89,130 +148,120 @@ fun SieveCard(
     item: SieveItem,
     onConfirm: () -> Unit,
     onIgnore: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val isExpense = item.type == SieveType.EXPENSE
-    
     val icon = if (isExpense) Icons.AutoMirrored.Outlined.TrendingDown else Icons.AutoMirrored.Outlined.TrendingUp
     val accentColor = if (isExpense) RawColors.Red.Red600 else RawColors.Emerald.Emerald600
     val badgeBg = if (isExpense) RawColors.Red.Red50.copy(alpha = 0.6f) else RawColors.Emerald.Emerald50.copy(alpha = 0.6f)
     val badgeLabel = if (isExpense) "Expense" else "Income"
 
     GlassCard(
-        modifier = modifier.width(180.dp),
+        modifier = modifier.width(156.dp),
         backgroundColor = Color.White.copy(alpha = 0.9f),
         borderColor = RawColors.Slate.Slate200.copy(alpha = 0.6f),
-        shadowElevation = Elevation.level1
+        shadowElevation = Elevation.level1,
     ) {
-        Column(
-            modifier = Modifier.padding(Spacing.medium)
-        ) {
-            // Top Row: Category/Type Badge + Close Button
+        Column(modifier = Modifier.padding(10.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                // Compact Category/Type Badge
                 Surface(
                     color = badgeBg,
-                    shape = RoundedCornerShape(CornerRadius.small)
+                    shape = RoundedCornerShape(CornerRadius.extraSmall),
                 ) {
                     Row(
-                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp),
+                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        horizontalArrangement = Arrangement.spacedBy(2.dp),
                     ) {
                         Icon(
                             imageVector = icon,
                             contentDescription = null,
                             tint = accentColor,
-                            modifier = Modifier.size(10.dp)
+                            modifier = Modifier.size(8.dp),
                         )
                         Text(
                             text = badgeLabel,
                             style = MaterialTheme.typography.labelSmall,
                             color = accentColor,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 11.sp,
-                            letterSpacing = 0.2.sp
+                            fontSize = 9.sp,
+                            letterSpacing = 0.1.sp,
                         )
                     }
                 }
 
-                // Small minimal dismiss button with improved touch target size (28.dp)
                 Box(
                     modifier = Modifier
-                        .size(28.dp)
+                        .size(22.dp)
                         .clip(CircleShape)
                         .background(RawColors.Slate.Slate100.copy(alpha = 0.5f))
                         .clickable { onIgnore() },
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Center,
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.Close,
                         contentDescription = "Ignore",
                         tint = TextTertiary,
-                        modifier = Modifier.size(14.dp)
+                        modifier = Modifier.size(10.dp),
                     )
                 }
             }
 
             Spacer(modifier = Modifier.height(Spacing.small))
 
-            // Transaction Details
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
                     text = "${item.currency} ${String.format("%,.0f", item.amount)}",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = TextPrimary,
-                    fontSize = 16.sp
+                    fontSize = 14.sp,
                 )
-                
                 Spacer(modifier = Modifier.height(2.dp))
-
                 Text(
                     text = item.title,
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Medium,
                     color = TextPrimary,
+                    fontSize = 12.sp,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
                 )
-
                 Text(
                     text = item.detectedFrom,
                     style = MaterialTheme.typography.bodySmall,
                     color = TextTertiary,
-                    fontSize = 12.sp,
+                    fontSize = 10.sp,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
 
             Spacer(modifier = Modifier.height(Spacing.medium))
 
-            // Confirm Button (Full Width, Sleek)
             Button(
                 onClick = onConfirm,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(32.dp),
-                shape = RoundedCornerShape(CornerRadius.medium),
+                    .height(28.dp),
+                shape = RoundedCornerShape(CornerRadius.small),
                 colors = ButtonDefaults.buttonColors(containerColor = RawColors.Emerald.Emerald500),
-                contentPadding = PaddingValues(0.dp)
+                contentPadding = PaddingValues(0.dp),
             ) {
                 Row(
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Check,
                         contentDescription = "Confirm",
                         tint = Color.White,
-                        modifier = Modifier.size(12.dp)
+                        modifier = Modifier.size(10.dp),
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
@@ -220,11 +269,10 @@ fun SieveCard(
                         style = MaterialTheme.typography.labelMedium,
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 12.sp
+                        fontSize = 11.sp,
                     )
                 }
             }
         }
     }
 }
-

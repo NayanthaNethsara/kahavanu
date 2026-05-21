@@ -103,6 +103,16 @@ class DefaultSettingsRepository @Inject constructor(
             .map { }
     }
 
+    override suspend fun getLastSmsScanEpochMillis(): Long {
+        val uid = auth.currentUser?.uid ?: return 0L
+        return userSettingsDao.getLastSmsScan(uid) ?: 0L
+    }
+
+    override suspend fun updateLastSmsScanEpochMillis(epochMillis: Long) {
+        val uid = auth.currentUser?.uid ?: return
+        userSettingsDao.updateLastSmsScan(uid, epochMillis)
+    }
+
     private fun startSettingsListener(uid: String) {
         if (settingsListener != null) return
         settingsListener = firestore.collection(USERS_COLLECTION)

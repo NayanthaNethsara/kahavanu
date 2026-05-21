@@ -9,4 +9,5 @@ data class UserSettingsEntity(
     val primaryCurrency: String,
     val secondaryCurrency: String,
     val updatedAtEpochMillis: Long,
+    val lastSmsScanEpochMillis: Long = 0L,
 )

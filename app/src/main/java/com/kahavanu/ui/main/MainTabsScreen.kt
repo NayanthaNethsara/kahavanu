@@ -30,7 +30,10 @@ import com.kahavanu.ui.income.RecurringManagerScreen
 import com.kahavanu.ui.income.IncomeSourcesScreen
 import com.kahavanu.ui.income.HistoryFilter
 import com.kahavanu.ui.navigation.AppDestination
+import com.kahavanu.ui.profile.AccountScreen
+import com.kahavanu.ui.profile.NotificationsScreen
 import com.kahavanu.ui.profile.ProfileScreen
+import com.kahavanu.ui.profile.ThemeScreen
 
 @Composable
 fun MainTabsScreen(
@@ -172,7 +175,22 @@ fun MainTabsScreen(
                 )
             }
             composable(AppDestination.Profile.route) {
-                ProfileScreen()
+                ProfileScreen(
+                    onNavigateToAccount = { navController.navigate(AppDestination.ProfileAccount.route) },
+                    onNavigateToNotifications = {
+                        navController.navigate(AppDestination.ProfileNotifications.route)
+                    },
+                    onNavigateToTheme = { navController.navigate(AppDestination.ProfileTheme.route) },
+                )
+            }
+            composable(AppDestination.ProfileAccount.route) {
+                AccountScreen(onBack = { navController.popBackStack() })
+            }
+            composable(AppDestination.ProfileNotifications.route) {
+                NotificationsScreen(onBack = { navController.popBackStack() })
+            }
+            composable(AppDestination.ProfileTheme.route) {
+                ThemeScreen(onBack = { navController.popBackStack() })
             }
             composable(
                 route = AppDestination.IncomeHistory.route,

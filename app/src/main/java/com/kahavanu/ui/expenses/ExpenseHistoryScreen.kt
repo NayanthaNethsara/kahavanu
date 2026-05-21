@@ -290,6 +290,9 @@ private fun DayTransactionsCard(
                     amount = entry.amount,
                     currencyCode = currencyCode,
                     spentAtEpochMillis = entry.spentAtEpochMillis,
+                    merchant = entry.merchant,
+                    paymentMethod = entry.paymentMethod,
+                    notes = entry.notes,
                 )
                 if (index != entries.lastIndex) {
                     HorizontalDivider(

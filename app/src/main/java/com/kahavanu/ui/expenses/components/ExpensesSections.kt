@@ -199,6 +199,7 @@ fun RecentExpensesSection(
                             amount = expense.amount,
                             currencyCode = currency.code,
                             spentAtEpochMillis = expense.spentAtEpochMillis,
+                            merchant = expense.merchant,
                         )
                         if (index != expenses.lastIndex) {
                             HorizontalDivider(

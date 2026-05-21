@@ -48,6 +48,8 @@ import com.kahavanu.ui.common.KahavanuSubScreen
 import com.kahavanu.ui.common.SearchWithFiltersBar
 import com.kahavanu.ui.common.categoryColor
 import com.kahavanu.ui.common.categoryIcon
+import com.kahavanu.ui.expenses.components.ExpenseListItem
+import com.kahavanu.ui.expenses.components.formatDate
 import com.kahavanu.ui.theme.AccentIncomeBorder
 import com.kahavanu.ui.theme.AccentIncomeSoft
 import com.kahavanu.ui.theme.Spacing
@@ -120,13 +122,6 @@ fun ExpenseHistoryScreen(
                     filterActive = uiState.hasActiveFilter,
                     activeChips = activeChips,
                     placeholder = "Search expenses...",
-                )
-            }
-
-            item {
-                TotalExpensesCard(
-                    totalAmount = uiState.totalExpenses,
-                    currencyCode = uiState.currencyCode,
                 )
             }
 
@@ -289,9 +284,12 @@ private fun DayTransactionsCard(
                 .padding(vertical = 8.dp),
         ) {
             entries.forEachIndexed { index, entry ->
-                TransactionRow(
-                    entry = entry,
+                ExpenseListItem(
+                    title = entry.title,
+                    category = entry.category,
+                    amount = entry.amount,
                     currencyCode = currencyCode,
+                    spentAtEpochMillis = entry.spentAtEpochMillis,
                 )
                 if (index != entries.lastIndex) {
                     HorizontalDivider(
@@ -314,50 +312,60 @@ private fun TransactionRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = Spacing.medium, vertical = 12.dp),
+            .padding(horizontal = Spacing.medium, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Spacing.medium),
     ) {
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .background(tint.copy(alpha = 0.14f), RoundedCornerShape(14.dp)),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                imageVector = categoryIcon(entry.category),
-                contentDescription = null,
-                tint = tint,
-                modifier = Modifier.size(16.dp),
-            )
-        }
-
-        Spacer(modifier = Modifier.width(Spacing.medium))
-
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = entry.title,
-                style = MaterialTheme.typography.bodyMedium,
-                fontSize = TextSize.sm,
-                color = TextPrimary,
-                fontWeight = FontWeight.Medium,
-            )
-            Text(
-                text = entry.category,
-                style = MaterialTheme.typography.bodySmall,
-                fontSize = 11.sp,
-                color = TextSecondary,
-            )
-        }
-
-        Text(
-            text = "-$currencyCode ${String.format(Locale.getDefault(), "%,.0f", entry.amount)}",
-            style = MaterialTheme.typography.bodyMedium,
-            fontSize = 21.sp,
-            lineHeight = 22.sp,
-            fontWeight = FontWeight.Medium,
-            color = tint,
-            letterSpacing = (-0.38).sp,
+        Icon(
+            imageVector = categoryIcon(entry.category),
+            contentDescription = null,
+            tint = tint,
+            modifier = Modifier.size(22.dp),
         )
+
+        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = entry.title,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontSize = TextSize.sm,
+                    color = TextPrimary,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    modifier = Modifier.weight(1f, fill = false),
+                )
+                Text(
+                    text = entry.category,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontSize = 11.sp,
+                    color = tint,
+                )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = entry.merchant?.takeIf { it.isNotBlank() }
+                        ?: formatDate(entry.spentAtEpochMillis),
+                    style = MaterialTheme.typography.labelSmall,
+                    fontSize = 11.sp,
+                    color = TextSecondary,
+                )
+                Text(
+                    text = "-$currencyCode ${String.format(Locale.getDefault(), "%,.0f", entry.amount)}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontSize = TextSize.sm,
+                    fontWeight = FontWeight.SemiBold,
+                    color = TextPrimary,
+                )
+            }
+        }
     }
 }
 

@@ -78,6 +78,8 @@ fun SearchWithFiltersBar(
                 badge = filterActive,
                 tint = filterTint,
                 size = 56.dp,
+                restingCornerRadius = 20.dp,
+                pressedCornerRadius = 12.dp,
             )
         }
 

@@ -50,10 +50,7 @@ import com.kahavanu.ui.common.HistoryDateRange
 import com.kahavanu.ui.common.KahavanuSubScreen
 import com.kahavanu.ui.common.SearchWithFiltersBar
 import com.kahavanu.ui.common.contains
-import com.kahavanu.ui.income.components.PersistenceListItem
-import com.kahavanu.ui.income.components.formatAmount
-import com.kahavanu.ui.income.components.formatDate
-import com.kahavanu.ui.income.components.getDueText
+import com.kahavanu.ui.income.components.HistoryListItem
 import com.kahavanu.ui.income.components.isOverdue
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
@@ -162,29 +159,13 @@ fun IncomeHistoryScreen(
                 } else {
                     LazyColumn {
                         itemsIndexed(historyItems) { index, item ->
-                            val isLogOverdue = item is HistoryItem.Scheduled &&
-                                isOverdue(item.scheduled.scheduledDateEpochMillis)
                             val canReceive = item is HistoryItem.Scheduled &&
                                 item.scheduled.type == IncomeSourceType.PENDING &&
                                 item.scheduled.lastGeneratedEpochMillis == null
-                            val dueText = when (item) {
-                                is HistoryItem.Scheduled -> getDueText(item.scheduled.scheduledDateEpochMillis)
-                                is HistoryItem.Log -> formatDate(item.log.receivedAtEpochMillis)
-                            }
-                            PersistenceListItem(
-                                title = item.title,
-                                dueText = dueText,
-                                isOverdue = isLogOverdue,
-                                isPending = canReceive,
-                                isRecurrent = item is HistoryItem.Scheduled && item.scheduled.type == IncomeSourceType.RECURRENT,
-                                amount = formatAmount(item.amount, item.currency),
-                                isInvoiceSent = item.isInvoiceSent,
-                                onMarkAsReceived = if (item is HistoryItem.Scheduled) {
-                                    if (canReceive) {
-                                        { viewModel.markAsReceived(item.scheduled.id) }
-                                    } else {
-                                        null
-                                    }
+                            HistoryListItem(
+                                item = item,
+                                onMarkAsReceived = if (canReceive && item is HistoryItem.Scheduled) {
+                                    { viewModel.markAsReceived(item.scheduled.id) }
                                 } else null,
                             )
                             if (index < historyItems.size - 1) {

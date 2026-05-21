@@ -33,13 +33,7 @@ import com.kahavanu.ui.theme.SurfaceCard
 import com.kahavanu.ui.theme.SurfaceIcon
 import com.kahavanu.ui.theme.SurfaceIconBorder
 
-/**
- * Round-at-rest icon button that morphs to a 12dp squircle on press with a
- * subtle scale. Used for the back button, filter button, etc. across sub-screens.
- *
- * If [nested] is true, the button renders with an outer tinted card and an
- * inner white surface (concentric "inner white box" look).
- */
+
 @Composable
 fun MorphingIconButton(
     icon: ImageVector,
@@ -50,12 +44,16 @@ fun MorphingIconButton(
     tint: Color = MaterialTheme.colorScheme.primary,
     nested: Boolean = false,
     badge: Boolean = false,
+    restingCornerRadius: Dp? = null,
+    pressedCornerRadius: Dp = 12.dp,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
 
+    val effectiveResting = restingCornerRadius ?: (size / 2)
+
     val cornerRadius by animateDpAsState(
-        targetValue = if (pressed) 12.dp else size / 2,
+        targetValue = if (pressed) pressedCornerRadius else effectiveResting,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessMediumLow,
@@ -88,22 +86,13 @@ fun MorphingIconButton(
         contentAlignment = Alignment.Center,
     ) {
         if (nested) {
-            val innerShape = RoundedCornerShape((cornerRadius - 4.dp).coerceAtLeast(0.dp))
-            Box(
-                modifier = Modifier
-                    .size(size - 8.dp)
-                    .clip(innerShape)
-                    .background(Color.White, innerShape)
-                    .border(0.5.dp, SurfaceIconBorder.copy(alpha = 0.6f), innerShape),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = contentDescription,
-                    tint = tint,
-                    modifier = Modifier.size(18.dp),
-                )
-            }
+            // No inner border — clean outer surface only
+            Icon(
+                imageVector = icon,
+                contentDescription = contentDescription,
+                tint = tint,
+                modifier = Modifier.size(20.dp),
+            )
         } else {
             Icon(
                 imageVector = icon,

@@ -51,13 +51,9 @@ class DefaultAuthRepository @Inject constructor(
         val profileUpdate = UserProfileChangeRequest.Builder()
             .setDisplayName(fullName)
             .build()
-        val result = auth.currentUser?.updateProfile(profileUpdate)
+        return auth.currentUser?.updateProfile(profileUpdate)
             ?.awaitUnitResult()
             ?: Result.failure(IllegalStateException("User not available"))
-        if (result.isSuccess) {
-            publishCurrentSession()
-        }
-        return result
     }
 
     override suspend fun signInWithGoogleIdToken(idToken: String): Result<Unit> {
@@ -72,29 +68,6 @@ class DefaultAuthRepository @Inject constructor(
     override fun signOut() {
         authStateFlow.value = null
         auth.signOut()
-    }
-
-    override suspend fun updateDisplayName(displayName: String): Result<Unit> {
-        val profileUpdate = UserProfileChangeRequest.Builder()
-            .setDisplayName(displayName)
-            .build()
-        val result = auth.currentUser?.updateProfile(profileUpdate)
-            ?.awaitUnitResult()
-            ?: Result.failure(IllegalStateException("No user logged in"))
-        if (result.isSuccess) {
-            auth.currentUser?.reload()?.awaitUnitResult()
-            publishCurrentSession()
-        }
-        return result
-    }
-
-    private fun publishCurrentSession() {
-        authStateFlow.value = auth.currentUser?.toSession()
-    }
-
-    override suspend fun deleteAccount(): Result<Unit> {
-        return auth.currentUser?.delete()?.awaitUnitResult()
-            ?: Result.failure(IllegalStateException("No user logged in"))
     }
 
     fun cleanup() {

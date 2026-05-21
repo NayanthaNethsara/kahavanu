@@ -30,10 +30,8 @@ import com.kahavanu.ui.income.RecurringManagerScreen
 import com.kahavanu.ui.income.IncomeSourcesScreen
 import com.kahavanu.ui.income.HistoryFilter
 import com.kahavanu.ui.navigation.AppDestination
-import com.kahavanu.ui.profile.AccountScreen
-import com.kahavanu.ui.profile.NotificationsScreen
 import com.kahavanu.ui.profile.ProfileScreen
-import com.kahavanu.ui.profile.ThemeScreen
+import com.kahavanu.ui.sieve.SmsSenderSettingsScreen
 
 @Composable
 fun MainTabsScreen(
@@ -81,13 +79,11 @@ fun MainTabsScreen(
                 )
             }
         },
-    ) { innerPadding ->
+    ) {
         NavHost(
             navController = navController,
             startDestination = AppDestination.Home.route,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
+            modifier = Modifier.fillMaxSize(),
         ) {
             composable(AppDestination.Home.route) {
                 HomeScreen(
@@ -176,21 +172,15 @@ fun MainTabsScreen(
             }
             composable(AppDestination.Profile.route) {
                 ProfileScreen(
-                    onNavigateToAccount = { navController.navigate(AppDestination.ProfileAccount.route) },
-                    onNavigateToNotifications = {
-                        navController.navigate(AppDestination.ProfileNotifications.route)
-                    },
-                    onNavigateToTheme = { navController.navigate(AppDestination.ProfileTheme.route) },
+                    onNavigateToSmsSenders = {
+                        navController.navigate(AppDestination.SmsSenderSettings.route)
+                    }
                 )
             }
-            composable(AppDestination.ProfileAccount.route) {
-                AccountScreen(onBack = { navController.popBackStack() })
-            }
-            composable(AppDestination.ProfileNotifications.route) {
-                NotificationsScreen(onBack = { navController.popBackStack() })
-            }
-            composable(AppDestination.ProfileTheme.route) {
-                ThemeScreen(onBack = { navController.popBackStack() })
+            composable(AppDestination.SmsSenderSettings.route) {
+                SmsSenderSettingsScreen(
+                    onBack = { navController.popBackStack() }
+                )
             }
             composable(
                 route = AppDestination.IncomeHistory.route,

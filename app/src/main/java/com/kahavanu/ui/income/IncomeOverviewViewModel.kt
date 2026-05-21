@@ -58,7 +58,7 @@ class IncomeOverviewViewModel @Inject constructor(
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = "" to "",
+            initialValue = "LKR" to "USD",
         )
 
     val primaryCurrency: StateFlow<String> = currencySettings
@@ -66,7 +66,7 @@ class IncomeOverviewViewModel @Inject constructor(
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = "",
+            initialValue = "LKR",
         )
 
     val incomeSuggestions: StateFlow<List<MatchItemState>> =
@@ -119,7 +119,7 @@ class IncomeOverviewViewModel @Inject constructor(
         if (primary.isNotBlank()) initial[primary] = 0.0
         if (secondary.isNotBlank() && secondary != primary) initial[secondary] = 0.0
         
-        initial + logs.filter { isInMonth(it.receivedAtEpochMillis, month) }
+        initial + logs.filter { isInMonth(it.receivedAtEpochMillis, month) && it.currency.isNotBlank() }
             .groupBy { it.currency }
             .mapValues { (_, items) -> items.sumOf { it.amount } }
     }.stateIn(
@@ -135,7 +135,7 @@ class IncomeOverviewViewModel @Inject constructor(
         if (primary.isNotBlank()) initial[primary] = 0.0
         if (secondary.isNotBlank() && secondary != primary) initial[secondary] = 0.0
         
-        initial + logs.filter { isInMonth(it.receivedAtEpochMillis, month) && !isPending(it.sourceType) }
+        initial + logs.filter { isInMonth(it.receivedAtEpochMillis, month) && !isPending(it.sourceType) && it.currency.isNotBlank() }
             .groupBy { it.currency }
             .mapValues { (_, items) -> items.sumOf { it.amount } }
     }.stateIn(
@@ -159,7 +159,7 @@ class IncomeOverviewViewModel @Inject constructor(
         val monthLogs = logs.filter { isInMonth(it.receivedAtEpochMillis, month) }
         val (primary, secondary) = settings
         
-        val currencyGroups = monthLogs.groupBy { it.currency }.toMutableMap()
+        val currencyGroups = monthLogs.filter { it.currency.isNotBlank() }.groupBy { it.currency }.toMutableMap()
         if (primary.isNotBlank() && !currencyGroups.containsKey(primary)) currencyGroups[primary] = emptyList()
         if (secondary.isNotBlank() && primary != secondary && !currencyGroups.containsKey(secondary)) {
             currencyGroups[secondary] = emptyList()

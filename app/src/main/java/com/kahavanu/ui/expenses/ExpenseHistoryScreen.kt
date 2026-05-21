@@ -17,7 +17,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CalendarMonth
-import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -38,6 +37,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kahavanu.domain.model.ExpenseLogEntry
+import com.kahavanu.ui.common.ActiveFilterChip
 import com.kahavanu.ui.common.AmountRangeSection
 import com.kahavanu.ui.common.FilterBottomSheet
 import com.kahavanu.ui.common.FilterChips
@@ -45,8 +45,7 @@ import com.kahavanu.ui.common.FilterSection
 import com.kahavanu.ui.common.GlassCard
 import com.kahavanu.ui.common.HistoryDateRange
 import com.kahavanu.ui.common.KahavanuSubScreen
-import com.kahavanu.ui.common.MorphingIconButton
-import com.kahavanu.ui.common.NestedSearchField
+import com.kahavanu.ui.common.SearchWithFiltersBar
 import com.kahavanu.ui.common.categoryColor
 import com.kahavanu.ui.common.categoryIcon
 import com.kahavanu.ui.theme.AccentIncomeBorder
@@ -79,20 +78,33 @@ fun ExpenseHistoryScreen(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
 
+    val activeChips = buildList {
+        if (uiState.filters.category != EXPENSE_FILTER_ALL)
+            add(ActiveFilterChip(uiState.filters.category) {
+                viewModel.onFiltersChange { it.copy(category = EXPENSE_FILTER_ALL) }
+            })
+        if (uiState.filters.dateRange != HistoryDateRange.ALL)
+            add(ActiveFilterChip(uiState.filters.dateRange.label) {
+                viewModel.onFiltersChange { it.copy(dateRange = HistoryDateRange.ALL) }
+            })
+        if (uiState.filters.paymentMethod != EXPENSE_FILTER_ALL)
+            add(ActiveFilterChip(uiState.filters.paymentMethod) {
+                viewModel.onFiltersChange { it.copy(paymentMethod = EXPENSE_FILTER_ALL) }
+            })
+        if (uiState.filters.minAmount.isNotBlank())
+            add(ActiveFilterChip("Min ${uiState.filters.minAmount}") {
+                viewModel.onFiltersChange { it.copy(minAmount = "") }
+            })
+        if (uiState.filters.maxAmount.isNotBlank())
+            add(ActiveFilterChip("Max ${uiState.filters.maxAmount}") {
+                viewModel.onFiltersChange { it.copy(maxAmount = "") }
+            })
+    }
+
     KahavanuSubScreen(
         label = "All Expenses",
         title = "${uiState.transactionCount} transactions",
         onBack = onBack,
-        trailing = {
-            MorphingIconButton(
-                icon = Icons.Outlined.FilterList,
-                contentDescription = "Filter",
-                onClick = { isFilterSheetOpen = true },
-                nested = true,
-                badge = uiState.hasActiveFilter,
-                tint = if (uiState.hasActiveFilter) MaterialTheme.colorScheme.primary else TextSecondary,
-            )
-        },
     ) {
         LazyColumn(
             modifier = Modifier
@@ -101,9 +113,12 @@ fun ExpenseHistoryScreen(
             verticalArrangement = Arrangement.spacedBy(Spacing.medium),
         ) {
             item {
-                NestedSearchField(
-                    value = uiState.query,
-                    onValueChange = viewModel::onQueryChange,
+                SearchWithFiltersBar(
+                    query = uiState.query,
+                    onQueryChange = viewModel::onQueryChange,
+                    onFilterClick = { isFilterSheetOpen = true },
+                    filterActive = uiState.hasActiveFilter,
+                    activeChips = activeChips,
                     placeholder = "Search expenses...",
                 )
             }

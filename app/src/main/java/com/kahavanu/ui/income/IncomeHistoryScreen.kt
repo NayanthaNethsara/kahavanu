@@ -16,7 +16,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -41,14 +40,15 @@ import com.kahavanu.domain.model.IncomeLogEntry
 import com.kahavanu.domain.model.IncomeSourceType
 import com.kahavanu.domain.model.ScheduledIncome
 import com.kahavanu.ui.common.AmountRangeSection
+import com.kahavanu.ui.common.ActiveFilterChip
+import com.kahavanu.ui.common.AmountRangeSection
 import com.kahavanu.ui.common.FilterBottomSheet
 import com.kahavanu.ui.common.FilterChips
 import com.kahavanu.ui.common.FilterSection
 import com.kahavanu.ui.common.GlassCard
 import com.kahavanu.ui.common.HistoryDateRange
 import com.kahavanu.ui.common.KahavanuSubScreen
-import com.kahavanu.ui.common.MorphingIconButton
-import com.kahavanu.ui.common.NestedSearchField
+import com.kahavanu.ui.common.SearchWithFiltersBar
 import com.kahavanu.ui.common.contains
 import com.kahavanu.ui.income.components.PersistenceListItem
 import com.kahavanu.ui.income.components.formatAmount
@@ -118,29 +118,33 @@ fun IncomeHistoryScreen(
         }.sortedByDescending { it.timestamp }
     }
 
+    val activeChips = buildList {
+        if (filters.status != HistoryFilter.ALL)
+            add(ActiveFilterChip(filters.status.label) { filters = filters.copy(status = HistoryFilter.ALL) })
+        if (filters.dateRange != HistoryDateRange.ALL)
+            add(ActiveFilterChip(filters.dateRange.label) { filters = filters.copy(dateRange = HistoryDateRange.ALL) })
+        if (filters.minAmount.isNotBlank())
+            add(ActiveFilterChip("Min ${filters.minAmount}") { filters = filters.copy(minAmount = "") })
+        if (filters.maxAmount.isNotBlank())
+            add(ActiveFilterChip("Max ${filters.maxAmount}") { filters = filters.copy(maxAmount = "") })
+    }
+
     KahavanuSubScreen(
         label = "Income History",
         title = "${historyItems.size} logs",
         onBack = onBack,
-        trailing = {
-            MorphingIconButton(
-                icon = Icons.Default.Tune,
-                contentDescription = "Filter",
-                onClick = { isFilterSheetOpen = true },
-                nested = true,
-                badge = filters.isActive,
-                tint = if (filters.isActive) MaterialTheme.colorScheme.primary else TextSecondary,
-            )
-        },
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = Spacing.extraLarge),
         ) {
-            NestedSearchField(
-                value = searchQuery,
-                onValueChange = { searchQuery = it },
+            SearchWithFiltersBar(
+                query = searchQuery,
+                onQueryChange = { searchQuery = it },
+                onFilterClick = { isFilterSheetOpen = true },
+                filterActive = filters.isActive,
+                activeChips = activeChips,
                 placeholder = "Search logs...",
             )
 

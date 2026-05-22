@@ -1,5 +1,6 @@
 package com.kahavanu.ui.home.components
 
+import com.kahavanu.ui.theme.extendedColors
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -31,7 +32,6 @@ import com.kahavanu.domain.model.GoalEntry
 import com.kahavanu.ui.common.GlassCard
 import com.kahavanu.ui.common.SectionHeader
 import com.kahavanu.ui.theme.CornerRadius
-import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
@@ -79,14 +79,14 @@ fun TreasureCard(
                     )
 
                     Surface(
-                        color = RawColors.Emerald.Emerald100.copy(alpha = 0.45f),
+                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f),
                         shape = CircleShape
                     ) {
                         Text(
                             text = progressLabel,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
                             style = MaterialTheme.typography.labelSmall,
-                            color = RawColors.Emerald.Emerald700,
+                            color = MaterialTheme.extendedColors.brandText,
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -100,8 +100,8 @@ fun TreasureCard(
                         .fillMaxWidth()
                         .height(8.dp)
                         .clip(CircleShape),
-                    color = RawColors.Emerald.Emerald500,
-                    trackColor = RawColors.Slate.Slate100,
+                    color = MaterialTheme.extendedColors.brandAccent,
+                    trackColor = MaterialTheme.colorScheme.surfaceVariant,
                     strokeCap = StrokeCap.Round
                 )
 
@@ -135,7 +135,7 @@ fun TreasureCard(
                             text = "LKR ${String.format("%,.0f", goalTarget)}",
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Bold,
-                            color = RawColors.Emerald.Emerald600
+                            color = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
@@ -144,9 +144,9 @@ fun TreasureCard(
 
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
-                    color = RawColors.Emerald.Emerald50.copy(alpha = 0.5f),
+                    color = MaterialTheme.extendedColors.brandWashed.copy(alpha = 0.5f),
                     shape = RoundedCornerShape(CornerRadius.large),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, RawColors.Emerald.Emerald100.copy(alpha = 0.5f))
+                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f))
                 ) {
                     Row(
                         modifier = Modifier.padding(Spacing.medium),
@@ -155,14 +155,14 @@ fun TreasureCard(
                         Icon(
                             imageVector = Icons.Outlined.Info,
                             contentDescription = "Tips",
-                            tint = RawColors.Emerald.Emerald600,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(Spacing.small))
                         Text(
                             text = "You are earning faster than you are spending this week. Keep it up!",
                             style = MaterialTheme.typography.bodySmall,
-                            color = RawColors.Emerald.Emerald700,
+                            color = MaterialTheme.extendedColors.brandText,
                             fontSize = 12.sp
                         )
                     }

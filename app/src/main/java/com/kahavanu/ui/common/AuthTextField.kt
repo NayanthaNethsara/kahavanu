@@ -1,5 +1,6 @@
 package com.kahavanu.ui.common
 
+import com.kahavanu.ui.theme.extendedColors
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,7 +16,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.font.FontWeight
-import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 
 @Composable
@@ -33,7 +33,7 @@ fun AuthTextField(
         Text(
             text = label,
             style = MaterialTheme.typography.labelLarge,
-            color = RawColors.Slate.Slate900,
+            color = MaterialTheme.colorScheme.onSurface,
             fontWeight = FontWeight.Medium,
         )
         Spacer(modifier = Modifier.height(Spacing.small))
@@ -44,7 +44,7 @@ fun AuthTextField(
                 Text(
                     text = placeholder,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = RawColors.Slate.Slate400,
+                    color = MaterialTheme.extendedColors.textTertiary,
                 )
             },
             leadingIcon = {
@@ -60,12 +60,12 @@ fun AuthTextField(
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = Color.White.copy(alpha = 0.8f),
                 unfocusedContainerColor = Color.White.copy(alpha = 0.8f),
-                focusedBorderColor = RawColors.Slate.Slate200,
-                unfocusedBorderColor = RawColors.Slate.Slate200,
-                focusedLeadingIconColor = RawColors.Slate.Slate600,
-                unfocusedLeadingIconColor = RawColors.Slate.Slate600,
-                focusedTextColor = RawColors.Slate.Slate900,
-                unfocusedTextColor = RawColors.Slate.Slate900,
+                focusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                focusedLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                unfocusedLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
             ),
             singleLine = true,
         )

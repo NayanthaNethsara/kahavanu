@@ -11,7 +11,8 @@ import com.kahavanu.domain.repository.SettingsRepository
 import com.kahavanu.domain.repository.SmsSuggestionRepository
 import com.kahavanu.ui.common.MatchItemState
 import com.kahavanu.ui.home.inferExpenseCategory
-import com.kahavanu.ui.theme.RawColors
+import com.kahavanu.ui.theme.OnSurfaceVariant
+import com.kahavanu.ui.theme.Primary
 import dagger.hilt.android.lifecycle.HiltViewModel
 import com.kahavanu.ui.income.components.isPending
 import com.kahavanu.ui.income.components.isPersistent
@@ -176,8 +177,8 @@ class IncomeOverviewViewModel @Inject constructor(
             val otherTotal = items.sumOf { it.amount } - recurrentTotal
 
             listOf(
-                IncomeBreakdownItem("Main Recurrent", recurrentTotal, RawColors.Emerald.Emerald600),
-                IncomeBreakdownItem("Freelance / Other", otherTotal, RawColors.Slate.Slate600)
+                IncomeBreakdownItem("Main Recurrent", recurrentTotal, Primary),
+                IncomeBreakdownItem("Freelance / Other", otherTotal, OnSurfaceVariant)
             )
         }
     }.stateIn(

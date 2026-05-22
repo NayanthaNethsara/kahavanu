@@ -1,5 +1,6 @@
 package com.kahavanu.ui.income.components
 
+import com.kahavanu.ui.theme.extendedColors
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -67,7 +68,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kahavanu.domain.model.IncomeSourceType
 import com.kahavanu.ui.income.HistoryItem
-import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
@@ -89,9 +89,9 @@ fun HistoryListItem(
     val isPaid = item is HistoryItem.Log
 
     val accentColor = when {
-        isOverdue -> RawColors.Red.Red600
-        isPaid -> RawColors.Emerald.Emerald600
-        else -> RawColors.Amber.Amber600
+        isOverdue -> MaterialTheme.colorScheme.error
+        isPaid -> MaterialTheme.colorScheme.primary
+        else -> MaterialTheme.extendedColors.warning
     }
     val statusLabel = when {
         isOverdue -> "Overdue"
@@ -194,14 +194,14 @@ fun HistoryListItem(
                     if (isPending && onMarkAsReceived != null) {
                         MiniActionButton(
                             label = "Receive",
-                            color = RawColors.Emerald.Emerald600,
+                            color = MaterialTheme.colorScheme.primary,
                             onClick = onMarkAsReceived,
                         )
                     }
                     if (isOverdue) {
                         MiniActionButton(
                             label = "Nudge",
-                            color = RawColors.Red.Red600,
+                            color = MaterialTheme.colorScheme.error,
                             icon = Icons.AutoMirrored.Outlined.Send,
                             onClick = {},
                         )
@@ -459,7 +459,7 @@ private fun HistoryDetailSheet(
                         .height(52.dp),
                     shape = CircleShape,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = RawColors.Emerald.Emerald600,
+                        containerColor = MaterialTheme.colorScheme.primary,
                         contentColor = Color.White,
                     ),
                 ) {

@@ -1,5 +1,6 @@
 package com.kahavanu.ui.income.components
 
+import com.kahavanu.ui.theme.extendedColors
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -30,7 +31,6 @@ import androidx.compose.ui.unit.dp
 import com.kahavanu.ui.common.GlassCard
 import com.kahavanu.ui.common.SectionHeader
 import com.kahavanu.ui.theme.KahavanuShapes
-import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
@@ -54,11 +54,11 @@ fun CryptoGatewaySection() {
                             Box(
                                 modifier = Modifier
                                     .size(24.dp)
-                                    .background(RawColors.Emerald.Emerald50.copy(alpha = 0.8f), CircleShape)
-                                    .border(0.5.dp, RawColors.Emerald.Emerald200, CircleShape),
+                                    .background(MaterialTheme.extendedColors.brandWashed.copy(alpha = 0.8f), CircleShape)
+                                    .border(0.5.dp, MaterialTheme.extendedColors.brandBorder, CircleShape),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Icon(Icons.Default.KeyboardArrowDown, contentDescription = null, tint = RawColors.Emerald.Emerald600, modifier = Modifier.size(16.dp))
+                                Icon(Icons.Default.KeyboardArrowDown, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
                             }
                             Spacer(modifier = Modifier.width(Spacing.small))
                             Text("Money in", style = MaterialTheme.typography.bodySmall, fontSize = TextSize.xs, color = TextSecondary)
@@ -71,11 +71,11 @@ fun CryptoGatewaySection() {
                             Box(
                                 modifier = Modifier
                                     .size(24.dp)
-                                    .background(RawColors.Red.Red50.copy(alpha = 0.8f), CircleShape)
-                                    .border(0.5.dp, RawColors.Red.Red200, CircleShape),
+                                    .background(MaterialTheme.extendedColors.dangerWashed.copy(alpha = 0.8f), CircleShape)
+                                    .border(0.5.dp, MaterialTheme.extendedColors.dangerBorder, CircleShape),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Icon(Icons.Default.KeyboardArrowUp, contentDescription = null, tint = RawColors.Red.Red600, modifier = Modifier.size(16.dp))
+                                Icon(Icons.Default.KeyboardArrowUp, contentDescription = null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(16.dp))
                             }
                             Spacer(modifier = Modifier.width(Spacing.small))
                             Text("Money out", style = MaterialTheme.typography.bodySmall, fontSize = TextSize.xs, color = TextSecondary)
@@ -99,8 +99,8 @@ fun CryptoGatewaySection() {
                     }
                     Box(
                         modifier = Modifier
-                            .background(RawColors.Emerald.Emerald50.copy(alpha = 0.8f), shape = KahavanuShapes.small)
-                            .border(0.5.dp, RawColors.Emerald.Emerald200, KahavanuShapes.small)
+                            .background(MaterialTheme.extendedColors.brandWashed.copy(alpha = 0.8f), shape = KahavanuShapes.small)
+                            .border(0.5.dp, MaterialTheme.extendedColors.brandBorder, KahavanuShapes.small)
                             .padding(horizontal = Spacing.small, vertical = Spacing.extraSmall)
                     ) {
                             Text(
@@ -114,7 +114,7 @@ fun CryptoGatewaySection() {
                 }
 
                 Spacer(modifier = Modifier.height(Spacing.large))
-                HorizontalDivider(color = RawColors.Slate.Slate200.copy(alpha = 0.5f))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                 Spacer(modifier = Modifier.height(Spacing.medium))
 
                 Row(

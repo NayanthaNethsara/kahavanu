@@ -1,5 +1,6 @@
 package com.kahavanu.ui.common
 
+import com.kahavanu.ui.theme.extendedColors
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
@@ -32,7 +33,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.TextSecondary
 
 @Composable
@@ -44,8 +44,8 @@ fun <T> AppSegmentedToggle(
     modifier: Modifier = Modifier,
     height: Dp = 40.dp,
     shape: Shape = CircleShape,
-    containerColor: Color = RawColors.Emerald.Emerald500.copy(alpha = 0.08f),
-    indicatorColor: Color = RawColors.Emerald.Emerald600,
+    containerColor: Color = MaterialTheme.extendedColors.brandAccent.copy(alpha = 0.08f),
+    indicatorColor: Color = MaterialTheme.colorScheme.primary,
     indicatorShadow: Dp = 4.dp,
     indicatorBorder: BorderStroke = BorderStroke(1.dp, Color.White.copy(alpha = 0.2f)),
     textStyle: TextStyle = MaterialTheme.typography.labelMedium,

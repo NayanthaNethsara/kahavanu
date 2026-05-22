@@ -1,5 +1,7 @@
 package com.kahavanu.ui.common
 
+import androidx.compose.material3.MaterialTheme
+import com.kahavanu.ui.theme.extendedColors
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.StartOffset
@@ -37,7 +39,6 @@ import androidx.compose.ui.unit.dp
 import com.kahavanu.ui.theme.AmbientGlowPrimary
 import com.kahavanu.ui.theme.AmbientGlowSecondary
 import com.kahavanu.ui.theme.AmbientGlowTertiary
-import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.ScreenBackground
 import com.kahavanu.ui.theme.Spacing
 
@@ -164,8 +165,8 @@ fun BouncingDotsIndicator(
     Surface(
         modifier = modifier.shadow(
             elevation = 12.dp,
-            spotColor = RawColors.Gray.Gray300,
-            ambientColor = RawColors.Gray.Gray400,
+            spotColor = MaterialTheme.colorScheme.outline,
+            ambientColor = MaterialTheme.extendedColors.textTertiary,
             shape = CircleShape,
         ),
         shape = CircleShape,
@@ -197,7 +198,7 @@ fun BouncingDotsIndicator(
                     .size(8.dp)
                     .scale(scale1)
                     .background(
-                        color = RawColors.Emerald.Emerald500,
+                        color = MaterialTheme.extendedColors.brandAccent,
                         shape = CircleShape
                     )
             )
@@ -220,7 +221,7 @@ fun BouncingDotsIndicator(
                     .size(8.dp)
                     .scale(scale2)
                     .background(
-                        color = RawColors.Emerald.Emerald500,
+                        color = MaterialTheme.extendedColors.brandAccent,
                         shape = CircleShape
                     )
             )
@@ -243,7 +244,7 @@ fun BouncingDotsIndicator(
                     .size(8.dp)
                     .scale(scale3)
                     .background(
-                        color = RawColors.Emerald.Emerald500,
+                        color = MaterialTheme.extendedColors.brandAccent,
                         shape = CircleShape
                     )
             )

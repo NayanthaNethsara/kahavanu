@@ -1,5 +1,6 @@
 package com.kahavanu.ui.profile
 
+import com.kahavanu.ui.theme.extendedColors
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -50,7 +51,6 @@ import com.kahavanu.ui.theme.AccentExpense
 import com.kahavanu.ui.theme.AccentExpenseSoft
 import com.kahavanu.ui.theme.AccentIncome
 import com.kahavanu.ui.theme.AccentIncomeSoft
-import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
@@ -91,7 +91,7 @@ fun ProfileScreen(
             GlassCard(
                 modifier = Modifier.fillMaxWidth(),
                 backgroundColor = Color.White.copy(alpha = 0.9f),
-                borderColor = RawColors.Slate.Slate200.copy(alpha = 0.6f),
+                borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
             ) {
                 SettingToggleRow(
                     icon = Icons.Default.Autorenew,
@@ -102,7 +102,7 @@ fun ProfileScreen(
                     checked = isAutoMatchDepositsEnabled,
                     onCheckedChange = { viewModel.toggleAutoMatchDeposits() }
                 )
-                HorizontalDivider(color = RawColors.Slate.Slate200.copy(alpha = 0.4f))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
                 SettingToggleRow(
                     icon = Icons.Default.NotificationsActive,
                     iconColor = AccentExpense,
@@ -112,7 +112,7 @@ fun ProfileScreen(
                     checked = isPushAlertsEnabled,
                     onCheckedChange = { viewModel.togglePushAlerts() }
                 )
-                HorizontalDivider(color = RawColors.Slate.Slate200.copy(alpha = 0.4f))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
                 SettingToggleRow(
                     icon = Icons.Default.DarkMode,
                     iconColor = AccentIncome,
@@ -139,7 +139,7 @@ fun ProfileScreen(
             GlassCard(
                 modifier = Modifier.fillMaxWidth(),
                 backgroundColor = Color.White.copy(alpha = 0.9f),
-                borderColor = RawColors.Slate.Slate200.copy(alpha = 0.6f),
+                borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
             ) {
                 SettingNavigationRow(
                     icon = Icons.Default.Language,
@@ -149,11 +149,11 @@ fun ProfileScreen(
                     subtitle = "LKR (USD) · 4 sources",
                     onClick = onNavigateToIncomeSources
                 )
-                HorizontalDivider(color = RawColors.Slate.Slate200.copy(alpha = 0.4f))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
                 SettingNavigationRow(
                     icon = Icons.Default.CreditCard,
-                    iconColor = RawColors.Red.Red500,
-                    iconBackgroundColor = RawColors.Red.Red500.copy(alpha = 0.1f),
+                    iconColor = MaterialTheme.extendedColors.dangerAccent,
+                    iconBackgroundColor = MaterialTheme.extendedColors.dangerAccent.copy(alpha = 0.1f),
                     title = "Manage Subscriptions",
                     subtitle = "Track recurring leaks",
                     onClick = onNavigateToSubscriptions
@@ -175,7 +175,7 @@ fun ProfileScreen(
             GlassCard(
                 modifier = Modifier.fillMaxWidth(),
                 backgroundColor = Color.White.copy(alpha = 0.9f),
-                borderColor = RawColors.Slate.Slate200.copy(alpha = 0.6f),
+                borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
             ) {
                 SettingNavigationRow(
                     icon = Icons.Default.Sms,
@@ -192,21 +192,21 @@ fun ProfileScreen(
             GlassCard(
                 modifier = Modifier.fillMaxWidth(),
                 backgroundColor = Color.White.copy(alpha = 0.9f),
-                borderColor = RawColors.Slate.Slate200.copy(alpha = 0.6f),
+                borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
             ) {
                 SettingNavigationRow(
                     icon = Icons.AutoMirrored.Filled.HelpOutline,
                     iconColor = TextSecondary,
-                    iconBackgroundColor = RawColors.Slate.Slate100,
+                    iconBackgroundColor = MaterialTheme.colorScheme.surfaceVariant,
                     title = "Help & support",
                     subtitle = "FAQ, contact us, send feedback",
                     onClick = onNavigateToHelpSupport
                 )
-                HorizontalDivider(color = RawColors.Slate.Slate200.copy(alpha = 0.4f))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
                 SettingNavigationRow(
                     icon = Icons.AutoMirrored.Filled.ExitToApp,
-                    iconColor = RawColors.Red.Red600,
-                    iconBackgroundColor = RawColors.Red.Red600.copy(alpha = 0.1f),
+                    iconColor = MaterialTheme.colorScheme.error,
+                    iconBackgroundColor = MaterialTheme.colorScheme.error.copy(alpha = 0.1f),
                     title = "Log out",
                     subtitle = "Sign out on this device",
                     onClick = { viewModel.logout() },
@@ -243,7 +243,7 @@ private fun ProfileCard(
     GlassCard(
         modifier = modifier.fillMaxWidth(),
         backgroundColor = Color.White.copy(alpha = 0.9f),
-        borderColor = RawColors.Slate.Slate200.copy(alpha = 0.6f),
+        borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
     ) {
         Row(
             modifier = Modifier
@@ -347,9 +347,9 @@ private fun SettingToggleRow(
             onCheckedChange = onCheckedChange,
             colors = SwitchDefaults.colors(
                 checkedThumbColor = Color.White,
-                checkedTrackColor = RawColors.Emerald.Emerald500,
+                checkedTrackColor = MaterialTheme.extendedColors.brandAccent,
                 uncheckedThumbColor = Color.White,
-                uncheckedTrackColor = RawColors.Slate.Slate200,
+                uncheckedTrackColor = MaterialTheme.colorScheme.outlineVariant,
                 uncheckedBorderColor = Color.Transparent,
                 checkedBorderColor = Color.Transparent,
             )
@@ -395,14 +395,14 @@ private fun SettingNavigationRow(
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Medium,
                 fontSize = 13.sp,
-                color = if (isDanger) RawColors.Red.Red600 else TextPrimary
+                color = if (isDanger) MaterialTheme.colorScheme.error else TextPrimary
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodyMedium,
                 fontSize = 11.sp,
-                color = if (isDanger) RawColors.Red.Red400 else TextSecondary
+                color = if (isDanger) MaterialTheme.extendedColors.dangerSoft else TextSecondary
             )
         }
         if (!isDanger) {

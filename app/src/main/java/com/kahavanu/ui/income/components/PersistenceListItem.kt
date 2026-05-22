@@ -1,5 +1,6 @@
 package com.kahavanu.ui.income.components
 
+import com.kahavanu.ui.theme.extendedColors
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -36,7 +37,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
@@ -66,10 +66,10 @@ fun PersistenceListItem(
                 .size(40.dp)
                 .background(
                     color = when {
-                        isOverdue -> RawColors.Red.Red500.copy(alpha = 0.1f)
-                        isRecurrent -> RawColors.Emerald.Emerald500.copy(alpha = 0.14f)
-                        !isPending -> RawColors.Emerald.Emerald500.copy(alpha = 0.14f)
-                        else -> RawColors.Amber.Amber500.copy(alpha = 0.12f)
+                        isOverdue -> MaterialTheme.extendedColors.dangerAccent.copy(alpha = 0.1f)
+                        isRecurrent -> MaterialTheme.extendedColors.brandAccent.copy(alpha = 0.14f)
+                        !isPending -> MaterialTheme.extendedColors.brandAccent.copy(alpha = 0.14f)
+                        else -> MaterialTheme.extendedColors.warningAccent.copy(alpha = 0.12f)
                     },
                     shape = RoundedCornerShape(14.dp)
                 ),
@@ -85,10 +85,10 @@ fun PersistenceListItem(
                 contentDescription = null,
                 modifier = Modifier.size(16.dp),
                 tint = when {
-                    isOverdue -> RawColors.Red.Red600
-                    isRecurrent -> RawColors.Emerald.Emerald600
-                    !isPending -> RawColors.Emerald.Emerald600
-                    else -> RawColors.Amber.Amber600
+                    isOverdue -> MaterialTheme.colorScheme.error
+                    isRecurrent -> MaterialTheme.colorScheme.primary
+                    !isPending -> MaterialTheme.colorScheme.primary
+                    else -> MaterialTheme.extendedColors.warning
                 }
             )
         }
@@ -110,9 +110,9 @@ fun PersistenceListItem(
                     text = dueText,
                     style = MaterialTheme.typography.labelSmall,
                     color = when {
-                        isOverdue -> RawColors.Red.Red600
-                        !isPending -> RawColors.Emerald.Emerald600
-                        else -> RawColors.Amber.Amber600
+                        isOverdue -> MaterialTheme.colorScheme.error
+                        !isPending -> MaterialTheme.colorScheme.primary
+                        else -> MaterialTheme.extendedColors.warning
                     },
                     fontSize = 11.sp
                 )
@@ -128,13 +128,13 @@ fun PersistenceListItem(
                     imageVector = Icons.Outlined.Description,
                     contentDescription = null,
                     modifier = Modifier.size(12.dp),
-                    tint = if (isInvoiceSent) TextSecondary else RawColors.Red.Red600
+                    tint = if (isInvoiceSent) TextSecondary else MaterialTheme.colorScheme.error
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = if (isInvoiceSent) "Invoice sent" else "No invoice",
                     style = MaterialTheme.typography.labelSmall,
-                    color = if (isInvoiceSent) TextSecondary else RawColors.Red.Red600,
+                    color = if (isInvoiceSent) TextSecondary else MaterialTheme.colorScheme.error,
                     fontSize = 11.sp
                 )
             }
@@ -158,14 +158,14 @@ fun PersistenceListItem(
                         onClick = onMarkAsReceived,
                         modifier = Modifier.height(24.dp),
                         shape = CircleShape,
-                        color = RawColors.Emerald.Emerald500.copy(alpha = 0.12f),
-                        border = BorderStroke(0.5.dp, RawColors.Emerald.Emerald500.copy(alpha = 0.4f))
+                        color = MaterialTheme.extendedColors.brandAccent.copy(alpha = 0.12f),
+                        border = BorderStroke(0.5.dp, MaterialTheme.extendedColors.brandAccent.copy(alpha = 0.4f))
                     ) {
                         Box(modifier = Modifier.padding(horizontal = 8.dp), contentAlignment = Alignment.Center) {
                             Text(
                                 "Receive",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = RawColors.Emerald.Emerald700,
+                                color = MaterialTheme.extendedColors.brandText,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -188,9 +188,9 @@ fun PersistenceListItem(
                                 .background(
                                     brush = Brush.verticalGradient(
                                         colors = listOf(
-                                            RawColors.Emerald.Emerald500.copy(alpha = 0.9f),
-                                            RawColors.Emerald.Emerald500.copy(alpha = 0.75f),
-                                            RawColors.Emerald.Emerald500.copy(alpha = 0.9f)
+                                            MaterialTheme.extendedColors.brandAccent.copy(alpha = 0.9f),
+                                            MaterialTheme.extendedColors.brandAccent.copy(alpha = 0.75f),
+                                            MaterialTheme.extendedColors.brandAccent.copy(alpha = 0.9f)
                                         )
                                     )
                                 )

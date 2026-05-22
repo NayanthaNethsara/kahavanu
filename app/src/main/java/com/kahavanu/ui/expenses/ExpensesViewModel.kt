@@ -8,7 +8,12 @@ import com.kahavanu.domain.repository.ExpensesRepository
 import com.kahavanu.domain.repository.SettingsRepository
 import com.kahavanu.domain.repository.SmsSuggestionRepository
 import com.kahavanu.ui.home.inferExpenseCategory
-import com.kahavanu.ui.theme.RawColors
+import com.kahavanu.ui.theme.CategoryFun
+import com.kahavanu.ui.theme.CategoryHealth
+import com.kahavanu.ui.theme.CategoryShopping
+import com.kahavanu.ui.theme.CategoryTransport
+import com.kahavanu.ui.theme.CategoryUtilities
+import com.kahavanu.ui.theme.Warning
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.LocalDate
 import java.time.ZoneId
@@ -132,12 +137,12 @@ class ExpensesViewModel @Inject constructor(
 
     private fun defaultCategorySummaries(): List<ExpenseCategorySummary> {
         return listOf(
-            ExpenseCategorySummary("Food", 0.0, RawColors.Amber.Amber600),
-            ExpenseCategorySummary("Transport", 0.0, RawColors.Blue.Blue500),
-            ExpenseCategorySummary("Utilities", 0.0, RawColors.Violet.Violet500),
-            ExpenseCategorySummary("Shopping", 0.0, RawColors.Rose.Rose500),
-            ExpenseCategorySummary("Health", 0.0, RawColors.Red.Red500),
-            ExpenseCategorySummary("Fun", 0.0, RawColors.Emerald.Emerald500),
+            ExpenseCategorySummary("Food", 0.0, Warning),
+            ExpenseCategorySummary("Transport", 0.0, CategoryTransport),
+            ExpenseCategorySummary("Utilities", 0.0, CategoryUtilities),
+            ExpenseCategorySummary("Shopping", 0.0, CategoryShopping),
+            ExpenseCategorySummary("Health", 0.0, CategoryHealth),
+            ExpenseCategorySummary("Fun", 0.0, CategoryFun),
         )
     }
 

@@ -1,5 +1,6 @@
 package com.kahavanu.ui.common
 
+import com.kahavanu.ui.theme.extendedColors
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -32,7 +33,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kahavanu.ui.theme.KahavanuShapes
-import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimaryEmerald
 import com.kahavanu.ui.theme.TextSecondary
@@ -49,17 +49,17 @@ fun PrimaryActionButton(
 ) {
     val gradient = Brush.verticalGradient(
         colors = listOf(
-            RawColors.Emerald.Emerald500.copy(alpha = 0.9f),
-            RawColors.Emerald.Emerald500.copy(alpha = 0.75f),
-            RawColors.Emerald.Emerald500.copy(alpha = 0.9f),
+            MaterialTheme.extendedColors.brandAccent.copy(alpha = 0.9f),
+            MaterialTheme.extendedColors.brandAccent.copy(alpha = 0.75f),
+            MaterialTheme.extendedColors.brandAccent.copy(alpha = 0.9f),
         ),
     )
 
     val disabledGradient = Brush.verticalGradient(
         colors = listOf(
-            RawColors.Emerald.Emerald700.copy(alpha = 0.8f),
-            RawColors.Emerald.Emerald800.copy(alpha = 0.8f),
-            RawColors.Emerald.Emerald700.copy(alpha = 0.8f),
+            MaterialTheme.extendedColors.brandText.copy(alpha = 0.8f),
+            MaterialTheme.extendedColors.brandDark.copy(alpha = 0.8f),
+            MaterialTheme.extendedColors.brandText.copy(alpha = 0.8f),
         ),
     )
 
@@ -123,17 +123,17 @@ fun GradientBlob(
 fun textFieldColors() = OutlinedTextFieldDefaults.colors(
     focusedContainerColor = Color.White.copy(alpha = 0.7f),
     unfocusedContainerColor = Color.White.copy(alpha = 0.7f),
-    focusedBorderColor = RawColors.Slate.Slate200.copy(alpha = 0.9f),
-    unfocusedBorderColor = RawColors.Slate.Slate200.copy(alpha = 0.9f),
-    focusedTextColor = RawColors.Slate.Slate900,
-    unfocusedTextColor = RawColors.Slate.Slate900,
-    focusedPlaceholderColor = RawColors.Slate.Slate500.copy(alpha = 0.7f),
-    unfocusedPlaceholderColor = RawColors.Slate.Slate500.copy(alpha = 0.7f),
-    disabledBorderColor = RawColors.Slate.Slate200.copy(alpha = 0.9f),
+    focusedBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.9f),
+    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.9f),
+    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+    focusedPlaceholderColor = MaterialTheme.extendedColors.iconMuted.copy(alpha = 0.7f),
+    unfocusedPlaceholderColor = MaterialTheme.extendedColors.iconMuted.copy(alpha = 0.7f),
+    disabledBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.9f),
     disabledContainerColor = Color.White.copy(alpha = 0.7f),
-    disabledTextColor = RawColors.Slate.Slate900,
-    disabledPlaceholderColor = RawColors.Slate.Slate500.copy(alpha = 0.7f),
-    disabledTrailingIconColor = RawColors.Slate.Slate500,
+    disabledTextColor = MaterialTheme.colorScheme.onSurface,
+    disabledPlaceholderColor = MaterialTheme.extendedColors.iconMuted.copy(alpha = 0.7f),
+    disabledTrailingIconColor = MaterialTheme.extendedColors.iconMuted,
     errorBorderColor = MaterialTheme.colorScheme.error,
     errorContainerColor = Color.White.copy(alpha = 0.7f),
 )
@@ -153,8 +153,8 @@ fun QuickActionButton(
                 .size(65.dp)
                 .shadow(
                     elevation = 20.dp,
-                    spotColor = RawColors.Gray.Gray400,
-                    ambientColor = RawColors.Gray.Gray500,
+                    spotColor = MaterialTheme.extendedColors.textTertiary,
+                    ambientColor = MaterialTheme.extendedColors.iconMuted,
                     shape = KahavanuShapes.large
                 )
                 .background(
@@ -212,7 +212,7 @@ fun SummaryItem(label: String, value: String, color: Color) {
             text = value,
             fontSize = TextSize.sm,
             fontWeight = androidx.compose.ui.text.font.FontWeight.Medium,
-            color = RawColors.Slate.Slate900
+            color = MaterialTheme.colorScheme.onSurface
         )
     }
 }

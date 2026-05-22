@@ -1,5 +1,12 @@
 package com.kahavanu.ui.goals
 
+import com.kahavanu.ui.theme.IconMuted
+import com.kahavanu.ui.theme.Romance
+import com.kahavanu.ui.theme.UtilityAccent
+import com.kahavanu.ui.theme.Warning
+import com.kahavanu.ui.theme.Info
+import com.kahavanu.ui.theme.Primary
+import com.kahavanu.ui.theme.extendedColors
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
@@ -63,7 +70,6 @@ import com.kahavanu.domain.model.GoalAdjustmentLog
 import com.kahavanu.domain.model.GoalCategory
 import com.kahavanu.domain.model.GoalEntry
 import com.kahavanu.ui.goals.components.formatAmount
-import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
@@ -84,7 +90,7 @@ fun CompletedGoalsScreen(
         modifier = Modifier
             .fillMaxSize()
             .windowInsetsPadding(WindowInsets.systemBars),
-        color = RawColors.Slate.Slate50,
+        color = MaterialTheme.colorScheme.background,
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             // Top bar
@@ -93,7 +99,7 @@ fun CompletedGoalsScreen(
                     .fillMaxWidth()
                     .background(
                         Brush.verticalGradient(
-                            listOf(RawColors.Slate.Slate50, RawColors.Emerald.Emerald50.copy(alpha = 0.3f))
+                            listOf(MaterialTheme.colorScheme.background, MaterialTheme.extendedColors.brandWashed.copy(alpha = 0.3f))
                         )
                     )
                     .padding(horizontal = Spacing.large, vertical = Spacing.medium),
@@ -123,7 +129,7 @@ fun CompletedGoalsScreen(
                 }
             }
 
-            HorizontalDivider(color = RawColors.Slate.Slate200)
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
             if (uiState.goals.isEmpty()) {
                 Box(
@@ -134,7 +140,7 @@ fun CompletedGoalsScreen(
                         Icon(
                             imageVector = Icons.Outlined.CheckCircle,
                             contentDescription = null,
-                            tint = RawColors.Slate.Slate300,
+                            tint = MaterialTheme.colorScheme.outline,
                             modifier = Modifier.size(56.dp),
                         )
                         Spacer(modifier = Modifier.height(Spacing.medium))
@@ -191,8 +197,8 @@ private fun CompletedGoalCard(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(RawColors.Emerald.Emerald50.copy(alpha = 0.6f))
-            .border(1.dp, RawColors.Emerald.Emerald200, RoundedCornerShape(16.dp)),
+            .background(MaterialTheme.extendedColors.brandWashed.copy(alpha = 0.6f))
+            .border(1.dp, MaterialTheme.extendedColors.brandBorder, RoundedCornerShape(16.dp)),
     ) {
         // Card header
         Row(
@@ -226,7 +232,7 @@ private fun CompletedGoalCard(
                         text = "Completed ${completedDate.format(formatter)}",
                         style = MaterialTheme.typography.bodySmall,
                         fontSize = TextSize.xs,
-                        color = RawColors.Emerald.Emerald600,
+                        color = MaterialTheme.colorScheme.primary,
                     )
                 }
             }
@@ -235,7 +241,7 @@ private fun CompletedGoalCard(
                     text = formatAmount(goal.currentAmount, currency.code),
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
-                    color = RawColors.Emerald.Emerald600,
+                    color = MaterialTheme.colorScheme.primary,
                     fontSize = TextSize.sm,
                 )
                 Text(
@@ -266,7 +272,7 @@ private fun CompletedGoalCard(
                     .padding(horizontal = Spacing.large)
                     .padding(bottom = Spacing.large),
             ) {
-                HorizontalDivider(color = RawColors.Emerald.Emerald200)
+                HorizontalDivider(color = MaterialTheme.extendedColors.brandBorder)
                 Spacer(modifier = Modifier.height(Spacing.medium))
                 Text(
                     text = "Savings Log",
@@ -301,7 +307,7 @@ private fun AdjustmentLogRow(
     currency: CurrencyOption,
 ) {
     val isAddition = log.delta >= 0
-    val color = if (isAddition) RawColors.Emerald.Emerald600 else RawColors.Rose.Rose500
+    val color = if (isAddition) MaterialTheme.colorScheme.primary else MaterialTheme.extendedColors.romance
     val icon = if (isAddition) Icons.Outlined.Add else Icons.Outlined.Remove
     val date = Instant.ofEpochMilli(log.timestampEpochMillis)
         .atZone(ZoneId.systemDefault())
@@ -347,13 +353,13 @@ private fun AdjustmentLogRow(
 }
 
 private fun completedCategoryColor(category: GoalCategory) = when (category) {
-    GoalCategory.SAVINGS -> RawColors.Emerald.Emerald600
-    GoalCategory.TRAVEL -> RawColors.Blue.Blue500
-    GoalCategory.EMERGENCY -> RawColors.Amber.Amber600
-    GoalCategory.EDUCATION -> RawColors.Violet.Violet500
-    GoalCategory.PURCHASE -> RawColors.Rose.Rose500
-    GoalCategory.INVESTMENT -> RawColors.Emerald.Emerald600
-    GoalCategory.OTHER -> RawColors.Slate.Slate500
+    GoalCategory.SAVINGS -> Primary
+    GoalCategory.TRAVEL -> Info
+    GoalCategory.EMERGENCY -> Warning
+    GoalCategory.EDUCATION -> UtilityAccent
+    GoalCategory.PURCHASE -> Romance
+    GoalCategory.INVESTMENT -> Primary
+    GoalCategory.OTHER -> IconMuted
 }
 
 private fun categoryIcon(category: GoalCategory): ImageVector = when (category) {

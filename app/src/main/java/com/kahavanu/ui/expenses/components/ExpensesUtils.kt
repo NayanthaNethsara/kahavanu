@@ -5,7 +5,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.kahavanu.ui.theme.RawColors
+import com.kahavanu.ui.theme.CategoryFood
+import com.kahavanu.ui.theme.CategoryFun
+import com.kahavanu.ui.theme.CategoryHealth
+import com.kahavanu.ui.theme.CategoryOther
+import com.kahavanu.ui.theme.CategoryShopping
+import com.kahavanu.ui.theme.CategoryTransport
+import com.kahavanu.ui.theme.CategoryUtilities
 import java.time.Instant
 import java.time.YearMonth
 import java.time.ZoneId
@@ -47,13 +53,13 @@ fun dueLabel(epochMillis: Long): String {
 
 fun categoryColor(category: String): Color {
     return when (category.trim().lowercase()) {
-        "food", "essentials" -> Color(0xFFF97316)
-        "transport" -> RawColors.Blue.Blue500
-        "utilities" -> RawColors.Violet.Violet500
-        "shopping", "lifestyle" -> RawColors.Rose.Rose500
-        "health" -> RawColors.Red.Red500
-        "fun", "subscriptions" -> RawColors.Emerald.Emerald500
-        else -> RawColors.Slate.Slate400
+        "food", "essentials" -> CategoryFood
+        "transport" -> CategoryTransport
+        "utilities" -> CategoryUtilities
+        "shopping", "lifestyle" -> CategoryShopping
+        "health" -> CategoryHealth
+        "fun", "subscriptions" -> CategoryFun
+        else -> CategoryOther
     }
 }
 

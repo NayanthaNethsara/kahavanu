@@ -1,5 +1,6 @@
 package com.kahavanu.ui.goals.components
 
+import com.kahavanu.ui.theme.extendedColors
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,7 +23,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kahavanu.domain.model.CurrencyOption
 import com.kahavanu.ui.common.GlassCard
-import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
@@ -74,7 +74,7 @@ fun GoalsSummaryCard(
             GoalProgressBar(progressPercent = progressPercent)
 
             Spacer(modifier = Modifier.height(Spacing.medium))
-            HorizontalDivider(color = RawColors.Slate.Slate200.copy(alpha = 0.4f))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
             Spacer(modifier = Modifier.height(Spacing.medium))
 
             Row(
@@ -96,14 +96,14 @@ private fun GoalProgressBar(progressPercent: Int) {
             .fillMaxWidth()
             .height(6.dp)
             .clip(RoundedCornerShape(99.dp))
-            .background(RawColors.Slate.Slate200),
+            .background(MaterialTheme.colorScheme.outlineVariant),
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth(ratio)
                 .height(6.dp)
                 .clip(RoundedCornerShape(99.dp))
-                .background(RawColors.Emerald.Emerald500),
+                .background(MaterialTheme.extendedColors.brandAccent),
         )
     }
 }

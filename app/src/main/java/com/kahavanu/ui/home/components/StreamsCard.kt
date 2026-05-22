@@ -1,5 +1,6 @@
 package com.kahavanu.ui.home.components
 
+import com.kahavanu.ui.theme.extendedColors
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -28,7 +29,6 @@ import androidx.compose.ui.unit.sp
 import com.kahavanu.ui.home.IncomeStreamItem
 import com.kahavanu.ui.common.GlassCard
 import com.kahavanu.ui.common.SectionHeader
-import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
@@ -57,7 +57,7 @@ fun StreamsCard(
                     IncomeStreamRow(stream = stream)
                     if (index < incomeStreams.lastIndex) {
                         HorizontalDivider(
-                            color = RawColors.Slate.Slate200.copy(alpha = 0.4f),
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
                             modifier = Modifier.padding(horizontal = Spacing.medium)
                         )
                     }
@@ -79,15 +79,15 @@ fun IncomeStreamRow(
     }
     
     val iconBg = when (stream.iconIndex) {
-        12 -> RawColors.Slate.Slate100.copy(alpha = 0.5f)
-        13 -> RawColors.Emerald.Emerald100.copy(alpha = 0.45f)
-        else -> RawColors.Amber.Amber100.copy(alpha = 0.45f)
+        12 -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        13 -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f)
+        else -> MaterialTheme.extendedColors.warningContainer.copy(alpha = 0.45f)
     }
     
     val iconColor = when (stream.iconIndex) {
-        12 -> RawColors.Slate.Slate700
-        13 -> RawColors.Emerald.Emerald600
-        else -> RawColors.Amber.Amber600
+        12 -> MaterialTheme.extendedColors.textStrong
+        13 -> MaterialTheme.colorScheme.primary
+        else -> MaterialTheme.extendedColors.warning
     }
 
     Row(

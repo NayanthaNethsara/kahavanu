@@ -1,5 +1,6 @@
 package com.kahavanu.ui.income.components
 
+import com.kahavanu.ui.theme.extendedColors
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -32,7 +33,6 @@ import com.kahavanu.ui.income.IncomeBreakdownItem
 import com.kahavanu.ui.common.AppSegmentedToggle
 import com.kahavanu.ui.common.GlassCard
 import com.kahavanu.ui.common.SummaryItem
-import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
@@ -90,11 +90,11 @@ fun TotalExpectedCard(
                             .height(34.dp),
                         height = 34.dp,
                         shape = CircleShape,
-                        containerColor = RawColors.Emerald.Emerald500.copy(alpha = 0.08f),
-                        indicatorColor = RawColors.Emerald.Emerald600.copy(alpha = 0.9f),
+                        containerColor = MaterialTheme.extendedColors.brandAccent.copy(alpha = 0.08f),
+                        indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.9f),
                         indicatorShadow = 4.dp,
                         selectedTextColor = Color.White,
-                        unselectedTextColor = RawColors.Emerald.Emerald600.copy(alpha = 0.9f),
+                        unselectedTextColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.9f),
                         textStyle = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
                         itemWidth = 64.dp,
                     )
@@ -136,15 +136,15 @@ fun TotalExpectedCard(
                     .fillMaxWidth()
                     .height(8.dp)
                     .clip(CircleShape),
-                color = RawColors.Emerald.Emerald500,
-                trackColor = RawColors.Slate.Slate100.copy(alpha = 0.5f),
+                color = MaterialTheme.extendedColors.brandAccent,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
                 drawStopIndicator = {}
             )
 
             val items = breakdownsByCurrency[selectedCurrency] ?: emptyList()
             if (items.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(Spacing.large))
-                HorizontalDivider(color = RawColors.Slate.Slate200.copy(alpha = 0.4f))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
                 Spacer(modifier = Modifier.height(Spacing.medium))
                 
                 Column(verticalArrangement = Arrangement.spacedBy(Spacing.small)) {

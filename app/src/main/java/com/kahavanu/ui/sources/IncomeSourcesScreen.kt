@@ -1,5 +1,11 @@
 package com.kahavanu.ui.sources
 
+import com.kahavanu.ui.theme.BrandText
+import com.kahavanu.ui.theme.WarningText
+import com.kahavanu.ui.theme.InfoStrong
+import com.kahavanu.ui.theme.InfoDark
+import com.kahavanu.ui.theme.Warning
+import com.kahavanu.ui.theme.extendedColors
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -64,7 +70,6 @@ import com.kahavanu.ui.common.SectionLabel
 import com.kahavanu.ui.common.SelectableChip
 import com.kahavanu.ui.common.textFieldColors
 import com.kahavanu.ui.theme.KahavanuShapes
-import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
@@ -137,12 +142,12 @@ fun IncomeSourcesScreen(
                         Icon(
                             imageVector = Icons.Outlined.Add,
                             contentDescription = "Add Source",
-                            tint = RawColors.Emerald.Emerald600,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(14.dp)
                         )
                         Text(
                             text = "Add",
-                            color = RawColors.Emerald.Emerald600,
+                            color = MaterialTheme.colorScheme.primary,
                             style = MaterialTheme.typography.labelLarge,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium
@@ -229,7 +234,7 @@ private fun IncomeSourcesList(
                 sources.forEachIndexed { index, source ->
                     if (index > 0) {
                         HorizontalDivider(
-                            color = RawColors.Slate.Slate900.copy(alpha = 0.06f),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f),
                             thickness = 1.dp
                         )
                     }
@@ -302,7 +307,7 @@ private fun IncomeSourceRow(
             Icon(
                 imageVector = Icons.Outlined.Delete,
                 contentDescription = "Delete",
-                tint = RawColors.Red.Red600,
+                tint = MaterialTheme.colorScheme.error,
                 modifier = Modifier.size(20.dp),
             )
         }
@@ -395,7 +400,7 @@ private fun DeleteConfirmationDialog(
         text = { Text("Are you sure you want to delete '$sourceName'? This action cannot be undone.") },
         confirmButton = {
             TextButton(onClick = onConfirm) {
-                Text("Delete", color = RawColors.Red.Red500)
+                Text("Delete", color = MaterialTheme.extendedColors.dangerAccent)
             }
         },
         dismissButton = {
@@ -422,11 +427,11 @@ private fun TypeToggleChip(
         modifier = modifier,
         height = 56.dp,
         shape = KahavanuShapes.large,
-        selectedBackgroundColor = RawColors.Emerald.Emerald400.copy(alpha = 0.12f),
+        selectedBackgroundColor = MaterialTheme.extendedColors.brandGlow.copy(alpha = 0.12f),
         unselectedBackgroundColor = Color.White.copy(alpha = 0.4f),
-        selectedBorderColor = RawColors.Emerald.Emerald300,
-        unselectedBorderColor = RawColors.Slate.Slate900.copy(alpha = 0.08f),
-        selectedTextColor = RawColors.Emerald.Emerald700,
+        selectedBorderColor = MaterialTheme.extendedColors.brandSoft,
+        unselectedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+        selectedTextColor = MaterialTheme.extendedColors.brandText,
         unselectedTextColor = TextSecondary,
         textStyle = MaterialTheme.typography.labelMedium,
         fontSize = TextSize.xs,
@@ -447,28 +452,28 @@ private fun resolveSourceStyle(name: String, types: Set<IncomeSourceType>): Sour
         normName.contains("acme") || normName.contains("salary") -> {
             SourceStyle(
                 icon = Icons.Outlined.WorkOutline,
-                iconColor = RawColors.Blue.Blue800,
+                iconColor = InfoDark,
                 subtitle = "Monthly · LKR 120,000"
             )
         }
         normName.contains("freelance") || normName.contains("web") -> {
             SourceStyle(
                 icon = Icons.Outlined.Code,
-                iconColor = RawColors.Indigo.Indigo700,
+                iconColor = InfoStrong,
                 subtitle = "Avg LKR 45,000/mo"
             )
         }
         normName.contains("adsense") || normName.contains("blog") || normName.contains("public") -> {
             SourceStyle(
                 icon = Icons.Outlined.TrendingUp,
-                iconColor = RawColors.Amber.Amber800,
+                iconColor = WarningText,
                 subtitle = "USD payouts"
             )
         }
         normName.contains("crypto") || normName.contains("bitcoin") || normName.contains("p2p") -> {
             SourceStyle(
                 icon = Icons.Outlined.CurrencyBitcoin,
-                iconColor = RawColors.Amber.Amber600,
+                iconColor = Warning,
                 subtitle = "Variable"
             )
         }
@@ -476,7 +481,7 @@ private fun resolveSourceStyle(name: String, types: Set<IncomeSourceType>): Sour
             val typeStr = types.joinToString(" · ") { it.label }
             SourceStyle(
                 icon = Icons.Outlined.AccountBalanceWallet,
-                iconColor = RawColors.Emerald.Emerald700,
+                iconColor = BrandText,
                 subtitle = typeStr.ifEmpty { "Other source" }
             )
         }

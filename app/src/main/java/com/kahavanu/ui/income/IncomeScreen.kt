@@ -1,5 +1,7 @@
 package com.kahavanu.ui.income
 
+import androidx.compose.material3.MaterialTheme
+import com.kahavanu.ui.theme.extendedColors
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,7 +22,6 @@ import com.kahavanu.ui.income.components.MatchAndCatchSection
 import com.kahavanu.ui.income.components.PersistenceSection
 import com.kahavanu.ui.income.components.TotalExpectedCard
 import com.kahavanu.ui.income.components.currentMonthLabel
-import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 
 
@@ -55,9 +56,9 @@ fun IncomeScreen(
             .background(
                 brush = Brush.verticalGradient(
                     colors = listOf(
-                        RawColors.Slate.Slate50,
-                        RawColors.Emerald.Emerald50.copy(alpha = 0.5f),
-                        RawColors.Slate.Slate100
+                        MaterialTheme.colorScheme.background,
+                        MaterialTheme.extendedColors.brandWashed.copy(alpha = 0.5f),
+                        MaterialTheme.colorScheme.surfaceVariant
                     )
                 )
             ),

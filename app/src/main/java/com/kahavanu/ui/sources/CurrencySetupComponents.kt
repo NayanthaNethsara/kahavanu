@@ -1,5 +1,6 @@
 package com.kahavanu.ui.sources
 
+import com.kahavanu.ui.theme.extendedColors
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandVertically
@@ -44,7 +45,6 @@ import androidx.compose.ui.unit.sp
 import com.kahavanu.domain.model.CurrencyOption
 import com.kahavanu.ui.common.SectionLabel
 import com.kahavanu.ui.theme.KahavanuShapes
-import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
@@ -91,13 +91,13 @@ fun CurrencySetup(
                             modifier = Modifier
                                 .size(40.dp)
                                 .clip(RoundedCornerShape(14.dp))
-                                .background(RawColors.Emerald.Emerald500.copy(alpha = 0.12f)),
+                                .background(MaterialTheme.extendedColors.brandAccent.copy(alpha = 0.12f)),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Outlined.Language,
                                 contentDescription = null,
-                                tint = RawColors.Emerald.Emerald600,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(16.dp)
                             )
                         }
@@ -140,7 +140,7 @@ fun CurrencySetup(
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(RawColors.Slate.Slate900.copy(alpha = 0.02f))
+                                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.02f))
                                 .padding(horizontal = 16.dp, vertical = 12.dp),
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
@@ -170,7 +170,7 @@ fun CurrencySetup(
                 }
 
                 HorizontalDivider(
-                    color = RawColors.Slate.Slate900.copy(alpha = 0.06f),
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f),
                     thickness = 1.dp
                 )
 
@@ -193,13 +193,13 @@ fun CurrencySetup(
                             modifier = Modifier
                                 .size(40.dp)
                                 .clip(RoundedCornerShape(14.dp))
-                                .background(RawColors.Slate.Slate900.copy(alpha = 0.04f)),
+                                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.04f)),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Outlined.Language,
                                 contentDescription = null,
-                                tint = RawColors.Slate.Slate500,
+                                tint = MaterialTheme.extendedColors.iconMuted,
                                 modifier = Modifier.size(16.dp)
                             )
                         }
@@ -242,7 +242,7 @@ fun CurrencySetup(
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(RawColors.Slate.Slate900.copy(alpha = 0.02f))
+                                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.02f))
                                 .padding(horizontal = 16.dp, vertical = 12.dp),
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
@@ -289,10 +289,10 @@ private fun CurrencyOptionCard(
             .height(56.dp)
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(14.dp),
-        color = if (selected) RawColors.Emerald.Emerald500.copy(alpha = 0.12f) else RawColors.Slate.Slate900.copy(alpha = 0.04f),
+        color = if (selected) MaterialTheme.extendedColors.brandAccent.copy(alpha = 0.12f) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.04f),
         border = BorderStroke(
             1.dp,
-            if (selected) RawColors.Emerald.Emerald500.copy(alpha = 0.3f) else RawColors.Slate.Slate900.copy(alpha = 0.06f)
+            if (selected) MaterialTheme.extendedColors.brandAccent.copy(alpha = 0.3f) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f)
         )
     ) {
         Row(
@@ -307,7 +307,7 @@ private fun CurrencyOptionCard(
                     .size(28.dp)
                     .clip(RoundedCornerShape(10.dp))
                     .background(
-                        if (selected) RawColors.Emerald.Emerald500 else RawColors.Slate.Slate900.copy(alpha = 0.06f)
+                        if (selected) MaterialTheme.extendedColors.brandAccent else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f)
                     ),
                 contentAlignment = Alignment.Center
             ) {

@@ -1,5 +1,6 @@
 package com.kahavanu.ui.common
 
+import com.kahavanu.ui.theme.extendedColors
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -28,7 +29,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kahavanu.ui.theme.KahavanuShapes
-import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
@@ -47,8 +47,8 @@ fun GlassCard(
     Surface(
         modifier = modifier.shadow(
             elevation = shadowElevation,
-            spotColor = RawColors.Gray.Gray400,
-            ambientColor = RawColors.Gray.Gray500,
+            spotColor = MaterialTheme.extendedColors.textTertiary,
+            ambientColor = MaterialTheme.extendedColors.iconMuted,
             shape = shape,
         ),
         shape = shape,
@@ -85,7 +85,7 @@ fun SectionHeader(
                     Spacer(modifier = Modifier.width(Spacing.small))
                     Box(
                         modifier = Modifier
-                            .background(RawColors.Emerald.Emerald50, CircleShape)
+                            .background(MaterialTheme.extendedColors.brandWashed, CircleShape)
                             .padding(horizontal = Spacing.medium, vertical = 2.dp),
                         contentAlignment = Alignment.Center,
                     ) {

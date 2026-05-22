@@ -1,5 +1,6 @@
 package com.kahavanu.ui.income.components
 
+import com.kahavanu.ui.theme.extendedColors
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,7 +30,6 @@ import androidx.compose.ui.unit.sp
 import com.kahavanu.domain.model.IncomeLogEntry
 import com.kahavanu.ui.common.GlassCard
 import com.kahavanu.ui.common.SectionHeader
-import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
@@ -83,7 +83,7 @@ fun IncomeLogSection(
                     if (index != logs.lastIndex) {
                         HorizontalDivider(
                             modifier = Modifier.padding(horizontal = Spacing.large),
-                            color = RawColors.Slate.Slate900.copy(alpha = 0.06f)
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f)
                         )
                     }
                 }
@@ -110,7 +110,7 @@ private fun LogItem(
             modifier = Modifier
                 .size(40.dp)
                 .background(
-                    color = RawColors.Emerald.Emerald500.copy(alpha = 0.14f),
+                    color = MaterialTheme.extendedColors.brandAccent.copy(alpha = 0.14f),
                     shape = RoundedCornerShape(14.dp)
                 ),
             contentAlignment = Alignment.Center

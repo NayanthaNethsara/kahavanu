@@ -1,5 +1,6 @@
 package com.kahavanu.ui.goals
 
+import com.kahavanu.ui.theme.extendedColors
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -43,7 +44,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kahavanu.ui.common.GlassCard
 import com.kahavanu.ui.goals.components.formatAmount
-import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
@@ -73,7 +73,7 @@ fun GoalStatsScreen(
         modifier = Modifier
             .fillMaxSize()
             .windowInsetsPadding(WindowInsets.systemBars),
-        color = RawColors.Slate.Slate50,
+        color = MaterialTheme.colorScheme.background,
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             Row(
@@ -81,7 +81,7 @@ fun GoalStatsScreen(
                     .fillMaxWidth()
                     .background(
                         Brush.verticalGradient(
-                            listOf(RawColors.Slate.Slate50, RawColors.Emerald.Emerald50.copy(alpha = 0.3f))
+                            listOf(MaterialTheme.colorScheme.background, MaterialTheme.extendedColors.brandWashed.copy(alpha = 0.3f))
                         )
                     )
                     .padding(horizontal = Spacing.large, vertical = Spacing.medium),
@@ -111,7 +111,7 @@ fun GoalStatsScreen(
                 }
             }
 
-            HorizontalDivider(color = RawColors.Slate.Slate200)
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
             LazyColumn(
                 modifier = Modifier
@@ -128,14 +128,14 @@ fun GoalStatsScreen(
                         StatTile(
                             modifier = Modifier.weight(1f),
                             icon = Icons.Outlined.Flag,
-                            iconColor = RawColors.Blue.Blue500,
+                            iconColor = MaterialTheme.extendedColors.info,
                             label = "Total Goals",
                             value = "$totalGoals",
                         )
                         StatTile(
                             modifier = Modifier.weight(1f),
                             icon = Icons.Outlined.CheckCircle,
-                            iconColor = RawColors.Emerald.Emerald500,
+                            iconColor = MaterialTheme.extendedColors.brandAccent,
                             label = "Completed",
                             value = "$completedCount",
                         )
@@ -149,14 +149,14 @@ fun GoalStatsScreen(
                         StatTile(
                             modifier = Modifier.weight(1f),
                             icon = Icons.Outlined.TrendingUp,
-                            iconColor = RawColors.Violet.Violet500,
+                            iconColor = MaterialTheme.extendedColors.utilityAccent,
                             label = "Completion Rate",
                             value = "$completionRate%",
                         )
                         StatTile(
                             modifier = Modifier.weight(1f),
                             icon = Icons.Outlined.Savings,
-                            iconColor = RawColors.Amber.Amber600,
+                            iconColor = MaterialTheme.extendedColors.warning,
                             label = "Avg Progress",
                             value = "$avgActiveProgress%",
                         )
@@ -194,14 +194,14 @@ fun GoalStatsScreen(
                                     .fillMaxWidth()
                                     .height(8.dp)
                                     .clip(RoundedCornerShape(99.dp))
-                                    .background(RawColors.Slate.Slate200),
+                                    .background(MaterialTheme.colorScheme.outlineVariant),
                             ) {
                                 Box(
                                     modifier = Modifier
                                         .fillMaxWidth(overallPct / 100f)
                                         .height(8.dp)
                                         .clip(RoundedCornerShape(99.dp))
-                                        .background(RawColors.Emerald.Emerald500),
+                                        .background(MaterialTheme.extendedColors.brandAccent),
                                 )
                             }
                             Spacer(modifier = Modifier.height(Spacing.extraSmall))
@@ -209,7 +209,7 @@ fun GoalStatsScreen(
                                 text = "$overallPct% of all targets reached",
                                 style = MaterialTheme.typography.labelSmall,
                                 fontSize = TextSize.xs,
-                                color = RawColors.Emerald.Emerald600,
+                                color = MaterialTheme.colorScheme.primary,
                                 fontWeight = FontWeight.Medium,
                             )
                         }
@@ -257,7 +257,7 @@ fun GoalStatsScreen(
                                     text = "$pct%",
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
-                                    color = RawColors.Emerald.Emerald500,
+                                    color = MaterialTheme.extendedColors.brandAccent,
                                 )
                             }
                         }

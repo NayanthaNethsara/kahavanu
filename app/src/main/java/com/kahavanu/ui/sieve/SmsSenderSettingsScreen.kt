@@ -1,5 +1,6 @@
 package com.kahavanu.ui.sieve
 
+import com.kahavanu.ui.theme.extendedColors
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -64,7 +65,6 @@ import com.kahavanu.ui.common.PrimaryActionButton
 import com.kahavanu.ui.common.SectionLabel
 import com.kahavanu.ui.common.textFieldColors
 import com.kahavanu.ui.theme.KahavanuShapes
-import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
@@ -108,7 +108,7 @@ fun SmsSenderSettingsScreen(
                     isSheetOpen = true
                 },
                 modifier = Modifier.circularIconButton(
-                    backgroundColor = RawColors.Emerald.Emerald500,
+                    backgroundColor = MaterialTheme.extendedColors.brandAccent,
                     borderColor = Color.Transparent,
                     borderWidth = 0.dp
                 )
@@ -144,7 +144,7 @@ fun SmsSenderSettingsScreen(
                 GlassCard(
                     modifier = Modifier.fillMaxWidth(),
                     backgroundColor = Color.White.copy(alpha = 0.6f),
-                    borderColor = RawColors.Slate.Slate200.copy(alpha = 0.4f)
+                    borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
                 ) {
                     Box(
                         modifier = Modifier
@@ -163,13 +163,13 @@ fun SmsSenderSettingsScreen(
                 GlassCard(
                     modifier = Modifier.fillMaxWidth(),
                     backgroundColor = Color.White.copy(alpha = 0.9f),
-                    borderColor = RawColors.Slate.Slate200.copy(alpha = 0.6f)
+                    borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
                 ) {
                     Column(modifier = Modifier.fillMaxWidth()) {
                         filteredSenders.forEachIndexed { index, sender ->
                             if (index > 0) {
                                 HorizontalDivider(
-                                    color = RawColors.Slate.Slate900.copy(alpha = 0.06f),
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f),
                                     thickness = 0.5.dp
                                 )
                             }
@@ -359,8 +359,8 @@ private fun SmsSenderRowItem(
         horizontalArrangement = Arrangement.spacedBy(Spacing.medium),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        val iconColor = if (sender.isEnabled) RawColors.Emerald.Emerald500 else RawColors.Slate.Slate400
-        val iconBackground = if (sender.isEnabled) Color.Transparent else RawColors.Slate.Slate900.copy(alpha = 0.06f)
+        val iconColor = if (sender.isEnabled) MaterialTheme.extendedColors.brandAccent else MaterialTheme.extendedColors.textTertiary
+        val iconBackground = if (sender.isEnabled) Color.Transparent else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f)
 
         Box(
             modifier = Modifier
@@ -398,9 +398,9 @@ private fun SmsSenderRowItem(
             onCheckedChange = onToggle,
             colors = SwitchDefaults.colors(
                 checkedThumbColor = Color.White,
-                checkedTrackColor = RawColors.Emerald.Emerald500,
+                checkedTrackColor = MaterialTheme.extendedColors.brandAccent,
                 uncheckedThumbColor = Color.White,
-                uncheckedTrackColor = RawColors.Slate.Slate200,
+                uncheckedTrackColor = MaterialTheme.colorScheme.outlineVariant,
                 uncheckedBorderColor = Color.Transparent,
                 checkedBorderColor = Color.Transparent
             ),

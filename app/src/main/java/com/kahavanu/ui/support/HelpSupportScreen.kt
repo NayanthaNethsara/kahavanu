@@ -1,5 +1,6 @@
 package com.kahavanu.ui.support
 
+import com.kahavanu.ui.theme.extendedColors
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -49,7 +50,6 @@ import com.kahavanu.R
 import com.kahavanu.ui.common.GlassCard
 import com.kahavanu.ui.common.KahavanuSubScreen
 import com.kahavanu.ui.common.SectionLabel
-import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
@@ -106,7 +106,7 @@ private fun CozyIntroCard() {
     GlassCard(
         modifier = Modifier.fillMaxWidth(),
         backgroundColor = Color.White.copy(alpha = 0.9f),
-        borderColor = RawColors.Slate.Slate200.copy(alpha = 0.6f)
+        borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
     ) {
         Column(
             modifier = Modifier
@@ -162,7 +162,7 @@ private fun FaqSection(
         GlassCard(
             modifier = Modifier.fillMaxWidth(),
             backgroundColor = Color.White.copy(alpha = 0.9f),
-            borderColor = RawColors.Slate.Slate200.copy(alpha = 0.6f)
+            borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
         ) {
             Column(modifier = Modifier.fillMaxWidth()) {
                 faqs.forEachIndexed { index, faq ->
@@ -174,7 +174,7 @@ private fun FaqSection(
                     )
                     if (index < faqs.lastIndex) {
                         HorizontalDivider(
-                            color = RawColors.Slate.Slate200.copy(alpha = 0.4f),
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
                             thickness = 0.5.dp
                         )
                     }
@@ -244,29 +244,29 @@ private fun ContactInfoSection() {
         GlassCard(
             modifier = Modifier.fillMaxWidth(),
             backgroundColor = Color.White.copy(alpha = 0.9f),
-            borderColor = RawColors.Slate.Slate200.copy(alpha = 0.6f)
+            borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
         ) {
             Column(modifier = Modifier.fillMaxWidth()) {
                 ContactRow(
                     icon = Icons.Default.Email,
-                    iconColor = RawColors.Emerald.Emerald600,
-                    iconBgColor = RawColors.Emerald.Emerald50,
+                    iconColor = MaterialTheme.colorScheme.primary,
+                    iconBgColor = MaterialTheme.extendedColors.brandWashed,
                     label = "Support Email",
                     value = stringResource(R.string.support_email)
                 )
-                HorizontalDivider(color = RawColors.Slate.Slate200.copy(alpha = 0.4f), thickness = 0.5.dp)
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f), thickness = 0.5.dp)
                 ContactRow(
                     icon = Icons.Default.Phone,
-                    iconColor = RawColors.Indigo.Indigo500,
-                    iconBgColor = RawColors.Indigo.Indigo50,
+                    iconColor = MaterialTheme.extendedColors.infoAccent,
+                    iconBgColor = MaterialTheme.extendedColors.infoWashed,
                     label = "Hotline Phone",
                     value = stringResource(R.string.support_phone)
                 )
-                HorizontalDivider(color = RawColors.Slate.Slate200.copy(alpha = 0.4f), thickness = 0.5.dp)
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f), thickness = 0.5.dp)
                 ContactRow(
                     icon = Icons.Default.Place,
-                    iconColor = RawColors.Red.Red500,
-                    iconBgColor = RawColors.Red.Red50.copy(alpha = 0.8f),
+                    iconColor = MaterialTheme.extendedColors.dangerAccent,
+                    iconBgColor = MaterialTheme.extendedColors.dangerWashed.copy(alpha = 0.8f),
                     label = "Main Office",
                     value = stringResource(R.string.office_address)
                 )

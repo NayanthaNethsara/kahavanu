@@ -1,5 +1,7 @@
 package com.kahavanu.ui.goals
 
+import androidx.compose.material3.MaterialTheme
+import com.kahavanu.ui.theme.extendedColors
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -18,7 +20,6 @@ import com.kahavanu.ui.goals.components.ActiveGoalsSection
 import com.kahavanu.ui.goals.components.CompletedGoalsSection
 import com.kahavanu.ui.goals.components.GoalsActionButtons
 import com.kahavanu.ui.goals.components.GoalsSummaryCard
-import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 
 @Composable
@@ -36,9 +37,9 @@ fun GoalsScreen(
             .background(
                 brush = Brush.verticalGradient(
                     colors = listOf(
-                        RawColors.Slate.Slate50,
-                        RawColors.Emerald.Emerald50.copy(alpha = 0.4f),
-                        RawColors.Slate.Slate100,
+                        MaterialTheme.colorScheme.background,
+                        MaterialTheme.extendedColors.brandWashed.copy(alpha = 0.4f),
+                        MaterialTheme.colorScheme.surfaceVariant,
                     ),
                 ),
             ),

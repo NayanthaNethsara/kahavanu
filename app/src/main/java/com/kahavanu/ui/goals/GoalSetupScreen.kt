@@ -1,5 +1,6 @@
 package com.kahavanu.ui.goals
 
+import com.kahavanu.ui.theme.extendedColors
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -71,7 +72,6 @@ import com.kahavanu.ui.common.textFieldColors
 import com.kahavanu.ui.income.components.CurrencyDropdown
 import com.kahavanu.ui.theme.circularIconButton
 import com.kahavanu.ui.theme.KahavanuShapes
-import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextPrimaryEmerald
@@ -150,8 +150,8 @@ fun GoalSetupScreen(
                 modifier = Modifier.offset(x = (-96).dp, y = (-128).dp),
                 size = 360.dp,
                 colors = listOf(
-                    RawColors.Emerald.Emerald400.copy(alpha = 0.14f),
-                    RawColors.Emerald.Emerald800.copy(alpha = 0.07f),
+                    MaterialTheme.extendedColors.brandGlow.copy(alpha = 0.14f),
+                    MaterialTheme.extendedColors.brandDark.copy(alpha = 0.07f),
                     Color.Transparent,
                 ),
             )
@@ -159,7 +159,7 @@ fun GoalSetupScreen(
                 modifier = Modifier.offset(x = 170.dp, y = 320.dp),
                 size = 300.dp,
                 colors = listOf(
-                    RawColors.Violet.Violet400.copy(alpha = 0.08f),
+                    MaterialTheme.extendedColors.utility.copy(alpha = 0.08f),
                     Color.Transparent,
                 ),
             )
@@ -309,10 +309,10 @@ private fun CategoryChip(
     selected: Boolean,
     onClick: () -> Unit,
 ) {
-    val selectedBg = RawColors.Emerald.Emerald400.copy(alpha = 0.12f)
-    val unselectedBg = RawColors.Slate.Slate900.copy(alpha = 0.04f)
-    val selectedBorder = RawColors.Emerald.Emerald400
-    val unselectedBorder = RawColors.Slate.Slate900.copy(alpha = 0.08f)
+    val selectedBg = MaterialTheme.extendedColors.brandGlow.copy(alpha = 0.12f)
+    val unselectedBg = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.04f)
+    val selectedBorder = MaterialTheme.extendedColors.brandGlow
+    val unselectedBorder = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
 
     Box(
         modifier = Modifier
@@ -338,7 +338,7 @@ private fun CategoryChip(
             Icon(
                 imageVector = categoryIcon(category),
                 contentDescription = null,
-                tint = if (selected) RawColors.Emerald.Emerald700 else TextSecondary,
+                tint = if (selected) MaterialTheme.extendedColors.brandText else TextSecondary,
                 modifier = Modifier.size(14.dp),
             )
             Text(
@@ -346,7 +346,7 @@ private fun CategoryChip(
                 style = MaterialTheme.typography.labelMedium,
                 fontSize = TextSize.xs,
                 fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
-                color = if (selected) RawColors.Emerald.Emerald700 else TextSecondary,
+                color = if (selected) MaterialTheme.extendedColors.brandText else TextSecondary,
             )
         }
     }
@@ -437,7 +437,7 @@ private fun GoalTargetDateSection(
                     Icon(
                         imageVector = Icons.Outlined.CalendarMonth,
                         contentDescription = null,
-                        tint = RawColors.Slate.Slate500,
+                        tint = MaterialTheme.extendedColors.iconMuted,
                     )
                 },
                 colors = textFieldColors(),
@@ -451,11 +451,11 @@ private fun GoalTargetDateSection(
 private fun GoalInfoBanner() {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        color = RawColors.Emerald.Emerald500.copy(alpha = 0.14f),
+        color = MaterialTheme.extendedColors.brandAccent.copy(alpha = 0.14f),
         shape = RoundedCornerShape(16.dp),
         border = androidx.compose.foundation.BorderStroke(
             0.7.dp,
-            RawColors.Emerald.Emerald500.copy(alpha = 0.2f),
+            MaterialTheme.extendedColors.brandAccent.copy(alpha = 0.2f),
         ),
     ) {
         Text(
@@ -463,7 +463,7 @@ private fun GoalInfoBanner() {
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
             style = MaterialTheme.typography.bodySmall,
             fontSize = TextSize.sm,
-            color = RawColors.Emerald.Emerald700,
+            color = MaterialTheme.extendedColors.brandText,
             lineHeight = 18.sp,
         )
     }

@@ -67,7 +67,8 @@ class HomeViewModel @Inject constructor(
         goalsRepository.observeGoals(),
         incomeRepository.observeIncomeLogs(),
         smsSuggestionRepository.observePendingSuggestions(),
-    ) { goals, incomeLogs, suggestions ->
+        smsScanScheduler.isScanningFlow,
+    ) { goals, incomeLogs, suggestions, isScanning ->
         val featured = goals.firstOrNull { !it.isCompleted }
         val sieveItems = suggestions.map { it.toSieveItem() }
 
@@ -112,6 +113,7 @@ class HomeViewModel @Inject constructor(
                     iconIndex = 14,
                 ),
             ),
+            isScanning = isScanning,
         )
     }.stateIn(
         scope = viewModelScope,

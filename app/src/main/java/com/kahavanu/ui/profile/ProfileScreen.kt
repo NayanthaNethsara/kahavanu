@@ -181,8 +181,8 @@ fun ProfileScreen(
                     icon = Icons.Default.Sms,
                     iconColor = AccentIncome,
                     iconBackgroundColor = AccentIncomeSoft,
-                    title = "Manage Sender IDs",
-                    subtitle = "3/4 active sender IDs",
+                    title = "SMS Sender IDs",
+                    subtitle = "Authorized SMS senders for income & expenses tracking",
                     onClick = onNavigateToSmsSenders
                 )
             }

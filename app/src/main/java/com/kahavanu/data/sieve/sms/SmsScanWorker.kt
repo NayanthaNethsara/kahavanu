@@ -45,8 +45,11 @@ class SmsScanWorker @AssistedInject constructor(
 
         val sinceMillis = settingsRepository.getLastSmsScanEpochMillis()
         val now = System.currentTimeMillis()
+        val fourteenDaysInMillis = 14L * 24L * 60L * 60L * 1000L
+        val fourteenDaysAgo = now - fourteenDaysInMillis
+        val effectiveSinceMillis = maxOf(sinceMillis, fourteenDaysAgo)
 
-        val messages = smsReader.readSince(enabledSenders, sinceMillis)
+        val messages = smsReader.readSince(enabledSenders, effectiveSinceMillis)
 
         for (raw in messages) {
             processSms(uid, raw)

@@ -59,6 +59,8 @@ import com.kahavanu.ui.theme.TextTertiary
 @Composable
 fun ProfileScreen(
     onNavigateToSmsSenders: () -> Unit,
+    onNavigateToIncomeSources: () -> Unit,
+    onNavigateToSubscriptions: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val userSession by viewModel.userSession.collectAsState()
@@ -144,7 +146,7 @@ fun ProfileScreen(
                     iconBackgroundColor = AccentIncomeSoft,
                     title = "Currencies & Income Sources",
                     subtitle = "LKR (USD) · 4 sources",
-                    onClick = {}
+                    onClick = onNavigateToIncomeSources
                 )
                 HorizontalDivider(color = RawColors.Slate.Slate200.copy(alpha = 0.4f))
                 SettingNavigationRow(
@@ -153,7 +155,7 @@ fun ProfileScreen(
                     iconBackgroundColor = RawColors.Red.Red500.copy(alpha = 0.1f),
                     title = "Manage Subscriptions",
                     subtitle = "Track recurring leaks",
-                    onClick = {}
+                    onClick = onNavigateToSubscriptions
                 )
             }
         }

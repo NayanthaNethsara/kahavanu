@@ -166,16 +166,22 @@ fun IncomeSourcesScreen(
                 dragHandle = null,
                 shape = KahavanuShapes.large,
             ) {
-                IncomeSourceForm(
-                    nameInput = uiState.nameInput,
-                    selectedTypes = uiState.selectedTypes,
-                    isSaving = uiState.isSaving,
-                    editingSourceId = uiState.editingSourceId,
-                    onNameChange = viewModel::onNameChange,
-                    onTypeToggle = viewModel::onTypeToggle,
-                    onSave = viewModel::saveSource,
-                    onCancel = viewModel::closeSheet
-                )
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    IncomeSourceForm(
+                        nameInput = uiState.nameInput,
+                        selectedTypes = uiState.selectedTypes,
+                        isSaving = uiState.isSaving,
+                        editingSourceId = uiState.editingSourceId,
+                        onNameChange = viewModel::onNameChange,
+                        onTypeToggle = viewModel::onTypeToggle,
+                        onSave = viewModel::saveSource,
+                        onCancel = viewModel::closeSheet
+                    )
+                    AppSnackbarHost(
+                        hostState = snackbarHostState,
+                        modifier = Modifier.align(Alignment.BottomCenter)
+                    )
+                }
             }
         }
 
@@ -187,10 +193,12 @@ fun IncomeSourcesScreen(
             )
         }
 
-        AppSnackbarHost(
-            hostState = snackbarHostState,
-            modifier = Modifier.align(Alignment.BottomCenter)
-        )
+        if (!uiState.isSheetOpen) {
+            AppSnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.align(Alignment.BottomCenter)
+            )
+        }
     }
 }
 

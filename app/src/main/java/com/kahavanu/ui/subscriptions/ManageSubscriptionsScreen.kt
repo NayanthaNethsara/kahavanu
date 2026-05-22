@@ -154,27 +154,35 @@ fun ManageSubscriptionsScreen(
                 dragHandle = null,
                 shape = KahavanuShapes.large,
             ) {
-                SubscriptionForm(
-                    nameInput = uiState.nameInput,
-                    costInput = uiState.costInput,
-                    currencyInput = uiState.currencyInput,
-                    frequencyInput = uiState.frequencyInput,
-                    nextBillingInput = uiState.nextBillingInput,
-                    onNameChange = viewModel::onNameChange,
-                    onCostChange = viewModel::onCostChange,
-                    onCurrencyChange = viewModel::onCurrencyChange,
-                    onFrequencyChange = viewModel::onFrequencyChange,
-                    onNextBillingChange = viewModel::onNextBillingChange,
-                    onSave = viewModel::addSubscription,
-                    onCancel = viewModel::closeSheet
-                )
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    SubscriptionForm(
+                        nameInput = uiState.nameInput,
+                        costInput = uiState.costInput,
+                        currencyInput = uiState.currencyInput,
+                        frequencyInput = uiState.frequencyInput,
+                        nextBillingInput = uiState.nextBillingInput,
+                        onNameChange = viewModel::onNameChange,
+                        onCostChange = viewModel::onCostChange,
+                        onCurrencyChange = viewModel::onCurrencyChange,
+                        onFrequencyChange = viewModel::onFrequencyChange,
+                        onNextBillingChange = viewModel::onNextBillingChange,
+                        onSave = viewModel::addSubscription,
+                        onCancel = viewModel::closeSheet
+                    )
+                    AppSnackbarHost(
+                        hostState = snackbarHostState,
+                        modifier = Modifier.align(Alignment.BottomCenter)
+                    )
+                }
             }
         }
 
-        AppSnackbarHost(
-            hostState = snackbarHostState,
-            modifier = Modifier.align(Alignment.BottomCenter)
-        )
+        if (!uiState.isSheetOpen) {
+            AppSnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.align(Alignment.BottomCenter)
+            )
+        }
     }
 }
 

@@ -1,5 +1,6 @@
 package com.kahavanu.ui.common
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -11,9 +12,13 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
+import com.kahavanu.ui.theme.TextPrimary
 
 @Composable
 fun AppSnackbarHost(
@@ -35,7 +40,19 @@ fun AppSnackbar(
     modifier: Modifier = Modifier,
 ) {
     Snackbar(
-        modifier = modifier.padding(Spacing.small),
+        modifier = modifier
+            .padding(Spacing.small)
+            .shadow(
+                elevation = 20.dp,
+                spotColor = RawColors.Gray.Gray400,
+                ambientColor = RawColors.Gray.Gray500,
+                shape = RoundedCornerShape(Spacing.medium),
+            )
+            .border(
+                width = 0.5.dp,
+                color = Color.White.copy(alpha = 0.5f),
+                shape = RoundedCornerShape(Spacing.medium),
+            ),
         action = snackbarData.visuals.actionLabel?.let { actionLabel ->
             {
                 TextButton(
@@ -43,19 +60,23 @@ fun AppSnackbar(
                 ) {
                     Text(
                         text = actionLabel,
-                        color = RawColors.Emerald.Emerald400,
+                        color = RawColors.Emerald.Emerald600,
                         style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold,
                     )
                 }
             }
         },
-        containerColor = RawColors.Slate.Slate900,
-        contentColor = Color.White,
+        containerColor = Color.White.copy(alpha = 0.85f),
+        contentColor = TextPrimary,
         shape = RoundedCornerShape(Spacing.medium),
     ) {
         Text(
             text = snackbarData.visuals.message,
             style = MaterialTheme.typography.bodyMedium,
+            color = TextPrimary,
+            fontWeight = FontWeight.Medium,
         )
     }
 }
+

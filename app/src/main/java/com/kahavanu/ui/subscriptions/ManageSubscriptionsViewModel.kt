@@ -169,4 +169,8 @@ class ManageSubscriptionsViewModel @Inject constructor() : ViewModel() {
             )
         }
     }
+
+    fun clearMessages() {
+        _uiState.update { it.copy(errorMessage = null, successMessage = null) }
+    }
 }

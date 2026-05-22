@@ -41,6 +41,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.SnackbarHostState
+import com.kahavanu.ui.common.AppSnackbarHost
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -98,6 +100,18 @@ fun ExpenseLogScreen(
     val scrollState = rememberScrollState()
     val dateFormatter = remember {
         DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.getDefault())
+    }
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(uiState.errorMessage, uiState.successMessage) {
+        uiState.errorMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.clearMessages()
+        }
+        uiState.successMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.clearMessages()
+        }
     }
 
     LaunchedEffect(uiState.didSubmitSuccessfully) {
@@ -307,24 +321,6 @@ fun ExpenseLogScreen(
                 )
             }
 
-            uiState.errorMessage?.let { errorMessage ->
-                Text(
-                    text = errorMessage,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall,
-                    fontSize = TextSize.sm,
-                )
-            }
-
-            uiState.successMessage?.let { successMessage ->
-                Text(
-                    text = successMessage,
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodySmall,
-                    fontSize = TextSize.sm,
-                )
-            }
-
             Button(
                 onClick = viewModel::logExpense,
                 enabled = !uiState.isSaving,
@@ -350,6 +346,11 @@ fun ExpenseLogScreen(
 
             Spacer(modifier = Modifier.height(Spacing.huge))
         }
+
+        AppSnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 }
 

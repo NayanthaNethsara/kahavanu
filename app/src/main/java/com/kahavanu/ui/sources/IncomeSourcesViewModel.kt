@@ -194,6 +194,10 @@ class IncomeSourcesViewModel @Inject constructor(
         }
     }
 
+    fun clearMessages() {
+        _uiState.update { it.copy(errorMessage = null, successMessage = null) }
+    }
+
     private fun updateState(transform: (IncomeSourcesUiState) -> IncomeSourcesUiState) {
         _uiState.update { transform(it).copy(errorMessage = null, successMessage = null) }
     }

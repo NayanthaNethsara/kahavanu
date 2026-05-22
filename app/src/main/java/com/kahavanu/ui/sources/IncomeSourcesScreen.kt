@@ -37,8 +37,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
+import com.kahavanu.ui.common.AppSnackbarHost
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -74,6 +78,18 @@ fun IncomeSourcesScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val scrollState = rememberScrollState()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(uiState.errorMessage, uiState.successMessage) {
+        uiState.errorMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.clearMessages()
+        }
+        uiState.successMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.clearMessages()
+        }
+    }
 
     KahavanuSubScreen(
         label = "Finance Settings",
@@ -93,24 +109,6 @@ fun IncomeSourcesScreen(
                 ),
             verticalArrangement = Arrangement.spacedBy(Spacing.large),
         ) {
-            if (uiState.errorMessage != null) {
-                Text(
-                    text = uiState.errorMessage ?: "",
-                    color = RawColors.Red.Red500,
-                    style = MaterialTheme.typography.bodySmall,
-                    fontSize = TextSize.sm,
-                )
-            }
-
-            if (uiState.successMessage != null) {
-                Text(
-                    text = uiState.successMessage ?: "",
-                    color = RawColors.Emerald.Emerald600,
-                    style = MaterialTheme.typography.bodySmall,
-                    fontSize = TextSize.sm,
-                )
-            }
-
             CurrencySetup(
                 primaryCurrency = uiState.primaryCurrency,
                 secondaryCurrency = uiState.secondaryCurrency,
@@ -188,6 +186,11 @@ fun IncomeSourcesScreen(
                 onDismiss = viewModel::dismissDeleteConfirmation
             )
         }
+
+        AppSnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 }
 

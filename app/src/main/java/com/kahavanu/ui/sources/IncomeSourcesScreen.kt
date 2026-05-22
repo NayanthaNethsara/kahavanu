@@ -1,4 +1,4 @@
-package com.kahavanu.ui.income
+package com.kahavanu.ui.sources
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
@@ -90,6 +90,8 @@ import com.kahavanu.ui.theme.TextSize
 import com.kahavanu.ui.theme.TextTertiary
 import kotlinx.coroutines.launch
 
+import com.kahavanu.ui.common.KahavanuSubScreen
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun IncomeSourcesScreen(
@@ -100,174 +102,106 @@ fun IncomeSourcesScreen(
     val scrollState = rememberScrollState()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = Color.White,
-    ) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            GradientBlob(
-                modifier = Modifier.offset(x = (-96).dp, y = (-128).dp),
-                size = 360.dp,
-                colors = listOf(
-                    RawColors.Emerald.Emerald400.copy(alpha = 0.16f),
-                    RawColors.Emerald.Emerald800.copy(alpha = 0.08f),
-                    Color.Transparent,
-                ),
-            )
-            GradientBlob(
-                modifier = Modifier.offset(x = 170.dp, y = 284.dp),
-                size = 320.dp,
-                colors = listOf(
-                    RawColors.Emerald.Emerald400.copy(alpha = 0.1f),
-                    Color.Transparent,
-                ),
-            )
-
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .windowInsetsPadding(WindowInsets.systemBars)
-                    .imePadding()
-                    .verticalScroll(scrollState)
-                    .padding(
-                        start = Spacing.extraLarge,
-                        end = Spacing.extraLarge,
-                        top = 30.dp,
-                        bottom = Spacing.large,
-                    ),
-                verticalArrangement = Arrangement.spacedBy(Spacing.large),
-            ) {
-                IncomeSourcesHeader(
-                    onBack = onBack,
-                    onAdd = viewModel::openSheet
-                )
-
-                if (uiState.errorMessage != null) {
-                    Text(
-                        text = uiState.errorMessage ?: "",
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodySmall,
-                        fontSize = TextSize.sm,
-                    )
-                }
-
-                if (uiState.successMessage != null) {
-                    Text(
-                        text = uiState.successMessage ?: "",
-                        color = RawColors.Emerald.Emerald600,
-                        style = MaterialTheme.typography.bodySmall,
-                        fontSize = TextSize.sm,
-                    )
-                }
-
-                CurrencySetup(
-                    primaryCurrency = uiState.primaryCurrency,
-                    secondaryCurrency = uiState.secondaryCurrency,
-                    primaryDraft = uiState.primaryCurrencyDraft,
-                    secondaryDraft = uiState.secondaryCurrencyDraft,
-                    isEditing = uiState.isCurrencyEditing,
-                    onStartEdit = viewModel::startCurrencyEdit,
-                    onCancelEdit = viewModel::cancelCurrencyEdit,
-                    onSave = viewModel::saveCurrencySettings,
-                    onPrimaryChange = viewModel::onPrimaryCurrencyDraftChange,
-                    onSecondaryChange = viewModel::onSecondaryCurrencyDraftChange
-                )
-
-                IncomeSourcesList(
-                    sources = uiState.sources,
-                    onEdit = viewModel::startEdit,
-                    onDelete = viewModel::showDeleteConfirmation
-                )
-                
-                Spacer(modifier = Modifier.height(Spacing.large))
-            }
-
-            if (uiState.isSheetOpen) {
-                ModalBottomSheet(
-                    onDismissRequest = viewModel::closeSheet,
-                    sheetState = sheetState,
-                    containerColor = Color.White,
-                    dragHandle = null,
-                    shape = KahavanuShapes.large,
-                ) {
-                    IncomeSourceForm(
-                        nameInput = uiState.nameInput,
-                        selectedTypes = uiState.selectedTypes,
-                        isSaving = uiState.isSaving,
-                        editingSourceId = uiState.editingSourceId,
-                        onNameChange = viewModel::onNameChange,
-                        onTypeToggle = viewModel::onTypeToggle,
-                        onSave = viewModel::saveSource,
-                        onCancel = viewModel::closeSheet
-                    )
-                }
-            }
-
-            uiState.sourceToDelete?.let { source ->
-                DeleteConfirmationDialog(
-                    sourceName = source.name,
-                    onConfirm = { viewModel.deleteSource(source) },
-                    onDismiss = viewModel::dismissDeleteConfirmation
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun IncomeSourcesHeader(
-    onBack: () -> Unit,
-    onAdd: () -> Unit
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+    KahavanuSubScreen(
+        label = "Income Sources",
+        title = "Customize your sources",
+        onBack = onBack,
+        trailing = {
             IconButton(
-                onClick = onBack,
+                onClick = viewModel::openSheet,
                 modifier = Modifier.circularIconButton(),
             ) {
                 Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
+                    imageVector = Icons.Outlined.Add,
+                    contentDescription = "Add Source",
                     tint = RawColors.Emerald.Emerald600,
                 )
             }
-            Spacer(modifier = Modifier.width(Spacing.medium))
-            Column {
+        }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .imePadding()
+                .verticalScroll(scrollState)
+                .padding(
+                    start = Spacing.extraLarge,
+                    end = Spacing.extraLarge,
+                    bottom = Spacing.large,
+                ),
+            verticalArrangement = Arrangement.spacedBy(Spacing.large),
+        ) {
+            if (uiState.errorMessage != null) {
                 Text(
-                    text = "INCOME SOURCES",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontSize = TextSize.xs,
-                    color = TextSecondary,
-                    letterSpacing = 0.72.sp,
-                    fontWeight = FontWeight.Medium,
+                    text = uiState.errorMessage ?: "",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    fontSize = TextSize.sm,
                 )
+            }
+
+            if (uiState.successMessage != null) {
                 Text(
-                    text = "Customize your sources",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontSize = TextSize.lg,
-                    fontWeight = FontWeight.Medium,
-                    letterSpacing = (-0.8).sp,
-                    color = TextPrimary,
+                    text = uiState.successMessage ?: "",
+                    color = RawColors.Emerald.Emerald600,
+                    style = MaterialTheme.typography.bodySmall,
+                    fontSize = TextSize.sm,
+                )
+            }
+
+            CurrencySetup(
+                primaryCurrency = uiState.primaryCurrency,
+                secondaryCurrency = uiState.secondaryCurrency,
+                primaryDraft = uiState.primaryCurrencyDraft,
+                secondaryDraft = uiState.secondaryCurrencyDraft,
+                isEditing = uiState.isCurrencyEditing,
+                onStartEdit = viewModel::startCurrencyEdit,
+                onCancelEdit = viewModel::cancelCurrencyEdit,
+                onSave = viewModel::saveCurrencySettings,
+                onPrimaryChange = viewModel::onPrimaryCurrencyDraftChange,
+                onSecondaryChange = viewModel::onSecondaryCurrencyDraftChange
+            )
+
+            IncomeSourcesList(
+                sources = uiState.sources,
+                onEdit = viewModel::startEdit,
+                onDelete = viewModel::showDeleteConfirmation
+            )
+            
+            Spacer(modifier = Modifier.height(Spacing.large))
+        }
+
+        if (uiState.isSheetOpen) {
+            ModalBottomSheet(
+                onDismissRequest = viewModel::closeSheet,
+                sheetState = sheetState,
+                containerColor = Color.White,
+                dragHandle = null,
+                shape = KahavanuShapes.large,
+            ) {
+                IncomeSourceForm(
+                    nameInput = uiState.nameInput,
+                    selectedTypes = uiState.selectedTypes,
+                    isSaving = uiState.isSaving,
+                    editingSourceId = uiState.editingSourceId,
+                    onNameChange = viewModel::onNameChange,
+                    onTypeToggle = viewModel::onTypeToggle,
+                    onSave = viewModel::saveSource,
+                    onCancel = viewModel::closeSheet
                 )
             }
         }
 
-        IconButton(
-            onClick = onAdd,
-            modifier = Modifier.circularIconButton(),
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.Add,
-                contentDescription = "Add Source",
-                tint = RawColors.Emerald.Emerald600,
+        uiState.sourceToDelete?.let { source ->
+            DeleteConfirmationDialog(
+                sourceName = source.name,
+                onConfirm = { viewModel.deleteSource(source) },
+                onDismiss = viewModel::dismissDeleteConfirmation
             )
         }
     }
 }
+
 
 @Composable
 private fun IncomeSourcesList(

@@ -1,4 +1,4 @@
-package com.kahavanu.ui.income
+package com.kahavanu.ui.sources
 
 import com.kahavanu.domain.model.CurrencyOption
 import com.kahavanu.domain.model.IncomeSource

@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">kahavanu</string>
+    <string name="support_email">support@kahavanu.lk</string>
+    <string name="support_phone">+94 11 234 5678</string>
+    <string name="office_address">100, Galle Road, Colombo 03, Sri Lanka</string>
+    <string name="feedback_email">feedback@kahavanu.lk</string>
+    <string name="terms_of_service_url">https://example.com/terms</string>
+    <string name="privacy_policy_url">https://example.com/privacy</string>
 </resources>

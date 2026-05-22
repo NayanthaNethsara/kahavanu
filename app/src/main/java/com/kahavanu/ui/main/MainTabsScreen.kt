@@ -27,8 +27,10 @@ import com.kahavanu.ui.income.IncomeLogScreen
 import com.kahavanu.ui.income.IncomeHistoryScreen
 import com.kahavanu.ui.income.IncomeScreen
 import com.kahavanu.ui.income.RecurringManagerScreen
-import com.kahavanu.ui.income.IncomeSourcesScreen
 import com.kahavanu.ui.income.HistoryFilter
+import com.kahavanu.ui.support.HelpSupportScreen
+import com.kahavanu.ui.sources.IncomeSourcesScreen
+import com.kahavanu.ui.subscriptions.ManageSubscriptionsScreen
 import com.kahavanu.ui.navigation.AppDestination
 import com.kahavanu.ui.profile.ProfileScreen
 import com.kahavanu.ui.sieve.SmsSenderSettingsScreen
@@ -174,11 +176,30 @@ fun MainTabsScreen(
                 ProfileScreen(
                     onNavigateToSmsSenders = {
                         navController.navigate(AppDestination.SmsSenderSettings.route)
+                    },
+                    onNavigateToIncomeSources = {
+                        navController.navigate(AppDestination.IncomeSources.route)
+                    },
+                    onNavigateToSubscriptions = {
+                        navController.navigate(AppDestination.ManageSubscriptions.route)
+                    },
+                    onNavigateToHelpSupport = {
+                        navController.navigate(AppDestination.HelpSupport.route)
                     }
                 )
             }
             composable(AppDestination.SmsSenderSettings.route) {
                 SmsSenderSettingsScreen(
+                    onBack = { navController.popBackStack() }
+                )
+            }
+            composable(AppDestination.ManageSubscriptions.route) {
+                ManageSubscriptionsScreen(
+                    onBack = { navController.popBackStack() }
+                )
+            }
+            composable(AppDestination.HelpSupport.route) {
+                HelpSupportScreen(
                     onBack = { navController.popBackStack() }
                 )
             }

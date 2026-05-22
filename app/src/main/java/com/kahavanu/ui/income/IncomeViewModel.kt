@@ -215,6 +215,10 @@ class IncomeViewModel @Inject constructor(
         _uiState.update { transform(it).copy(errorMessage = null, successMessage = null) }
     }
 
+    fun clearMessages() {
+        _uiState.update { it.copy(errorMessage = null, successMessage = null) }
+    }
+
     private fun resolveSelectedSourceId(
         sources: List<IncomeSource>,
         preferredSourceId: Long?,

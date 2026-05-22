@@ -137,14 +137,5 @@ fun SignupScreen(
                 viewModel.signup(uiState.fullName, uiState.email, uiState.password)
             },
         )
-
-        if (uiState.errorMessage != null) {
-            Spacer(modifier = Modifier.height(Spacing.small))
-            Text(
-                text = uiState.errorMessage ?: "",
-                color = RawColors.Red.Red600,
-                style = MaterialTheme.typography.bodySmall,
-            )
-        }
     }
 }

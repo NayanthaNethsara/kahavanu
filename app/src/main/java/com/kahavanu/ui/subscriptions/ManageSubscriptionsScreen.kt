@@ -50,6 +50,10 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.material3.SnackbarHostState
+import com.kahavanu.ui.common.AppSnackbarHost
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -86,6 +90,18 @@ fun ManageSubscriptionsScreen(
     val uiState by viewModel.uiState.collectAsState()
     val scrollState = rememberScrollState()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(uiState.errorMessage, uiState.successMessage) {
+        uiState.errorMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.clearMessages()
+        }
+        uiState.successMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.clearMessages()
+        }
+    }
 
     KahavanuSubScreen(
         label = "Recurring Leaks",
@@ -116,22 +132,6 @@ fun ManageSubscriptionsScreen(
                 ),
             verticalArrangement = Arrangement.spacedBy(Spacing.large),
         ) {
-            if (uiState.errorMessage != null) {
-                Text(
-                    text = uiState.errorMessage ?: "",
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall,
-                )
-            }
-
-            if (uiState.successMessage != null) {
-                Text(
-                    text = uiState.successMessage ?: "",
-                    color = RawColors.Emerald.Emerald600,
-                    style = MaterialTheme.typography.bodySmall,
-                )
-            }
-
             SpendAnalysisCard(
                 totalSpend = uiState.totalMonthlySpend,
                 activeCount = uiState.subscriptions.count { !it.isPaused }
@@ -154,21 +154,34 @@ fun ManageSubscriptionsScreen(
                 dragHandle = null,
                 shape = KahavanuShapes.large,
             ) {
-                SubscriptionForm(
-                    nameInput = uiState.nameInput,
-                    costInput = uiState.costInput,
-                    currencyInput = uiState.currencyInput,
-                    frequencyInput = uiState.frequencyInput,
-                    nextBillingInput = uiState.nextBillingInput,
-                    onNameChange = viewModel::onNameChange,
-                    onCostChange = viewModel::onCostChange,
-                    onCurrencyChange = viewModel::onCurrencyChange,
-                    onFrequencyChange = viewModel::onFrequencyChange,
-                    onNextBillingChange = viewModel::onNextBillingChange,
-                    onSave = viewModel::addSubscription,
-                    onCancel = viewModel::closeSheet
-                )
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    SubscriptionForm(
+                        nameInput = uiState.nameInput,
+                        costInput = uiState.costInput,
+                        currencyInput = uiState.currencyInput,
+                        frequencyInput = uiState.frequencyInput,
+                        nextBillingInput = uiState.nextBillingInput,
+                        onNameChange = viewModel::onNameChange,
+                        onCostChange = viewModel::onCostChange,
+                        onCurrencyChange = viewModel::onCurrencyChange,
+                        onFrequencyChange = viewModel::onFrequencyChange,
+                        onNextBillingChange = viewModel::onNextBillingChange,
+                        onSave = viewModel::addSubscription,
+                        onCancel = viewModel::closeSheet
+                    )
+                    AppSnackbarHost(
+                        hostState = snackbarHostState,
+                        modifier = Modifier.align(Alignment.BottomCenter)
+                    )
+                }
             }
+        }
+
+        if (!uiState.isSheetOpen) {
+            AppSnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.align(Alignment.BottomCenter)
+            )
         }
     }
 }

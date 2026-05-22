@@ -135,6 +135,10 @@ class ExpenseLogViewModel @Inject constructor(
             )
         }
     }
+
+    fun clearMessages() {
+        formState.update { it.copy(errorMessage = null, successMessage = null) }
+    }
 }
 
 data class ExpenseLogUiState(

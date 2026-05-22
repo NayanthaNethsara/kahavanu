@@ -55,6 +55,14 @@ fun PrimaryActionButton(
         ),
     )
 
+    val disabledGradient = Brush.verticalGradient(
+        colors = listOf(
+            RawColors.Emerald.Emerald700.copy(alpha = 0.8f),
+            RawColors.Emerald.Emerald800.copy(alpha = 0.8f),
+            RawColors.Emerald.Emerald700.copy(alpha = 0.8f),
+        ),
+    )
+
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -65,7 +73,7 @@ fun PrimaryActionButton(
                 shape = KahavanuShapes.large,
             )
             .background(
-                if (enabled) gradient else Brush.verticalGradient(listOf(Color.Gray, Color.DarkGray)),
+                if (enabled) gradient else disabledGradient,
                 KahavanuShapes.large,
             )
             .border(
@@ -87,7 +95,7 @@ fun PrimaryActionButton(
             style = MaterialTheme.typography.titleSmall,
             fontSize = TextSize.base,
             fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-            color = Color.White,
+            color = if (enabled) Color.White else Color.White.copy(alpha = 0.65f),
             letterSpacing = (-0.23).sp,
         )
     }

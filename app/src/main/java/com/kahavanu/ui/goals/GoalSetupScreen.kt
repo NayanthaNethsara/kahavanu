@@ -45,6 +45,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.SnackbarHostState
+import com.kahavanu.ui.common.AppSnackbarHost
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -89,6 +91,7 @@ fun GoalSetupScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val scrollState = rememberScrollState()
+    val snackbarHostState = remember { SnackbarHostState() }
     val dateFormatter = remember {
         DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.getDefault())
     }
@@ -126,8 +129,16 @@ fun GoalSetupScreen(
         }
     }
 
-    LaunchedEffect(uiState.successMessage) {
-        if (uiState.successMessage != null) onSaved()
+    LaunchedEffect(uiState.errorMessage, uiState.successMessage) {
+        uiState.errorMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.clearMessages()
+        }
+        uiState.successMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.clearMessages()
+            onSaved()
+        }
     }
 
     Surface(
@@ -196,15 +207,7 @@ fun GoalSetupScreen(
 
                 GoalInfoBanner()
 
-                val error = uiState.errorMessage
-                if (error != null) {
-                    Text(
-                        text = error,
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodySmall,
-                        fontSize = TextSize.sm,
-                    )
-                }
+
 
                 PrimaryActionButton(
                     text = if (uiState.isSaving) "Saving..." else "Create Goal",
@@ -214,6 +217,11 @@ fun GoalSetupScreen(
 
                 Spacer(modifier = Modifier.height(Spacing.large))
             }
+
+            AppSnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.align(Alignment.BottomCenter)
+            )
         }
     }
 }

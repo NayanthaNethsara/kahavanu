@@ -221,8 +221,7 @@ fun ProfileScreen(
                 style = MaterialTheme.typography.labelSmall,
                 color = TextTertiary,
                 fontSize = 10.sp,
-                letterSpacing = 0.5.sp,
-                textAlign = TextAlign.Center,
+            textAlign = TextAlign.Center,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = Spacing.medium, bottom = Spacing.large)
@@ -270,16 +269,14 @@ private fun ProfileCard(
                     style = MaterialTheme.typography.titleLarge,
                     color = Color.White,
                     fontWeight = FontWeight.Medium,
-                    fontSize = 22.sp
-                )
+        )
             }
             Spacer(modifier = Modifier.width(Spacing.large))
             Column {
                 Text(
                     text = displayName,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Medium,
-                    color = TextPrimary,
+            color = TextPrimary,
                     fontSize = 17.sp,
                     letterSpacing = (-0.6).sp
                 )
@@ -330,8 +327,7 @@ private fun SettingToggleRow(
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Medium,
-                fontSize = 13.sp,
+            fontSize = 13.sp,
                 color = TextPrimary
             )
             Spacer(modifier = Modifier.height(2.dp))
@@ -393,8 +389,7 @@ private fun SettingNavigationRow(
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Medium,
-                fontSize = 13.sp,
+            fontSize = 13.sp,
                 color = if (isDanger) MaterialTheme.colorScheme.error else TextPrimary
             )
             Spacer(modifier = Modifier.height(2.dp))

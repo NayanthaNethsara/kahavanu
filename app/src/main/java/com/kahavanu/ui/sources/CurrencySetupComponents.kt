@@ -108,8 +108,7 @@ fun CurrencySetup(
                                 style = MaterialTheme.typography.titleMedium,
                                 fontSize = 13.sp,
                                 color = TextPrimary,
-                                fontWeight = FontWeight.Medium
-                            )
+        )
                             Text(
                                 text = "${primaryCurrency.fullName} · ${primaryCurrency.code}",
                                 style = MaterialTheme.typography.bodySmall,
@@ -210,8 +209,7 @@ fun CurrencySetup(
                                 style = MaterialTheme.typography.titleMedium,
                                 fontSize = 13.sp,
                                 color = TextPrimary,
-                                fontWeight = FontWeight.Medium
-                            )
+        )
                             Text(
                                 text = "${secondaryCurrency.fullName} · ${secondaryCurrency.code}",
                                 style = MaterialTheme.typography.bodySmall,

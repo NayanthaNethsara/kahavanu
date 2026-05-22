@@ -222,8 +222,7 @@ fun SieveCard(
                         color = badgeColor,
                         fontWeight = FontWeight.Bold,
                         fontSize = 10.sp,
-                        letterSpacing = 0.5.sp
-                    )
+        )
                 }
             }
 
@@ -237,10 +236,8 @@ fun SieveCard(
                 Text(
                     text = item.title,
                     style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Normal,
-                    color = TextSecondary,
-                    fontSize = 14.sp,
-                    maxLines = 1,
+            color = TextSecondary,
+            maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
@@ -255,8 +252,7 @@ fun SieveCard(
                     text = item.detectedFrom,
                     style = MaterialTheme.typography.bodySmall,
                     color = TextTertiary,
-                    fontSize = 12.sp,
-                    maxLines = 1,
+            maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
             }
@@ -311,8 +307,7 @@ fun SieveCard(
                             style = MaterialTheme.typography.labelMedium,
                             color = Color.White,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 12.sp
-                        )
+        )
                     }
                 }
 

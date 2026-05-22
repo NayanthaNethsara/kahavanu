@@ -150,8 +150,7 @@ fun IncomeSourcesScreen(
                             color = MaterialTheme.colorScheme.primary,
                             style = MaterialTheme.typography.labelLarge,
                             fontSize = 12.sp,
-                            fontWeight = FontWeight.Medium
-                        )
+        )
                     }
                 }
 
@@ -287,8 +286,7 @@ private fun IncomeSourceRow(
                 style = MaterialTheme.typography.titleMedium,
                 fontSize = 13.sp,
                 color = TextPrimary,
-                fontWeight = FontWeight.Medium,
-            )
+        )
             Text(
                 text = style.subtitle,
                 style = MaterialTheme.typography.bodySmall,

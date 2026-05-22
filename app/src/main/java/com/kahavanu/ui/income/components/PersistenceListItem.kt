@@ -40,7 +40,6 @@ import androidx.compose.ui.unit.sp
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
-import com.kahavanu.ui.theme.TextSize
 
 @Composable
 fun PersistenceListItem(
@@ -113,16 +112,13 @@ fun PersistenceListItem(
                         isOverdue -> MaterialTheme.colorScheme.error
                         !isPending -> MaterialTheme.colorScheme.primary
                         else -> MaterialTheme.extendedColors.warning
-                    },
-                    fontSize = 11.sp
-                )
+                    },)
                 Spacer(modifier = Modifier.width(Spacing.small))
                 Text(
                     text = "•",
                     style = MaterialTheme.typography.labelSmall,
                     color = TextSecondary,
-                    fontSize = 11.sp
-                )
+        )
                 Spacer(modifier = Modifier.width(Spacing.small))
                 Icon(
                     imageVector = Icons.Outlined.Description,
@@ -135,8 +131,7 @@ fun PersistenceListItem(
                     text = if (isInvoiceSent) "Invoice sent" else "No invoice",
                     style = MaterialTheme.typography.labelSmall,
                     color = if (isInvoiceSent) TextSecondary else MaterialTheme.colorScheme.error,
-                    fontSize = 11.sp
-                )
+        )
             }
         }
         
@@ -166,8 +161,7 @@ fun PersistenceListItem(
                                 "Receive",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.extendedColors.brandText,
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold
                             )
                         }
                     }
@@ -212,9 +206,7 @@ fun PersistenceListItem(
                                     text = "Nudge",
                                     style = MaterialTheme.typography.labelSmall,
                                     color = Color.White,
-                                    fontWeight = FontWeight.Medium,
-                                    fontSize = 11.sp
-                                )
+        )
                             }
                         }
                     }

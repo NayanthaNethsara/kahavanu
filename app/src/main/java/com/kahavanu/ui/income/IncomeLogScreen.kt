@@ -354,8 +354,7 @@ private fun TopBar(
                     fontSize = TextSize.xs,
                     color = TextSecondary,
                     letterSpacing = 0.72.sp,
-                    fontWeight = FontWeight.Medium,
-                )
+        )
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleLarge,

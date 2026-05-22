@@ -50,8 +50,7 @@ fun GoalsSummaryCard(
             Text(
                 text = "Total saved across all goals",
                 style = MaterialTheme.typography.bodyMedium,
-                fontSize = TextSize.sm,
-                color = TextSecondary,
+            color = TextSecondary,
             )
             Spacer(modifier = Modifier.height(Spacing.extraSmall))
             Text(
@@ -66,8 +65,7 @@ fun GoalsSummaryCard(
             Text(
                 text = "Target: ${formatAmount(totalTarget, currency.code)} · $progressPercent% reached",
                 style = MaterialTheme.typography.bodySmall,
-                fontSize = TextSize.xs,
-                color = TextSecondary,
+            color = TextSecondary,
             )
 
             Spacer(modifier = Modifier.height(Spacing.medium))
@@ -115,13 +113,11 @@ private fun GoalStatItem(label: String, value: String) {
             text = value,
             style = MaterialTheme.typography.titleMedium,
             fontSize = TextSize.xl,
-            fontWeight = FontWeight.Medium,
             color = TextPrimary,
         )
         Text(
             text = label,
             style = MaterialTheme.typography.bodySmall,
-            fontSize = TextSize.xs,
             color = TextSecondary,
         )
     }

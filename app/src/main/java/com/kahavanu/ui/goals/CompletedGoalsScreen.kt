@@ -148,8 +148,7 @@ fun CompletedGoalsScreen(
                             text = "No completed goals yet",
                             style = MaterialTheme.typography.titleSmall,
                             color = TextPrimary,
-                            fontWeight = FontWeight.Medium,
-                        )
+        )
                         Text(
                             text = "Keep saving — you'll get there!",
                             style = MaterialTheme.typography.bodySmall,
@@ -231,8 +230,7 @@ private fun CompletedGoalCard(
                     Text(
                         text = "Completed ${completedDate.format(formatter)}",
                         style = MaterialTheme.typography.bodySmall,
-                        fontSize = TextSize.xs,
-                        color = MaterialTheme.colorScheme.primary,
+            color = MaterialTheme.colorScheme.primary,
                     )
                 }
             }
@@ -242,13 +240,11 @@ private fun CompletedGoalCard(
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.primary,
-                    fontSize = TextSize.sm,
-                )
+        )
                 Text(
                     text = "Target: ${formatAmount(goal.targetAmount, currency.code)}",
                     style = MaterialTheme.typography.bodySmall,
-                    fontSize = TextSize.xs,
-                    color = TextSecondary,
+            color = TextSecondary,
                 )
             }
             Spacer(modifier = Modifier.width(Spacing.small))
@@ -286,8 +282,7 @@ private fun CompletedGoalCard(
                     Text(
                         text = "No adjustment history recorded",
                         style = MaterialTheme.typography.bodySmall,
-                        fontSize = TextSize.xs,
-                        color = TextSecondary,
+            color = TextSecondary,
                     )
                 } else {
                     Column(verticalArrangement = Arrangement.spacedBy(Spacing.small)) {
@@ -330,8 +325,7 @@ private fun AdjustmentLogRow(
             Text(
                 text = "${if (isAddition) "+" else "−"} ${formatAmount(Math.abs(log.delta), currency.code)}",
                 style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Medium,
-                color = color,
+            color = color,
                 fontSize = TextSize.xs,
             )
         }

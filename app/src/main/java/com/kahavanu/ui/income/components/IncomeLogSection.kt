@@ -53,8 +53,7 @@ fun IncomeLogSection(
                 Text(
                     text = "No income logged yet.",
                     style = MaterialTheme.typography.bodyMedium,
-                    fontSize = TextSize.sm,
-                    color = TextSecondary,
+            color = TextSecondary,
                     modifier = Modifier.padding(Spacing.large),
                 )
             } else {
@@ -130,8 +129,7 @@ private fun LogItem(
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodyLarge,
-                fontSize = TextSize.base,
-                fontWeight = FontWeight.Medium,
+            fontWeight = FontWeight.Medium,
                 color = TextPrimary,
                 letterSpacing = (-0.07).sp
             )
@@ -139,8 +137,7 @@ private fun LogItem(
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodySmall,
-                fontSize = TextSize.xs,
-                color = TextSecondary,
+            color = TextSecondary,
                 letterSpacing = 0.06.sp
             )
         }
@@ -150,7 +147,6 @@ private fun LogItem(
             text = amount,
             style = MaterialTheme.typography.titleMedium,
             fontSize = TextSize.sm,
-            fontWeight = FontWeight.Medium,
             color = TextTertiaryEmerald,
             letterSpacing = (-0.29).sp
         )

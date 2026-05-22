@@ -170,8 +170,7 @@ fun GoalStatsScreen(
                                 style = MaterialTheme.typography.labelMedium,
                                 fontWeight = FontWeight.SemiBold,
                                 color = TextSecondary,
-                                fontSize = TextSize.xs,
-                            )
+        )
                             Spacer(modifier = Modifier.height(Spacing.medium))
                             Text(
                                 text = formatAmount(totalSavedAllTime, uiState.currency.code),
@@ -210,8 +209,7 @@ fun GoalStatsScreen(
                                 style = MaterialTheme.typography.labelSmall,
                                 fontSize = TextSize.xs,
                                 color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.Medium,
-                            )
+        )
                         }
                     }
                 }
@@ -249,8 +247,7 @@ fun GoalStatsScreen(
                                     Text(
                                         text = "${formatAmount(goal.currentAmount, uiState.currency.code)} saved",
                                         style = MaterialTheme.typography.bodySmall,
-                                        fontSize = TextSize.xs,
-                                        color = TextSecondary,
+            color = TextSecondary,
                                     )
                                 }
                                 Text(
@@ -297,8 +294,7 @@ private fun StatTile(
             Text(
                 text = label,
                 style = MaterialTheme.typography.bodySmall,
-                fontSize = TextSize.xs,
-                color = TextSecondary,
+            color = TextSecondary,
             )
         }
     }

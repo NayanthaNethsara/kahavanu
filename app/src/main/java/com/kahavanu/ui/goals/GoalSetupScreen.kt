@@ -251,8 +251,7 @@ private fun GoalSetupTopBar(onBack: () -> Unit) {
                 fontSize = TextSize.xs,
                 color = TextSecondary,
                 letterSpacing = 0.72.sp,
-                fontWeight = FontWeight.Medium,
-            )
+        )
             Text(
                 text = "Define your target",
                 style = MaterialTheme.typography.titleLarge,
@@ -344,8 +343,7 @@ private fun CategoryChip(
             Text(
                 text = category.label,
                 style = MaterialTheme.typography.labelMedium,
-                fontSize = TextSize.xs,
-                fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
                 color = if (selected) MaterialTheme.extendedColors.brandText else TextSecondary,
             )
         }

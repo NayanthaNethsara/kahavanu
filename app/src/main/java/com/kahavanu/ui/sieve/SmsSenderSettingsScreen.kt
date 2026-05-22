@@ -380,8 +380,7 @@ private fun SmsSenderRowItem(
             Text(
                 text = sender.senderName.uppercase(Locale.getDefault()),
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Medium,
-                fontSize = 13.sp,
+            fontSize = 13.sp,
                 color = TextPrimary
             )
             Spacer(modifier = Modifier.height(2.dp))

@@ -150,10 +150,8 @@ fun FilterSection(
         Text(
             text = title.uppercase(),
             style = MaterialTheme.typography.labelSmall,
-            fontSize = 11.sp,
             letterSpacing = 0.7.sp,
             color = TextSecondary,
-            fontWeight = FontWeight.Medium,
         )
         content()
     }
@@ -283,7 +281,6 @@ private fun TagChip(
             style = MaterialTheme.typography.labelMedium,
             fontSize = TextSize.sm,
             color = textColor,
-            fontWeight = FontWeight.Medium,
         )
     }
 }

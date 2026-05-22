@@ -300,8 +300,7 @@ private fun BottomNavItem(
             style = MaterialTheme.typography.labelSmall.copy(
                 fontWeight = if (colorWeight > 0.5f) FontWeight.Bold else FontWeight.Medium,
                 letterSpacing = (-0.2).sp,
-                fontSize = 11.sp
-            ),
+        ),
             color = contentColor,
         )
     }

@@ -183,8 +183,7 @@ private fun RecurringCard(
                         Text(
                             text = item.title,
                             style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Medium,
-                            color = TextPrimary,
+            color = TextPrimary,
                             fontSize = 15.sp
                         )
                         Text(
@@ -241,8 +240,7 @@ private fun RecurringCard(
                             text = "Disable",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.error,
-                            fontWeight = FontWeight.Medium
-                        )
+        )
                     }
                 }
             }
@@ -269,7 +267,6 @@ private fun InfoRow(
             text = value,
             style = MaterialTheme.typography.labelSmall,
             color = TextPrimary,
-            fontWeight = FontWeight.Medium
         )
     }
 }

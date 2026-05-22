@@ -55,7 +55,6 @@ import com.kahavanu.ui.theme.AccentIncomeSoft
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
-import com.kahavanu.ui.theme.TextSize
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDate
@@ -228,8 +227,7 @@ private fun TotalExpensesCard(
             Text(
                 text = "Total Expenses",
                 style = MaterialTheme.typography.labelSmall,
-                fontSize = 11.sp,
-                color = MaterialTheme.colorScheme.primary,
+            color = MaterialTheme.colorScheme.primary,
             )
             Text(
                 text = "$currencyCode ${String.format(Locale.getDefault(), "%,.0f", totalAmount)}",
@@ -262,7 +260,6 @@ private fun DateHeader(date: LocalDate) {
         Text(
             text = label,
             style = MaterialTheme.typography.bodySmall,
-            fontSize = TextSize.xs,
             color = TextSecondary,
         )
         HorizontalDivider(
@@ -335,8 +332,7 @@ private fun TransactionRow(
                 Text(
                     text = entry.title,
                     style = MaterialTheme.typography.bodyMedium,
-                    fontSize = TextSize.sm,
-                    color = TextPrimary,
+            color = TextPrimary,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
                     modifier = Modifier.weight(1f, fill = false),
@@ -344,8 +340,7 @@ private fun TransactionRow(
                 Text(
                     text = entry.category,
                     style = MaterialTheme.typography.labelSmall,
-                    fontSize = 11.sp,
-                    color = tint,
+            color = tint,
                 )
             }
             Row(
@@ -357,14 +352,12 @@ private fun TransactionRow(
                     text = entry.merchant?.takeIf { it.isNotBlank() }
                         ?: formatDate(entry.spentAtEpochMillis),
                     style = MaterialTheme.typography.labelSmall,
-                    fontSize = 11.sp,
-                    color = TextSecondary,
+            color = TextSecondary,
                 )
                 Text(
                     text = "-$currencyCode ${String.format(Locale.getDefault(), "%,.0f", entry.amount)}",
                     style = MaterialTheme.typography.bodyMedium,
-                    fontSize = TextSize.sm,
-                    fontWeight = FontWeight.SemiBold,
+            fontWeight = FontWeight.SemiBold,
                     color = TextPrimary,
                 )
             }

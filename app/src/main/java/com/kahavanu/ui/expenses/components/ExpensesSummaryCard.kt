@@ -70,8 +70,7 @@ fun ExpensesSummaryCard(
             Text(
                 text = headerLabel,
                 style = MaterialTheme.typography.bodyMedium,
-                fontSize = TextSize.sm,
-                color = TextSecondary,
+            color = TextSecondary,
             )
 
             Spacer(modifier = Modifier.height(Spacing.extraSmall))
@@ -90,8 +89,7 @@ fun ExpensesSummaryCard(
             Text(
                 text = "Budget: ${formatAmountNoDecimals(budgetLimit, currency.code)} · $budgetRatio% used",
                 style = MaterialTheme.typography.bodySmall,
-                fontSize = TextSize.xs,
-                color = TextSecondary,
+            color = TextSecondary,
             )
 
             if (activeSummaries.size >= 4) {
@@ -219,8 +217,7 @@ private fun LegendItem(
                 style = MaterialTheme.typography.labelSmall,
                 fontSize = 12.sp,
                 color = TextPrimary,
-                fontWeight = FontWeight.Medium,
-            )
+        )
             Text(
                 text = "$percent%",
                 style = MaterialTheme.typography.bodySmall,

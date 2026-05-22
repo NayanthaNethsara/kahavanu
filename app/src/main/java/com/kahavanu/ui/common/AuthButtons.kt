@@ -19,7 +19,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.kahavanu.ui.theme.ButtonTokens
 import com.kahavanu.ui.theme.Spacing
@@ -68,8 +67,7 @@ fun AuthPrimaryButton(
             Text(
                 text = text,
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Medium,
-            )
+        )
             if (trailingIcon != null) {
                 Spacer(modifier = Modifier.width(Spacing.small))
                 Icon(
@@ -128,8 +126,7 @@ fun AuthOutlinedButton(
                 text = text,
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurface,
-                fontWeight = FontWeight.Medium,
-            )
+        )
         }
     }
 }

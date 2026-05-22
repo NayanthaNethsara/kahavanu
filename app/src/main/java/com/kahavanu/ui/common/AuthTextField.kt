@@ -15,7 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.font.FontWeight
 import com.kahavanu.ui.theme.Spacing
 
 @Composable
@@ -34,7 +33,6 @@ fun AuthTextField(
             text = label,
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.onSurface,
-            fontWeight = FontWeight.Medium,
         )
         Spacer(modifier = Modifier.height(Spacing.small))
         OutlinedTextField(

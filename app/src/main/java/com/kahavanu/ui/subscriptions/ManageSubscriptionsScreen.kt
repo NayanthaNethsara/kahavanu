@@ -212,8 +212,7 @@ private fun SpendAnalysisCard(
                         style = MaterialTheme.typography.labelSmall,
                         fontSize = 10.sp,
                         color = TextSecondary,
-                        letterSpacing = 0.5.sp,
-                        fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
@@ -221,8 +220,7 @@ private fun SpendAnalysisCard(
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.error,
-                        fontSize = 28.sp,
-                        letterSpacing = (-1).sp
+            letterSpacing = (-1).sp
                     )
                 }
                 Box(

@@ -89,8 +89,7 @@ fun KahavanuSubScreen(
                         Text(
                             text = label.uppercase(),
                             style = MaterialTheme.typography.labelSmall,
-                            fontSize = 11.sp,
-                            letterSpacing = 0.72.sp,
+            letterSpacing = 0.72.sp,
                             color = TextSecondary,
                         )
                         Text(

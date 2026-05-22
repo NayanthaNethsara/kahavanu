@@ -152,8 +152,7 @@ fun HistoryListItem(
                 Text(
                     text = item.title,
                     style = MaterialTheme.typography.bodyMedium,
-                    fontSize = TextSize.sm,
-                    fontWeight = FontWeight.SemiBold,
+            fontWeight = FontWeight.SemiBold,
                     color = TextPrimary,
                     maxLines = 1,
                     modifier = Modifier.weight(1f, fill = false),
@@ -162,8 +161,7 @@ fun HistoryListItem(
                     Text(
                         text = sourceName,
                         style = MaterialTheme.typography.labelSmall,
-                        fontSize = 11.sp,
-                        color = TextSecondary,
+            color = TextSecondary,
                         maxLines = 1,
                     )
                 }
@@ -177,8 +175,7 @@ fun HistoryListItem(
                 Text(
                     text = dueText,
                     style = MaterialTheme.typography.labelSmall,
-                    fontSize = 11.sp,
-                    color = TextSecondary,
+            color = TextSecondary,
                 )
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -187,10 +184,7 @@ fun HistoryListItem(
                     Text(
                         text = statusLabel,
                         style = MaterialTheme.typography.labelSmall,
-                        fontSize = 11.sp,
-                        color = accentColor,
-                        fontWeight = FontWeight.Medium,
-                    )
+            color = accentColor,)
                     if (isPending && onMarkAsReceived != null) {
                         MiniActionButton(
                             label = "Receive",
@@ -214,7 +208,6 @@ fun HistoryListItem(
         Text(
             text = formatAmount(item.amount, item.currency),
             style = MaterialTheme.typography.bodyMedium,
-            fontSize = TextSize.sm,
             fontWeight = FontWeight.SemiBold,
             color = TextPrimary,
         )
@@ -283,8 +276,7 @@ private fun MiniActionButton(
                 Text(
                     text = label,
                     style = MaterialTheme.typography.labelSmall,
-                    fontSize = 11.sp,
-                    color = color,
+            color = color,
                     fontWeight = FontWeight.SemiBold,
                 )
             }
@@ -393,8 +385,7 @@ private fun HistoryDetailSheet(
                 Text(
                     text = formatAmount(item.amount, item.currency),
                     style = MaterialTheme.typography.headlineMedium,
-                    fontSize = 28.sp,
-                    lineHeight = 32.sp,
+            lineHeight = 32.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = TextPrimary,
                     letterSpacing = (-0.5).sp,
@@ -475,11 +466,9 @@ private fun SheetLabel(text: String) {
     Text(
         text = text.uppercase(),
         style = MaterialTheme.typography.labelSmall,
-        fontSize = 11.sp,
-        letterSpacing = 0.7.sp,
+            letterSpacing = 0.7.sp,
         color = TextSecondary,
-        fontWeight = FontWeight.Medium,
-    )
+        )
 }
 
 @Composable
@@ -510,14 +499,12 @@ private fun DetailRow(
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelSmall,
-                fontSize = 11.sp,
-                color = TextSecondary,
+            color = TextSecondary,
             )
             Text(
                 text = value,
                 style = MaterialTheme.typography.bodyMedium,
-                fontSize = TextSize.sm,
-                color = valueColor,
+            color = valueColor,
                 fontWeight = FontWeight.Medium,
             )
         }

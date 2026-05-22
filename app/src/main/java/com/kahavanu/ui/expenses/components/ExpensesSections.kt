@@ -126,16 +126,14 @@ private fun CategorySpendItem(
                 Text(
                     text = summary.label,
                     style = MaterialTheme.typography.bodyMedium,
-                    fontSize = TextSize.sm,
-                    color = TextPrimary,
+            color = TextPrimary,
                 )
             }
             Column(horizontalAlignment = Alignment.End) {
                 Text(
                     text = formatAmountNoDecimals(summary.amount, currency.code),
                     style = MaterialTheme.typography.bodyMedium,
-                    fontSize = TextSize.sm,
-                    color = summary.color,
+            color = summary.color,
                     fontWeight = FontWeight.Medium,
                 )
                 Text(

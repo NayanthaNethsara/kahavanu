@@ -175,8 +175,7 @@ private fun GoalCard(
                         Text(
                             text = goal.category.label,
                             style = MaterialTheme.typography.bodySmall,
-                            fontSize = TextSize.xs,
-                            color = TextSecondary,
+            color = TextSecondary,
                         )
                     }
                 }
@@ -184,15 +183,13 @@ private fun GoalCard(
                     Text(
                         text = formatAmount(goal.currentAmount, currency.code),
                         style = MaterialTheme.typography.titleSmall,
-                        fontSize = TextSize.sm,
-                        fontWeight = FontWeight.SemiBold,
+            fontWeight = FontWeight.SemiBold,
                         color = if (isCompleted) MaterialTheme.colorScheme.primary else TextPrimary,
                     )
                     Text(
                         text = "of ${formatAmount(goal.targetAmount, currency.code)}",
                         style = MaterialTheme.typography.bodySmall,
-                        fontSize = TextSize.xs,
-                        color = TextSecondary,
+            color = TextSecondary,
                     )
                 }
             }
@@ -228,8 +225,7 @@ private fun GoalCard(
                     text = "$progressPercent% complete",
                     style = MaterialTheme.typography.labelSmall,
                     fontSize = TextSize.xs,
-                    fontWeight = FontWeight.Medium,
-                    color = color,
+            color = color,
                 )
                 if (!isCompleted && remaining > 0.0) {
                     Text(
@@ -362,8 +358,6 @@ private fun AdjustButton(
         Text(
             text = label,
             style = MaterialTheme.typography.labelMedium,
-            fontSize = TextSize.xs,
-            fontWeight = FontWeight.Medium,
             color = color.copy(alpha = contentAlpha),
         )
     }
@@ -459,8 +453,7 @@ private fun EmptyGoalsPlaceholder() {
                 text = "Set your first goal",
                 style = MaterialTheme.typography.titleSmall,
                 color = TextPrimary,
-                fontWeight = FontWeight.Medium,
-            )
+        )
             Spacer(modifier = Modifier.height(Spacing.extraSmall))
             Text(
                 text = "Track savings targets and milestones",

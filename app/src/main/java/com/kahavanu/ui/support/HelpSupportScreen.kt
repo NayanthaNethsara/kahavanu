@@ -118,8 +118,7 @@ private fun CozyIntroCard() {
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = TextPrimary,
-                fontSize = 16.sp
-            )
+        )
             Spacer(modifier = Modifier.height(Spacing.small))
             Text(
                 text = "We are here to help you manage your personal finance seamlessly. Browse answers below, get in touch with our team, or leave feedback to help us build a better experience.",
@@ -310,8 +309,7 @@ private fun ContactRow(
                 color = TextTertiary,
                 fontSize = 10.sp,
                 fontWeight = FontWeight.Bold,
-                letterSpacing = 0.5.sp
-            )
+        )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = value,

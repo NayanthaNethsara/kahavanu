@@ -74,8 +74,7 @@ fun TotalExpectedCard(
                 Text(
                     text = "Total income · $monthLabel",
                     style = MaterialTheme.typography.bodyMedium,
-                    fontSize = TextSize.sm,
-                    color = TextSecondary,
+            color = TextSecondary,
                     modifier = Modifier.weight(1f, fill = false)
                 )
                 
@@ -118,15 +117,13 @@ fun TotalExpectedCard(
                 Text(
                     text = "$totalReceivedText received",
                     style = MaterialTheme.typography.bodySmall,
-                    fontSize = TextSize.xs,
-                    color = TextSecondary
+            color = TextSecondary
                 )
                 Text(
                     text = progressPercentage,
                     style = MaterialTheme.typography.labelMedium,
                     fontSize = TextSize.sm,
-                    fontWeight = FontWeight.Medium,
-                    color = TextSecondary
+            color = TextSecondary
                 )
             }
             Spacer(modifier = Modifier.height(Spacing.small))

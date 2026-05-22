@@ -103,8 +103,7 @@ fun SectionHeader(
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodyMedium,
-                fontSize = TextSize.sm,
-                color = TextSecondary,
+            color = TextSecondary,
             )
         }
         if (actionText != null) {
@@ -144,7 +143,6 @@ fun ScreenHeader(
         Text(
             text = label.uppercase(),
             style = MaterialTheme.typography.labelSmall,
-            fontSize = 11.sp,
             letterSpacing = 0.7.sp,
             color = TextSecondary,
         )

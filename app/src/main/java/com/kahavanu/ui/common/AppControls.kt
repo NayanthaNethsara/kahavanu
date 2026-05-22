@@ -182,7 +182,6 @@ fun QuickActionButton(
             style = MaterialTheme.typography.labelSmall,
             fontSize = TextSize.xs,
             color = TextSecondary,
-            fontWeight = androidx.compose.ui.text.font.FontWeight.Medium
         )
     }
 }
@@ -204,8 +203,7 @@ fun SummaryItem(label: String, value: String, color: Color) {
             Text(
                 text = label,
                 style = MaterialTheme.typography.bodySmall,
-                fontSize = TextSize.xs,
-                color = TextSecondary
+            color = TextSecondary
             )
         }
         Text(

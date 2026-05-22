@@ -105,8 +105,7 @@ private fun MatchItem(
                 Text(
                     text = item.amount,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Medium,
-                    color = TextPrimary,
+            color = TextPrimary,
                     fontSize = TextSize.lg,
                     letterSpacing = (-0.8).sp
                 )
@@ -121,10 +120,7 @@ private fun MatchItem(
                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
                     style = MaterialTheme.typography.labelSmall,
                     color = TextTertiaryEmerald,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = TextSize.xs,
-                    letterSpacing = 0.5.sp
-                )
+            fontSize = TextSize.xs,)
             }
         }
         
@@ -217,8 +213,7 @@ private fun MatchItem(
                             text = item.primaryActionLabel,
                             style = MaterialTheme.typography.labelMedium,
                             color = Color.White,
-                            fontWeight = FontWeight.Medium,
-                            fontSize = TextSize.sm,
+            fontSize = TextSize.sm,
                             textAlign = TextAlign.Center
                         )
                     }
@@ -240,8 +235,7 @@ private fun MatchItem(
                         text = item.secondaryActionLabel,
                         style = MaterialTheme.typography.labelMedium,
                         color = TextSecondary,
-                        fontWeight = FontWeight.Medium,
-                        fontSize = TextSize.sm,
+            fontSize = TextSize.sm,
                         textAlign = TextAlign.Center
                     )
                 }

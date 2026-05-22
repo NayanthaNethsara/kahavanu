@@ -1,5 +1,7 @@
 package com.kahavanu.ui.income.components
 
+import com.kahavanu.ui.util.formatDate
+import com.kahavanu.ui.util.formatAmount
 import com.kahavanu.ui.theme.extendedColors
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box

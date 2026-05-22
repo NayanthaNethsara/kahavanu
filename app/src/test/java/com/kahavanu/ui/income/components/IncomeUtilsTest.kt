@@ -1,5 +1,6 @@
 package com.kahavanu.ui.income.components
 
+import com.kahavanu.ui.util.formatAmount
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue

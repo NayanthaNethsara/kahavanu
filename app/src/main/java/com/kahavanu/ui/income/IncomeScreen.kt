@@ -1,5 +1,6 @@
 package com.kahavanu.ui.income
 
+import com.kahavanu.ui.util.currentMonthLabel
 import androidx.compose.material3.MaterialTheme
 import com.kahavanu.ui.theme.extendedColors
 import androidx.compose.foundation.background
@@ -15,13 +16,18 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.kahavanu.ui.income.components.IncomeActionButtons
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.PlaylistAdd
+import androidx.compose.material.icons.outlined.History
+import androidx.compose.material.icons.outlined.PendingActions
+import androidx.compose.material.icons.outlined.Repeat
+import com.kahavanu.ui.common.QuickAction
+import com.kahavanu.ui.common.QuickActionRow
 import com.kahavanu.ui.common.ScreenHeader
 import com.kahavanu.ui.income.components.IncomeLogSection
 import com.kahavanu.ui.income.components.MatchAndCatchSection
 import com.kahavanu.ui.income.components.PersistenceSection
 import com.kahavanu.ui.income.components.TotalExpectedCard
-import com.kahavanu.ui.income.components.currentMonthLabel
 import com.kahavanu.ui.theme.Spacing
 
 
@@ -85,11 +91,13 @@ fun IncomeScreen(
                     monthLabel = monthLabel,
                     breakdownsByCurrency = breakdownsByCurrency,
                 )
-                IncomeActionButtons(
-                    onLogIncome = onLogIncome,
-                    onViewRecurrents = onViewRecurrents,
-                    onViewPending = onViewPersistence,
-                    onViewHistory = onViewHistory
+                QuickActionRow(
+                    actions = listOf(
+                        QuickAction(Icons.AutoMirrored.Outlined.PlaylistAdd, "Log Income", onLogIncome),
+                        QuickAction(Icons.Outlined.Repeat, "View Recurrents", onViewRecurrents),
+                        QuickAction(Icons.Outlined.PendingActions, "Pending", onViewPersistence),
+                        QuickAction(Icons.Outlined.History, "History", onViewHistory),
+                    ),
                 )
             }
         }

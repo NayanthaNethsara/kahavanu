@@ -1,5 +1,8 @@
 package com.kahavanu.ui.goals
 
+import com.kahavanu.ui.util.goalCategoryColor
+import com.kahavanu.ui.util.goalCategoryIcon
+import com.kahavanu.ui.util.formatAmount
 import com.kahavanu.ui.theme.IconMuted
 import com.kahavanu.ui.theme.Romance
 import com.kahavanu.ui.theme.UtilityAccent
@@ -69,7 +72,7 @@ import com.kahavanu.domain.model.CurrencyOption
 import com.kahavanu.domain.model.GoalAdjustmentLog
 import com.kahavanu.domain.model.GoalCategory
 import com.kahavanu.domain.model.GoalEntry
-import com.kahavanu.ui.goals.components.formatAmount
+import com.kahavanu.ui.common.EmptyState
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
@@ -132,31 +135,12 @@ fun CompletedGoalsScreen(
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
             if (uiState.goals.isEmpty()) {
-                Box(
+                EmptyState(
+                    icon = Icons.Outlined.CheckCircle,
+                    title = "No completed goals yet",
+                    subtitle = "Keep saving — you'll get there!",
                     modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(
-                            imageVector = Icons.Outlined.CheckCircle,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.outline,
-                            modifier = Modifier.size(56.dp),
-                        )
-                        Spacer(modifier = Modifier.height(Spacing.medium))
-                        Text(
-                            text = "No completed goals yet",
-                            style = MaterialTheme.typography.titleSmall,
-                            color = TextPrimary,
-        )
-                        Text(
-                            text = "Keep saving — you'll get there!",
-                            style = MaterialTheme.typography.bodySmall,
-                            fontSize = TextSize.sm,
-                            color = TextSecondary,
-                        )
-                    }
-                }
+                )
             } else {
                 LazyColumn(
                     modifier = Modifier
@@ -190,7 +174,7 @@ private fun CompletedGoalCard(
         .atZone(ZoneId.systemDefault())
         .toLocalDate()
     val formatter = DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.getDefault())
-    val color = completedCategoryColor(goal.category)
+    val color = goalCategoryColor(goal.category)
 
     Column(
         modifier = Modifier
@@ -213,7 +197,7 @@ private fun CompletedGoalCard(
                 modifier = Modifier.weight(1f),
             ) {
                 Icon(
-                    imageVector = categoryIcon(goal.category),
+                    imageVector = goalCategoryIcon(goal.category),
                     contentDescription = null,
                     tint = color,
                     modifier = Modifier.size(24.dp),
@@ -346,22 +330,3 @@ private fun AdjustmentLogRow(
     }
 }
 
-private fun completedCategoryColor(category: GoalCategory) = when (category) {
-    GoalCategory.SAVINGS -> Primary
-    GoalCategory.TRAVEL -> Info
-    GoalCategory.EMERGENCY -> Warning
-    GoalCategory.EDUCATION -> UtilityAccent
-    GoalCategory.PURCHASE -> Romance
-    GoalCategory.INVESTMENT -> Primary
-    GoalCategory.OTHER -> IconMuted
-}
-
-private fun categoryIcon(category: GoalCategory): ImageVector = when (category) {
-    GoalCategory.SAVINGS -> Icons.Outlined.Savings
-    GoalCategory.TRAVEL -> Icons.Outlined.FlightTakeoff
-    GoalCategory.EMERGENCY -> Icons.Outlined.Shield
-    GoalCategory.EDUCATION -> Icons.Outlined.School
-    GoalCategory.PURCHASE -> Icons.Outlined.ShoppingBag
-    GoalCategory.INVESTMENT -> Icons.Outlined.BarChart
-    GoalCategory.OTHER -> Icons.Outlined.Flag
-}

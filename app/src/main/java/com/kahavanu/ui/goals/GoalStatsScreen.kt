@@ -1,5 +1,6 @@
 package com.kahavanu.ui.goals
 
+import com.kahavanu.ui.util.formatAmount
 import com.kahavanu.ui.theme.extendedColors
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -43,7 +44,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kahavanu.ui.common.GlassCard
-import com.kahavanu.ui.goals.components.formatAmount
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary

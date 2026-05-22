@@ -1,4 +1,4 @@
-package com.kahavanu.ui.common
+package com.kahavanu.ui.util
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Bolt

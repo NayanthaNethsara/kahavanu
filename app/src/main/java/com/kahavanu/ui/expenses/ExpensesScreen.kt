@@ -1,19 +1,25 @@
 package com.kahavanu.ui.expenses
 
+import com.kahavanu.ui.util.currentMonthLabel
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.BarChart
+import androidx.compose.material.icons.automirrored.outlined.ReceiptLong
+import androidx.compose.material.icons.outlined.History
 import com.kahavanu.ui.common.KahavanuScreen
+import com.kahavanu.ui.common.QuickAction
+import com.kahavanu.ui.common.QuickActionRow
 import com.kahavanu.ui.common.screenSection
 import com.kahavanu.ui.expenses.components.ByCategorySection
-import com.kahavanu.ui.expenses.components.ExpensesActionButtons
 import com.kahavanu.ui.expenses.components.ExpensesSummaryCard
 import com.kahavanu.ui.expenses.components.MatchAndCategorizeSection
 import com.kahavanu.ui.expenses.components.RecentExpensesSection
-import com.kahavanu.ui.expenses.components.currentMonthLabel
 import com.kahavanu.ui.theme.Spacing
 
 @Composable
@@ -41,11 +47,13 @@ fun ExpensesScreen(
                     categorySummaries = uiState.categorySummaries,
                     monthLabel = monthLabel,
                 )
-                ExpensesActionButtons(
-                    onLogExpense = onLogExpense,
-                    onViewBills = onViewBills,
-                    onViewBudgets = onViewBudgets,
-                    onViewHistory = onViewHistory,
+                QuickActionRow(
+                    actions = listOf(
+                        QuickAction(Icons.Outlined.Add, "Log Expense", onLogExpense),
+                        QuickAction(Icons.Outlined.BarChart, "Budgets", onViewBudgets),
+                        QuickAction(Icons.AutoMirrored.Outlined.ReceiptLong, "Bills", onViewBills),
+                        QuickAction(Icons.Outlined.History, "History", onViewHistory),
+                    ),
                 )
             }
         }

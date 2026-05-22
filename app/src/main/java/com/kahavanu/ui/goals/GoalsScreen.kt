@@ -15,10 +15,16 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.BarChart
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.automirrored.outlined.Sort
+import com.kahavanu.ui.common.QuickAction
+import com.kahavanu.ui.common.QuickActionRow
 import com.kahavanu.ui.common.ScreenHeader
 import com.kahavanu.ui.goals.components.ActiveGoalsSection
 import com.kahavanu.ui.goals.components.CompletedGoalsSection
-import com.kahavanu.ui.goals.components.GoalsActionButtons
 import com.kahavanu.ui.goals.components.GoalsSummaryCard
 import com.kahavanu.ui.theme.Spacing
 
@@ -66,11 +72,13 @@ fun GoalsScreen(
                     completedCount = uiState.completedGoals.size,
                     currency = uiState.currency,
                 )
-                GoalsActionButtons(
-                    onAddGoal = onAddGoal,
-                    onViewCompleted = onViewCompleted,
-                    onViewStats = onViewStats,
-                    onToggleSort = viewModel::toggleSortMode,
+                QuickActionRow(
+                    actions = listOf(
+                        QuickAction(Icons.Outlined.Add, "New Goal", onAddGoal),
+                        QuickAction(Icons.Outlined.CheckCircle, "Completed", onViewCompleted),
+                        QuickAction(Icons.Outlined.BarChart, "Stats", onViewStats),
+                        QuickAction(Icons.AutoMirrored.Outlined.Sort, "Sort", viewModel::toggleSortMode),
+                    ),
                 )
             }
         }

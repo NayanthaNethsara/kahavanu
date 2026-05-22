@@ -1,5 +1,8 @@
 package com.kahavanu.ui.income
 
+import com.kahavanu.ui.util.formatDate
+import com.kahavanu.ui.util.formatAmount
+import com.kahavanu.ui.common.EmptyState
 import com.kahavanu.ui.theme.extendedColors
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -39,8 +42,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kahavanu.domain.model.IncomeSourceType
 import com.kahavanu.domain.model.ScheduledIncome
-import com.kahavanu.ui.income.components.formatAmount
-import com.kahavanu.ui.income.components.formatDate
 import com.kahavanu.ui.theme.KahavanuShapes
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
@@ -109,27 +110,14 @@ fun RecurringManagerScreen(
             item {
                 Surface(
                     shape = KahavanuShapes.large,
-                    color = Color.White
+                    color = Color.White,
                 ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(Spacing.extraLarge),
-                        verticalArrangement = Arrangement.spacedBy(Spacing.small),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.EventRepeat,
-                            contentDescription = null,
-                            tint = MaterialTheme.extendedColors.brandGlow,
-                            modifier = Modifier.size(32.dp)
-                        )
-                        Text(
-                            text = "No recurring incomes yet",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = TextSecondary
-                        )
-                    }
+                    EmptyState(
+                        icon = Icons.Outlined.EventRepeat,
+                        title = "No recurring incomes yet",
+                        iconTint = MaterialTheme.extendedColors.brandGlow,
+                        iconSize = 32.dp,
+                    )
                 }
             }
         } else {

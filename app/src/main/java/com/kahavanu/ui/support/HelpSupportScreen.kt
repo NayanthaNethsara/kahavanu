@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -24,7 +23,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Feedback
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Phone
@@ -32,7 +30,6 @@ import androidx.compose.material.icons.filled.Place
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -49,13 +46,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
 import com.kahavanu.R
-import com.kahavanu.ui.common.AppSegmentedToggle
 import com.kahavanu.ui.common.GlassCard
 import com.kahavanu.ui.common.KahavanuSubScreen
-import com.kahavanu.ui.common.PrimaryActionButton
 import com.kahavanu.ui.common.SectionLabel
-import com.kahavanu.ui.common.textFieldColors
-import com.kahavanu.ui.theme.KahavanuShapes
 import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
@@ -69,11 +62,6 @@ fun HelpSupportScreen(
 ) {
     val scrollState = rememberScrollState()
 
-    // Feedback States
-    var feedbackType by rememberSaveable { mutableStateOf("general") } // "bug", "feature", "general"
-    var feedbackText by rememberSaveable { mutableStateOf("") }
-    var isFeedbackSubmitted by rememberSaveable { mutableStateOf(false) }
-
     // FAQ Accordion States
     var expandedFaqIndex by rememberSaveable { mutableStateOf<Int?>(null) }
 
@@ -86,7 +74,6 @@ fun HelpSupportScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .imePadding()
                 .verticalScroll(scrollState)
                 .padding(
                     start = Spacing.extraLarge,
@@ -108,26 +95,6 @@ fun HelpSupportScreen(
 
             // Contact Information Section (Reading from AppConfig.kt)
             ContactInfoSection()
-
-            // Feedback Submission Form (Simulated locally)
-            FeedbackForm(
-                feedbackType = feedbackType,
-                feedbackText = feedbackText,
-                isSubmitted = isFeedbackSubmitted,
-                onTypeChange = { feedbackType = it },
-                onTextChange = {
-                    feedbackText = it
-                    if (isFeedbackSubmitted) {
-                        isFeedbackSubmitted = false
-                    }
-                },
-                onSubmit = {
-                    if (feedbackText.isNotBlank()) {
-                        isFeedbackSubmitted = true
-                        feedbackText = ""
-                    }
-                }
-            )
 
             Spacer(modifier = Modifier.height(Spacing.large))
         }
@@ -357,128 +324,7 @@ private fun ContactRow(
     }
 }
 
-@Composable
-private fun FeedbackForm(
-    feedbackType: String,
-    feedbackText: String,
-    isSubmitted: Boolean,
-    onTypeChange: (String) -> Unit,
-    onTextChange: (String) -> Unit,
-    onSubmit: () -> Unit
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(Spacing.medium)) {
-        SectionLabel(text = "Send Feedback")
 
-        GlassCard(
-            modifier = Modifier.fillMaxWidth(),
-            backgroundColor = Color.White.copy(alpha = 0.9f),
-            borderColor = RawColors.Slate.Slate200.copy(alpha = 0.6f)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(Spacing.large),
-                verticalArrangement = Arrangement.spacedBy(Spacing.medium)
-            ) {
-                Text(
-                    text = "Share your thoughts with us",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp,
-                    color = TextPrimary
-                )
-
-                if (isSubmitted) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(RawColors.Emerald.Emerald50, RoundedCornerShape(12.dp))
-                            .padding(Spacing.medium),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.Feedback,
-                                contentDescription = null,
-                                tint = RawColors.Emerald.Emerald600,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(Spacing.small))
-                            Text(
-                                text = "Feedback sent successfully!",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = RawColors.Emerald.Emerald700,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 12.sp
-                            )
-                        }
-                    }
-                }
-
-                Column(verticalArrangement = Arrangement.spacedBy(Spacing.extraSmall)) {
-                    Text(
-                        text = "Feedback category",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = TextSecondary,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    AppSegmentedToggle(
-                        items = listOf("general", "bug", "feature"),
-                        selectedItem = feedbackType,
-                        onSelect = onTypeChange,
-                        labelFor = {
-                            when (it) {
-                                "bug" -> "Bug Report"
-                                "feature" -> "Feature Request"
-                                else -> "General"
-                            }
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(44.dp),
-                        height = 44.dp,
-                        shape = KahavanuShapes.large,
-                        containerColor = RawColors.Slate.Slate900.copy(alpha = 0.05f),
-                        indicatorColor = RawColors.Emerald.Emerald500,
-                        indicatorShadow = 1.dp,
-                        selectedTextColor = Color.White,
-                        unselectedTextColor = TextSecondary,
-                        textStyle = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
-                        itemWidth = 90.dp
-                    )
-                }
-
-                Column(verticalArrangement = Arrangement.spacedBy(Spacing.extraSmall)) {
-                    Text(
-                        text = "Description",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = TextSecondary,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    OutlinedTextField(
-                        value = feedbackText,
-                        onValueChange = onTextChange,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(100.dp),
-                        placeholder = { Text("Tell us what you think...") },
-                        maxLines = 4,
-                        shape = KahavanuShapes.large,
-                        colors = textFieldColors()
-                    )
-                }
-
-                PrimaryActionButton(
-                    text = "Submit Feedback",
-                    enabled = feedbackText.isNotBlank(),
-                    onClick = onSubmit
-                )
-            }
-        }
-    }
-}
 
 private data class FaqItem(
     val question: String,

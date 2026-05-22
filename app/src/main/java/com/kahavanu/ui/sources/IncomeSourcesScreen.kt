@@ -1,8 +1,10 @@
 package com.kahavanu.ui.sources
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -242,6 +244,7 @@ private fun IncomeSourcesList(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun IncomeSourceRow(
     source: IncomeSource,
@@ -253,23 +256,23 @@ private fun IncomeSourceRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onEdit)
+            .combinedClickable(
+                onClick = {},
+                onLongClick = onEdit,
+            )
             .padding(horizontal = 16.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(
-            modifier = Modifier
-                .size(40.dp)
-                .clip(RoundedCornerShape(14.dp))
-                .background(style.containerColor),
+            modifier = Modifier.size(40.dp),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = style.icon,
                 contentDescription = null,
                 tint = style.iconColor,
-                modifier = Modifier.size(16.dp),
+                modifier = Modifier.size(24.dp),
             )
         }
 
@@ -293,7 +296,6 @@ private fun IncomeSourceRow(
             modifier = Modifier
                 .size(32.dp)
                 .clip(CircleShape)
-                .background(RawColors.Red.Red500.copy(alpha = 0.08f))
                 .clickable(onClick = onDelete),
             contentAlignment = Alignment.Center,
         ) {
@@ -301,7 +303,7 @@ private fun IncomeSourceRow(
                 imageVector = Icons.Outlined.Delete,
                 contentDescription = "Delete",
                 tint = RawColors.Red.Red600,
-                modifier = Modifier.size(14.dp),
+                modifier = Modifier.size(20.dp),
             )
         }
     }
@@ -435,7 +437,6 @@ private fun TypeToggleChip(
 
 private data class SourceStyle(
     val icon: ImageVector,
-    val containerColor: Color,
     val iconColor: Color,
     val subtitle: String,
 )
@@ -446,32 +447,28 @@ private fun resolveSourceStyle(name: String, types: Set<IncomeSourceType>): Sour
         normName.contains("acme") || normName.contains("salary") -> {
             SourceStyle(
                 icon = Icons.Outlined.WorkOutline,
-                containerColor = Color(0xFF3B82F6).copy(alpha = 0.13f),
-                iconColor = Color(0xFF3B82F6),
+                iconColor = RawColors.Blue.Blue800,
                 subtitle = "Monthly · LKR 120,000"
             )
         }
         normName.contains("freelance") || normName.contains("web") -> {
             SourceStyle(
                 icon = Icons.Outlined.Code,
-                containerColor = Color(0xFF8B5CF6).copy(alpha = 0.13f),
-                iconColor = Color(0xFF8B5CF6),
+                iconColor = RawColors.Indigo.Indigo700,
                 subtitle = "Avg LKR 45,000/mo"
             )
         }
         normName.contains("adsense") || normName.contains("blog") || normName.contains("public") -> {
             SourceStyle(
                 icon = Icons.Outlined.TrendingUp,
-                containerColor = Color(0xFFF97316).copy(alpha = 0.13f),
-                iconColor = Color(0xFFF97316),
+                iconColor = RawColors.Amber.Amber800,
                 subtitle = "USD payouts"
             )
         }
         normName.contains("crypto") || normName.contains("bitcoin") || normName.contains("p2p") -> {
             SourceStyle(
                 icon = Icons.Outlined.CurrencyBitcoin,
-                containerColor = Color(0xFFEAB308).copy(alpha = 0.13f),
-                iconColor = Color(0xFFEAB308),
+                iconColor = RawColors.Amber.Amber600,
                 subtitle = "Variable"
             )
         }
@@ -479,8 +476,7 @@ private fun resolveSourceStyle(name: String, types: Set<IncomeSourceType>): Sour
             val typeStr = types.joinToString(" · ") { it.label }
             SourceStyle(
                 icon = Icons.Outlined.AccountBalanceWallet,
-                containerColor = RawColors.Emerald.Emerald500.copy(alpha = 0.12f),
-                iconColor = RawColors.Emerald.Emerald600,
+                iconColor = RawColors.Emerald.Emerald700,
                 subtitle = typeStr.ifEmpty { "Other source" }
             )
         }

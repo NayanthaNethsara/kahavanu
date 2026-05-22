@@ -182,7 +182,7 @@ fun ProfileScreen(
                     iconColor = AccentIncome,
                     iconBackgroundColor = AccentIncomeSoft,
                     title = "SMS Sender IDs",
-                    subtitle = "Authorized SMS senders for income & expenses tracking",
+                    subtitle = "Authorized SMS senders for tracking",
                     onClick = onNavigateToSmsSenders
                 )
             }

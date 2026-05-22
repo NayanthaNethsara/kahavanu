@@ -8,6 +8,7 @@ import java.util.UUID
 fun SmsSenderEntity.toDomain(): SmsSender = SmsSender(
     id = remoteId ?: clientId,
     senderName = senderName,
+    subtitle = subtitle,
     isEnabled = isEnabled,
     createdAtEpochMillis = createdAtEpochMillis,
 )
@@ -15,6 +16,7 @@ fun SmsSenderEntity.toDomain(): SmsSender = SmsSender(
 fun SmsSender.toEntity(userId: String): SmsSenderEntity = SmsSenderEntity(
     userId = userId,
     senderName = senderName,
+    subtitle = subtitle,
     isEnabled = isEnabled,
     createdAtEpochMillis = createdAtEpochMillis,
     clientId = id.ifBlank { UUID.randomUUID().toString() },
@@ -32,12 +34,13 @@ fun DocumentSnapshot.toSmsSenderEntity(
         localId = localId,
         userId = uid,
         senderName = getString("senderName") ?: "",
+        subtitle = getString("subtitle") ?: "",
         isEnabled = getBoolean("isEnabled") ?: true,
         createdAtEpochMillis = createdAt,
         clientId = clientId,
         remoteId = remoteId,
         isSynced = true,
-        isDeleted = false,
+        isDeleted = getBoolean("isDeleted") ?: false,
         updatedAtEpochMillis = updatedAt,
     )
 }

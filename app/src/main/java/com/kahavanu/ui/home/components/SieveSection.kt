@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -22,7 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.TrendingDown
 import androidx.compose.material.icons.automirrored.outlined.TrendingUp
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -36,6 +37,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -45,6 +47,10 @@ import com.kahavanu.ui.common.GlassCard
 import com.kahavanu.ui.common.SectionHeader
 import com.kahavanu.ui.home.SieveItem
 import com.kahavanu.ui.home.SieveType
+import com.kahavanu.ui.theme.AccentExpense
+import com.kahavanu.ui.theme.AccentExpenseSoft
+import com.kahavanu.ui.theme.AccentIncome
+import com.kahavanu.ui.theme.AccentIncomeSoft
 import com.kahavanu.ui.theme.CornerRadius
 import com.kahavanu.ui.theme.Elevation
 import com.kahavanu.ui.theme.RawColors
@@ -74,32 +80,55 @@ fun SieveSection(
                         title = "The Sieve",
                         subtitle = if (items.isEmpty()) "Tap scan to find new transactions" else "SMS suggestions to confirm",
                         badgeCount = if (items.isNotEmpty()) items.size.toString() else null,
+                        actionText = null,
+                        onActionClick = null
                     )
                 }
-                IconButton(
-                    onClick = onScanClick,
-                    enabled = !isScanning,
+                Row(
                     modifier = Modifier
-                        .padding(top = Spacing.extraSmall)
-                        .size(32.dp),
+                        .padding(top = 8.dp)
+                        .background(RawColors.Emerald.Emerald50, CircleShape)
+                        .clip(CircleShape)
+                        .clickable(enabled = !isScanning) { onScanClick() }
+                        .padding(horizontal = 12.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
                 ) {
                     if (isScanning) {
                         CircularProgressIndicator(
-                            modifier = Modifier.size(16.dp),
-                            strokeWidth = 2.dp,
-                            color = RawColors.Emerald.Emerald500,
+                            modifier = Modifier.size(12.dp),
+                            strokeWidth = 1.5.dp,
+                            color = RawColors.Emerald.Emerald600,
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "Scanning",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = RawColors.Emerald.Emerald600,
+                            fontSize = 11.sp
                         )
                     } else {
                         Icon(
                             imageVector = Icons.Outlined.Refresh,
                             contentDescription = "Scan SMS",
                             tint = RawColors.Emerald.Emerald600,
-                            modifier = Modifier.size(18.dp),
+                            modifier = Modifier.size(14.dp),
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "Scan",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = RawColors.Emerald.Emerald600,
+                            fontSize = 11.sp
                         )
                     }
                 }
             }
         }
+
+        Spacer(modifier = Modifier.height(12.dp))
 
         if (items.isEmpty()) {
             Box(
@@ -109,7 +138,6 @@ fun SieveSection(
             ) {
                 GlassCard(
                     modifier = Modifier.fillMaxWidth(),
-                    shadowElevation = Elevation.level1,
                 ) {
                     Box(
                         modifier = Modifier
@@ -151,125 +179,158 @@ fun SieveCard(
     modifier: Modifier = Modifier,
 ) {
     val isExpense = item.type == SieveType.EXPENSE
+    
     val icon = if (isExpense) Icons.AutoMirrored.Outlined.TrendingDown else Icons.AutoMirrored.Outlined.TrendingUp
-    val accentColor = if (isExpense) RawColors.Red.Red600 else RawColors.Emerald.Emerald600
-    val badgeBg = if (isExpense) RawColors.Red.Red50.copy(alpha = 0.6f) else RawColors.Emerald.Emerald50.copy(alpha = 0.6f)
+    val iconColor = if (isExpense) RawColors.Slate.Slate800 else AccentIncome
+    
+    val badgeColor = if (isExpense) AccentExpense else AccentIncome
+    val badgeBg = if (isExpense) AccentExpenseSoft else AccentIncomeSoft
     val badgeLabel = if (isExpense) "Expense" else "Income"
 
     GlassCard(
-        modifier = modifier.width(156.dp),
-        backgroundColor = Color.White.copy(alpha = 0.9f),
-        borderColor = RawColors.Slate.Slate200.copy(alpha = 0.6f),
-        shadowElevation = Elevation.level1,
+        modifier = modifier
+            .width(240.dp)
+            .height(175.dp),
     ) {
-        Column(modifier = Modifier.padding(10.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 14.dp, vertical = 12.dp)
+        ) {
+            // Top Section: Icon & Type Badge
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Surface(
-                    color = badgeBg,
-                    shape = RoundedCornerShape(CornerRadius.extraSmall),
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(2.dp),
-                    ) {
-                        Icon(
-                            imageVector = icon,
-                            contentDescription = null,
-                            tint = accentColor,
-                            modifier = Modifier.size(8.dp),
-                        )
-                        Text(
-                            text = badgeLabel,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = accentColor,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 11.sp,
-                            letterSpacing = 0.1.sp,
-                        )
-                    }
-                }
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = iconColor,
+                    modifier = Modifier.size(24.dp)
+                )
 
                 Box(
                     modifier = Modifier
-                        .size(22.dp)
-                        .clip(CircleShape)
-                        .background(RawColors.Slate.Slate100.copy(alpha = 0.5f))
-                        .clickable { onIgnore() },
-                    contentAlignment = Alignment.Center,
+                        .background(badgeBg, CircleShape)
+                        .padding(horizontal = 10.dp, vertical = 3.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Close,
-                        contentDescription = "Ignore",
-                        tint = TextTertiary,
-                        modifier = Modifier.size(10.dp),
+                    Text(
+                        text = badgeLabel.uppercase(),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = badgeColor,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 10.sp,
+                        letterSpacing = 0.5.sp
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(Spacing.small))
+            Spacer(modifier = Modifier.height(8.dp))
 
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = "${item.currency} ${String.format("%,.0f", item.amount)}",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = TextPrimary,
-                    fontSize = 14.sp,
-                )
-                Spacer(modifier = Modifier.height(2.dp))
+            // Middle Section: Suggestion Details
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
                 Text(
                     text = item.title,
                     style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Normal,
+                    color = TextSecondary,
+                    fontSize = 14.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = "${item.currency} ${String.format("%,.0f", item.amount)}",
+                    style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Medium,
                     color = TextPrimary,
-                    fontSize = 12.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    fontSize = 20.sp,
+                    letterSpacing = (-0.5).sp
                 )
                 Text(
                     text = item.detectedFrom,
                     style = MaterialTheme.typography.bodySmall,
                     color = TextTertiary,
-                    fontSize = 11.sp,
+                    fontSize = 12.sp,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
 
-            Spacer(modifier = Modifier.height(Spacing.medium))
+            Spacer(modifier = Modifier.weight(1f))
 
-            Button(
-                onClick = onConfirm,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(28.dp),
-                shape = RoundedCornerShape(CornerRadius.small),
-                colors = ButtonDefaults.buttonColors(containerColor = RawColors.Emerald.Emerald500),
-                contentPadding = PaddingValues(0.dp),
+            // Bottom Section: Row of actions
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth(),
+                val confirmGradient = Brush.verticalGradient(
+                    colors = listOf(
+                        RawColors.Emerald.Emerald500.copy(alpha = 0.9f),
+                        RawColors.Emerald.Emerald500.copy(alpha = 0.75f),
+                        RawColors.Emerald.Emerald500.copy(alpha = 0.9f),
+                    )
+                )
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(36.dp)
+                        .background(confirmGradient, CircleShape)
+                        .border(
+                            width = 0.5.dp,
+                            brush = Brush.verticalGradient(
+                                colors = listOf(
+                                    Color.White.copy(alpha = 0.9f),
+                                    Color.White.copy(alpha = 0.1f),
+                                )
+                            ),
+                            shape = CircleShape
+                        )
+                        .clip(CircleShape)
+                        .clickable { onConfirm() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Check,
+                            contentDescription = "Confirm",
+                            tint = Color.White,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "Confirm",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 12.sp
+                        )
+                    }
+                }
+
+                // Ignore / Close Button (Circular layout)
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .background(Color.White.copy(alpha = 0.6f), CircleShape)
+                        // Clip to CircleShape before clickable to restrict ripple/active range
+                        .clip(CircleShape)
+                        .clickable { onIgnore() },
+                    contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Filled.Check,
-                        contentDescription = "Confirm",
-                        tint = Color.White,
-                        modifier = Modifier.size(10.dp),
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "Confirm",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 11.sp,
+                        imageVector = Icons.Filled.Close,
+                        contentDescription = "Dismiss",
+                        tint = TextSecondary,
+                        modifier = Modifier.size(18.dp)
                     )
                 }
             }

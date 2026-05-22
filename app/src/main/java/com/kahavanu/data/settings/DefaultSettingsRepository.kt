@@ -111,6 +111,19 @@ class DefaultSettingsRepository @Inject constructor(
     override suspend fun updateLastSmsScanEpochMillis(epochMillis: Long) {
         val uid = auth.currentUser?.uid ?: return
         userSettingsDao.updateLastSmsScan(uid, epochMillis)
+
+        val now = System.currentTimeMillis()
+        val data = mapOf(
+            "lastSmsScanEpochMillis" to epochMillis,
+            "updatedAt" to now,
+        )
+
+        firestore.collection(USERS_COLLECTION)
+            .document(uid)
+            .collection(SETTINGS_COLLECTION)
+            .document(CONFIG_DOCUMENT)
+            .set(data, SetOptions.merge())
+            .awaitResult()
     }
 
     private fun startSettingsListener(uid: String) {
@@ -125,6 +138,7 @@ class DefaultSettingsRepository @Inject constructor(
                 val primaryCode = snapshot.getString("primaryCurrency") ?: return@addSnapshotListener
                 val secondaryCode = snapshot.getString("secondaryCurrency") ?: return@addSnapshotListener
                 val updatedAt = snapshot.getLong("updatedAt") ?: 0L
+                val lastSmsScan = snapshot.getLong("lastSmsScanEpochMillis") ?: 0L
 
                 repositoryScope.launch {
                     val local = userSettingsDao.getSettings(uid)
@@ -135,6 +149,7 @@ class DefaultSettingsRepository @Inject constructor(
                                 primaryCurrency = primaryCode,
                                 secondaryCurrency = secondaryCode,
                                 updatedAtEpochMillis = updatedAt,
+                                lastSmsScanEpochMillis = maxOf(local?.lastSmsScanEpochMillis ?: 0L, lastSmsScan),
                             )
                         )
                     }

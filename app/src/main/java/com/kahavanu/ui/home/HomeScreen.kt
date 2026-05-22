@@ -47,6 +47,8 @@ fun HomeScreen(
     KahavanuScreen(
         headerLabel = "Overview",
         headerTitle = "Kahavanu",
+        isRefreshing = uiState.isScanning,
+        onRefresh = onScanClick,
     ) {
         screenSection {
             TreasureCard(

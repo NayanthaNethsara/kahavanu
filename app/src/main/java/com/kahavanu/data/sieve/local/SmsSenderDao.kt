@@ -23,6 +23,9 @@ interface SmsSenderDao {
     @Query("SELECT * FROM sms_senders WHERE clientId = :clientId LIMIT 1")
     suspend fun getByClientId(clientId: String): SmsSenderEntity?
 
+    @Query("SELECT * FROM sms_senders WHERE userId = :userId AND UPPER(senderName) = UPPER(:senderName) LIMIT 1")
+    suspend fun getByName(userId: String, senderName: String): SmsSenderEntity?
+
     @Insert
     suspend fun insert(entity: SmsSenderEntity): Long
 

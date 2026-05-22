@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.withLock
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -37,6 +38,7 @@ class DefaultSmsSenderRepository @Inject constructor(
     private val repositoryScope = CoroutineScope(Dispatchers.IO)
     private var smsSendersListener: ListenerRegistration? = null
     private var listenerUserId: String? = null
+    private val seedingMutex = kotlinx.coroutines.sync.Mutex()
 
     private val authStateListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
         val uid = firebaseAuth.currentUser?.uid
@@ -54,27 +56,22 @@ class DefaultSmsSenderRepository @Inject constructor(
     init {
         syncScheduler.enqueue()
         auth.addAuthStateListener(authStateListener)
-        auth.currentUser?.uid?.let { uid ->
-            repositoryScope.launch {
-                ensureDefaultSenders(uid)
-            }
-            startRealtimeListeners(uid)
-        }
     }
 
-    private suspend fun ensureDefaultSenders(uid: String) {
+    private suspend fun ensureDefaultSenders(uid: String) = seedingMutex.withLock {
         val existing = smsSenderDao.getSendersForUser(uid)
-        if (existing.isNotEmpty()) return
+        if (existing.isNotEmpty()) return@withLock
 
-        val defaults = listOf("PickMe", "Commercial Bank", "Keells")
         val now = System.currentTimeMillis()
-        defaults.forEach { name ->
+        SmsSender.PREDEFINED_SENDERS.forEach { predefined ->
+            val clientId = UUID.nameUUIDFromBytes("default_${uid}_${predefined.name}".toByteArray()).toString()
             val entity = SmsSenderEntity(
                 userId = uid,
-                senderName = name,
+                senderName = predefined.name,
+                subtitle = predefined.subtitle,
                 isEnabled = true,
                 createdAtEpochMillis = now,
-                clientId = UUID.randomUUID().toString(),
+                clientId = clientId,
                 isSynced = false,
                 isDeleted = false,
                 updatedAtEpochMillis = now
@@ -90,15 +87,53 @@ class DefaultSmsSenderRepository @Inject constructor(
             .map { entities -> entities.map { it.toDomain() } }
     }
 
-    override suspend fun addAuthorizedSender(senderName: String): Result<Unit> {
+    override suspend fun addAuthorizedSender(senderName: String, subtitle: String): Result<Unit> {
         val uid = auth.currentUser?.uid
             ?: return Result.failure(IllegalStateException("User not authenticated"))
+
+        val resolvedSubtitle = if (subtitle.isBlank()) SmsSender.resolveSubtitle(senderName) else subtitle.trim()
+        val existing = smsSenderDao.getByName(uid, senderName)
+        if (existing != null) {
+            val now = System.currentTimeMillis()
+            val updated = existing.copy(
+                senderName = senderName.trim(),
+                subtitle = resolvedSubtitle,
+                isEnabled = true,
+                isDeleted = false,
+                isSynced = false,
+                updatedAtEpochMillis = now
+            )
+            smsSenderDao.upsert(updated)
+
+            if (!isOnline()) {
+                syncScheduler.enqueue()
+                return Result.success(Unit)
+            }
+
+            val docId = updated.remoteId ?: updated.clientId
+            val remoteResult = firestore
+                .collection(USERS_COLLECTION)
+                .document(uid)
+                .collection(SMS_SENDERS_COLLECTION)
+                .document(docId)
+                .set(updated.toFirestoreMap(), com.google.firebase.firestore.SetOptions.merge())
+                .awaitResult()
+
+            return if (remoteResult.isSuccess) {
+                smsSenderDao.markSynced(updated.localId, docId)
+                Result.success(Unit)
+            } else {
+                syncScheduler.enqueue()
+                Result.success(Unit)
+            }
+        }
 
         val now = System.currentTimeMillis()
         val clientId = UUID.randomUUID().toString()
         val localEntity = SmsSenderEntity(
             userId = uid,
-            senderName = senderName,
+            senderName = senderName.trim(),
+            subtitle = resolvedSubtitle,
             isEnabled = true,
             createdAtEpochMillis = now,
             clientId = clientId,
@@ -170,7 +205,7 @@ class DefaultSmsSenderRepository @Inject constructor(
         }
     }
 
-    override suspend fun deleteAuthorizedSender(senderId: String): Result<Unit> {
+    override suspend fun updateAuthorizedSender(senderId: String, senderName: String, subtitle: String): Result<Unit> {
         val uid = auth.currentUser?.uid
             ?: return Result.failure(IllegalStateException("User not authenticated"))
 
@@ -178,29 +213,31 @@ class DefaultSmsSenderRepository @Inject constructor(
             ?: return Result.failure(IllegalArgumentException("Sender not found"))
 
         val now = System.currentTimeMillis()
-        val deleted = existing.copy(
-            isDeleted = true,
+        val resolvedSubtitle = if (subtitle.isBlank()) SmsSender.resolveSubtitle(senderName) else subtitle.trim()
+        val updated = existing.copy(
+            senderName = senderName.trim(),
+            subtitle = resolvedSubtitle,
             isSynced = false,
             updatedAtEpochMillis = now
         )
-        smsSenderDao.upsert(deleted)
+        smsSenderDao.upsert(updated)
 
         if (!isOnline()) {
             syncScheduler.enqueue()
             return Result.success(Unit)
         }
 
-        val docId = deleted.remoteId ?: deleted.clientId
+        val docId = updated.remoteId ?: updated.clientId
         val remoteResult = firestore
             .collection(USERS_COLLECTION)
             .document(uid)
             .collection(SMS_SENDERS_COLLECTION)
             .document(docId)
-            .delete()
+            .set(updated.toFirestoreMap(), com.google.firebase.firestore.SetOptions.merge())
             .awaitResult()
 
         return if (remoteResult.isSuccess) {
-            smsSenderDao.deleteByLocalIds(listOf(deleted.localId))
+            smsSenderDao.markSynced(updated.localId, docId)
             Result.success(Unit)
         } else {
             syncScheduler.enqueue()
@@ -251,6 +288,7 @@ class DefaultSmsSenderRepository @Inject constructor(
         val doc = change.document
         val remoteId = doc.id
         val clientId = doc.getString("clientId") ?: remoteId
+        val senderName = doc.getString("senderName") ?: ""
         when (change.type) {
             DocumentChange.Type.ADDED, DocumentChange.Type.MODIFIED -> {
                 val localByRemote = smsSenderDao.getByRemoteId(remoteId)
@@ -259,15 +297,23 @@ class DefaultSmsSenderRepository @Inject constructor(
                 } else {
                     null
                 }
+                val localByName = if (localByRemote == null && localByClientId == null && senderName.isNotBlank()) {
+                    smsSenderDao.getByName(uid, senderName)
+                } else {
+                    null
+                }
                 val remoteEntity = doc.toSmsSenderEntity(uid, remoteId, 0L)
-                val local = localByRemote ?: localByClientId
+                val local = localByRemote ?: localByClientId ?: localByName
                 val entity = remoteEntity.copy(localId = local?.localId ?: 0L)
-                if (local == null || entity.updatedAtEpochMillis > local.updatedAtEpochMillis) {
+                if (local == null || local.remoteId == null || entity.updatedAtEpochMillis > local.updatedAtEpochMillis) {
                     smsSenderDao.upsert(entity)
                 }
             }
             DocumentChange.Type.REMOVED -> {
-                smsSenderDao.deleteByRemoteId(remoteId)
+                val existing = smsSenderDao.getByRemoteId(remoteId)
+                if (existing != null) {
+                    smsSenderDao.upsert(existing.copy(isDeleted = true, isSynced = true))
+                }
             }
         }
     }

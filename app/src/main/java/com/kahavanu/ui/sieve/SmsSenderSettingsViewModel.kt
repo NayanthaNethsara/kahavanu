@@ -24,10 +24,10 @@ class SmsSenderSettingsViewModel @Inject constructor(
             initialValue = emptyList()
         )
 
-    fun addSender(name: String) {
+    fun addSender(name: String, subtitle: String) {
         if (name.isBlank()) return
         viewModelScope.launch {
-            smsSenderRepository.addAuthorizedSender(name.trim())
+            smsSenderRepository.addAuthorizedSender(name.trim(), subtitle.trim())
         }
     }
 
@@ -37,9 +37,10 @@ class SmsSenderSettingsViewModel @Inject constructor(
         }
     }
 
-    fun deleteSender(senderId: String) {
+    fun updateSender(senderId: String, newName: String, newSubtitle: String) {
+        if (newName.isBlank()) return
         viewModelScope.launch {
-            smsSenderRepository.deleteAuthorizedSender(senderId)
+            smsSenderRepository.updateAuthorizedSender(senderId, newName.trim(), newSubtitle.trim())
         }
     }
 }

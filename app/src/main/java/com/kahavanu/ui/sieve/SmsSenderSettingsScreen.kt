@@ -1,7 +1,9 @@
 package com.kahavanu.ui.sieve
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,7 +24,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
-import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -72,7 +73,7 @@ import com.kahavanu.ui.theme.circularIconButton
 import kotlinx.coroutines.launch
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun SmsSenderSettingsScreen(
     onBack: () -> Unit,
@@ -80,8 +81,10 @@ fun SmsSenderSettingsScreen(
 ) {
     val senders by viewModel.senders.collectAsState()
     var newSenderName by remember { mutableStateOf("") }
+    var newSenderSubtitle by remember { mutableStateOf("") }
     var isSheetOpen by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
+    var senderToEdit by remember { mutableStateOf<SmsSender?>(null) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
@@ -98,7 +101,12 @@ fun SmsSenderSettingsScreen(
         onBack = onBack,
         trailing = {
             IconButton(
-                onClick = { isSheetOpen = true },
+                onClick = {
+                    senderToEdit = null
+                    newSenderName = ""
+                    newSenderSubtitle = ""
+                    isSheetOpen = true
+                },
                 modifier = Modifier.circularIconButton(
                     backgroundColor = RawColors.Emerald.Emerald500,
                     borderColor = Color.Transparent,
@@ -168,7 +176,12 @@ fun SmsSenderSettingsScreen(
                             SmsSenderRowItem(
                                 sender = sender,
                                 onToggle = { isEnabled -> viewModel.toggleSender(sender.id, isEnabled) },
-                                onDelete = { viewModel.deleteSender(sender.id) }
+                                onLongClick = {
+                                    senderToEdit = sender
+                                    newSenderName = sender.senderName
+                                    newSenderSubtitle = sender.subtitle
+                                    isSheetOpen = true
+                                }
                             )
                         }
                     }
@@ -181,6 +194,8 @@ fun SmsSenderSettingsScreen(
                 onDismissRequest = {
                     isSheetOpen = false
                     newSenderName = ""
+                    newSenderSubtitle = ""
+                    senderToEdit = null
                 },
                 sheetState = sheetState,
                 containerColor = Color.White,
@@ -189,12 +204,22 @@ fun SmsSenderSettingsScreen(
             ) {
                 Box(modifier = Modifier.fillMaxWidth()) {
                     SmsSenderForm(
+                        isEditing = senderToEdit != null,
                         nameInput = newSenderName,
                         onNameChange = { newSenderName = it },
+                        subtitleInput = newSenderSubtitle,
+                        onSubtitleChange = { newSenderSubtitle = it },
                         onSave = {
                             if (newSenderName.isNotBlank()) {
-                                viewModel.addSender(newSenderName)
+                                val editTarget = senderToEdit
+                                if (editTarget != null) {
+                                    viewModel.updateSender(editTarget.id, newSenderName, newSenderSubtitle)
+                                } else {
+                                    viewModel.addSender(newSenderName, newSenderSubtitle)
+                                }
                                 newSenderName = ""
+                                newSenderSubtitle = ""
+                                senderToEdit = null
                                 isSheetOpen = false
                             } else {
                                 coroutineScope.launch {
@@ -205,6 +230,8 @@ fun SmsSenderSettingsScreen(
                         onCancel = {
                             isSheetOpen = false
                             newSenderName = ""
+                            newSenderSubtitle = ""
+                            senderToEdit = null
                         }
                     )
                     AppSnackbarHost(
@@ -226,8 +253,11 @@ fun SmsSenderSettingsScreen(
 
 @Composable
 private fun SmsSenderForm(
+    isEditing: Boolean,
     nameInput: String,
     onNameChange: (String) -> Unit,
+    subtitleInput: String,
+    onSubtitleChange: (String) -> Unit,
     onSave: () -> Unit,
     onCancel: () -> Unit
 ) {
@@ -243,7 +273,7 @@ private fun SmsSenderForm(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "New Sender Filter",
+                text = if (isEditing) "Edit Sender Filter" else "New Sender Filter",
                 style = MaterialTheme.typography.titleLarge,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
@@ -254,33 +284,55 @@ private fun SmsSenderForm(
             }
         }
 
-        Column(verticalArrangement = Arrangement.spacedBy(Spacing.small)) {
-            SectionLabel("Sender name")
-            OutlinedTextField(
-                value = nameInput,
-                onValueChange = onNameChange,
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("e.g. PickMe, ComBank") },
-                singleLine = true,
-                shape = KahavanuShapes.large,
-                colors = textFieldColors(),
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(
-                    onDone = {
-                        onSave()
-                    }
+        Column(verticalArrangement = Arrangement.spacedBy(Spacing.large)) {
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.small)) {
+                SectionLabel("Sender name")
+                OutlinedTextField(
+                    value = nameInput,
+                    onValueChange = onNameChange,
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text("e.g. PickMe, ComBank") },
+                    singleLine = true,
+                    shape = KahavanuShapes.large,
+                    colors = textFieldColors(),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                 )
-            )
-            Text(
-                text = "Only SMS messages matching this sender name will suggest transaction entries on your home feed.",
-                style = MaterialTheme.typography.bodySmall,
-                color = TextTertiary,
-                lineHeight = 16.sp
-            )
+                Text(
+                    text = "Only SMS messages matching this sender name will suggest transaction entries on your home feed.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextTertiary,
+                    lineHeight = 16.sp
+                )
+            }
+
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.small)) {
+                SectionLabel("Subtitle / Description")
+                OutlinedTextField(
+                    value = subtitleInput,
+                    onValueChange = onSubtitleChange,
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text("e.g. Taxi Service, Commercial Bank") },
+                    singleLine = true,
+                    shape = KahavanuShapes.large,
+                    colors = textFieldColors(),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(
+                        onDone = {
+                            onSave()
+                        }
+                    )
+                )
+                Text(
+                    text = "A friendly label to display under the sender name. If left blank, it will automatically resolve if it matches a known institution.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextTertiary,
+                    lineHeight = 16.sp
+                )
+            }
         }
 
         PrimaryActionButton(
-            text = "Add Sender Filter",
+            text = if (isEditing) "Update Sender Filter" else "Add Sender Filter",
             enabled = true,
             onClick = onSave
         )
@@ -293,12 +345,16 @@ private fun SmsSenderForm(
 private fun SmsSenderRowItem(
     sender: SmsSender,
     onToggle: (Boolean) -> Unit,
-    onDelete: () -> Unit,
+    onLongClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .combinedClickable(
+                onClick = {},
+                onLongClick = onLongClick
+            )
             .padding(horizontal = Spacing.large, vertical = Spacing.medium),
         horizontalArrangement = Arrangement.spacedBy(Spacing.medium),
         verticalAlignment = Alignment.CenterVertically
@@ -330,56 +386,25 @@ private fun SmsSenderRowItem(
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
-                text = resolveSenderSubtitle(sender.senderName),
+                text = sender.subtitle,
                 style = MaterialTheme.typography.bodySmall,
                 fontSize = 11.sp,
                 color = TextSecondary
             )
         }
 
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(Spacing.small)
-        ) {
-            Switch(
-                checked = sender.isEnabled,
-                onCheckedChange = onToggle,
-                colors = SwitchDefaults.colors(
-                    checkedThumbColor = Color.White,
-                    checkedTrackColor = RawColors.Emerald.Emerald500,
-                    uncheckedThumbColor = Color.White,
-                    uncheckedTrackColor = RawColors.Slate.Slate200,
-                    uncheckedBorderColor = Color.Transparent,
-                    checkedBorderColor = Color.Transparent
-                ),
-                modifier = Modifier.scale(0.8f)
-            )
-
-            Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .clip(CircleShape)
-                    .clickable(onClick = onDelete),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.DeleteOutline,
-                    contentDescription = "Delete",
-                    tint = RawColors.Red.Red600,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-        }
-    }
-}
-
-private fun resolveSenderSubtitle(name: String): String {
-    return when (name.trim().uppercase(Locale.getDefault())) {
-        "COMBANK" -> "Commercial Bank"
-        "SAMPATH" -> "Sampath Bank"
-        "BOC" -> "Bank of Ceylon"
-        "DIALOG" -> "Dialog (mCash)"
-        "HNB" -> "Hatton National Bank"
-        else -> "SMS Sender Filter"
+        Switch(
+            checked = sender.isEnabled,
+            onCheckedChange = onToggle,
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = Color.White,
+                checkedTrackColor = RawColors.Emerald.Emerald500,
+                uncheckedThumbColor = Color.White,
+                uncheckedTrackColor = RawColors.Slate.Slate200,
+                uncheckedBorderColor = Color.Transparent,
+                checkedBorderColor = Color.Transparent
+            ),
+            modifier = Modifier.scale(0.7f)
+        )
     }
 }

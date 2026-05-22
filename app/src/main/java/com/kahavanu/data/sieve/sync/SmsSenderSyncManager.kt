@@ -45,17 +45,19 @@ class SmsSenderSyncManager @Inject constructor(
 
     private suspend fun pushPendingSenders(uid: String) {
         val dao = database.smsSenderDao()
-        dao.getUnsynced(uid).forEach { entity ->
-            val collection = firestore.collection("users").document(uid).collection("smsSenders")
-            if (entity.remoteId != null) {
-                collection.document(entity.remoteId)
-                    .set(entity.toFirestoreMap(), SetOptions.merge())
+        val pending = dao.getUnsynced(uid)
+        for (entity in pending) {
+            try {
+                val collection = firestore.collection("users").document(uid).collection("smsSenders")
+                val data = entity.toFirestoreMap()
+                val docId = entity.remoteId ?: entity.clientId
+                collection.document(docId)
+                    .set(data, SetOptions.merge())
                     .awaitResultVoid()
-            } else {
-                val ref = collection.add(entity.toFirestoreMap()).awaitResultDocRef()
-                ref.getOrNull()?.let { docRef ->
-                    dao.markSynced(entity.localId, docRef.id)
-                }
+                    .getOrThrow()
+                dao.markSynced(entity.localId, docId)
+            } catch (e: Exception) {
+                android.util.Log.w("SmsSenderSyncManager", "Failed to push SMS sender localId=${entity.localId}", e)
             }
         }
     }
@@ -70,9 +72,16 @@ class SmsSenderSyncManager @Inject constructor(
 
         snapshot.documents.forEach { doc ->
             val remoteId = doc.id
-            val existing = dao.getByRemoteId(remoteId) ?: dao.getByClientId(remoteId)
+            val clientId = doc.getString("clientId") ?: remoteId
+            val senderName = doc.getString("senderName") ?: ""
+            val existing = dao.getByRemoteId(remoteId)
+                ?: dao.getByClientId(clientId)
+                ?: if (senderName.isNotBlank()) dao.getByName(uid, senderName) else null
+
             val entity = doc.toSmsSenderEntity(uid, remoteId, localId = existing?.localId ?: 0L)
-            dao.upsert(entity)
+            if (existing == null || existing.remoteId == null || entity.updatedAtEpochMillis > existing.updatedAtEpochMillis) {
+                dao.upsert(entity)
+            }
         }
     }
 }

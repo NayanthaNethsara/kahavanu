@@ -17,6 +17,7 @@ data class SmsSenderEntity(
     override val localId: Long = 0L,
     val userId: String,
     val senderName: String,
+    val subtitle: String,
     val isEnabled: Boolean,
     val createdAtEpochMillis: Long,
     val clientId: String,
@@ -28,9 +29,11 @@ data class SmsSenderEntity(
     override fun toFirestoreMap(): Map<String, Any?> = mapOf(
         "userId" to userId,
         "senderName" to senderName,
+        "subtitle" to subtitle,
         "isEnabled" to isEnabled,
         "createdAt" to createdAtEpochMillis,
         "clientId" to clientId,
         "updatedAt" to updatedAtEpochMillis,
+        "isDeleted" to isDeleted,
     )
 }

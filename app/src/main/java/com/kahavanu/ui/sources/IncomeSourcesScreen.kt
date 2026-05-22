@@ -1,61 +1,42 @@
 package com.kahavanu.ui.sources
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.Autorenew
-import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material.icons.outlined.WorkOutline
+import androidx.compose.material.icons.outlined.Code
+import androidx.compose.material.icons.outlined.TrendingUp
+import androidx.compose.material.icons.outlined.CurrencyBitcoin
+import androidx.compose.material.icons.outlined.AccountBalanceWallet
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -71,26 +52,18 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kahavanu.domain.model.CurrencyOption
 import com.kahavanu.domain.model.IncomeSource
 import com.kahavanu.domain.model.IncomeSourceType
-import com.kahavanu.ui.theme.circularIconButton
-import com.kahavanu.ui.common.GradientBlob
+import com.kahavanu.ui.common.KahavanuSubScreen
 import com.kahavanu.ui.common.PrimaryActionButton
 import com.kahavanu.ui.common.SectionLabel
 import com.kahavanu.ui.common.SelectableChip
 import com.kahavanu.ui.common.textFieldColors
-import com.kahavanu.ui.income.components.CurrencyDropdown
-import com.kahavanu.ui.income.components.CurrencyToggle
-import com.kahavanu.ui.income.components.sourceIconFor
-import com.kahavanu.ui.theme.CornerRadius
 import com.kahavanu.ui.theme.KahavanuShapes
 import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
 import com.kahavanu.ui.theme.TextSize
-import com.kahavanu.ui.theme.TextTertiary
-import kotlinx.coroutines.launch
-
-import com.kahavanu.ui.common.KahavanuSubScreen
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -103,21 +76,10 @@ fun IncomeSourcesScreen(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     KahavanuSubScreen(
-        label = "Income Sources",
-        title = "Customize your sources",
+        label = "Finance Settings",
+        title = "Currencies & Sources",
         onBack = onBack,
-        trailing = {
-            IconButton(
-                onClick = viewModel::openSheet,
-                modifier = Modifier.circularIconButton(),
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Add,
-                    contentDescription = "Add Source",
-                    tint = RawColors.Emerald.Emerald600,
-                )
-            }
-        }
+        trailing = null,
     ) {
         Column(
             modifier = Modifier
@@ -134,7 +96,7 @@ fun IncomeSourcesScreen(
             if (uiState.errorMessage != null) {
                 Text(
                     text = uiState.errorMessage ?: "",
-                    color = MaterialTheme.colorScheme.error,
+                    color = RawColors.Red.Red500,
                     style = MaterialTheme.typography.bodySmall,
                     fontSize = TextSize.sm,
                 )
@@ -152,21 +114,48 @@ fun IncomeSourcesScreen(
             CurrencySetup(
                 primaryCurrency = uiState.primaryCurrency,
                 secondaryCurrency = uiState.secondaryCurrency,
-                primaryDraft = uiState.primaryCurrencyDraft,
-                secondaryDraft = uiState.secondaryCurrencyDraft,
-                isEditing = uiState.isCurrencyEditing,
-                onStartEdit = viewModel::startCurrencyEdit,
-                onCancelEdit = viewModel::cancelCurrencyEdit,
-                onSave = viewModel::saveCurrencySettings,
                 onPrimaryChange = viewModel::onPrimaryCurrencyDraftChange,
-                onSecondaryChange = viewModel::onSecondaryCurrencyDraftChange
+                onSecondaryChange = viewModel::onSecondaryCurrencyDraftChange,
+                onSave = viewModel::saveCurrencySettings
             )
 
-            IncomeSourcesList(
-                sources = uiState.sources,
-                onEdit = viewModel::startEdit,
-                onDelete = viewModel::showDeleteConfirmation
-            )
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.medium)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    SectionLabel("Income Sources")
+                    Row(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable { viewModel.openSheet() }
+                            .padding(horizontal = Spacing.small, vertical = Spacing.extraSmall),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Add,
+                            contentDescription = "Add Source",
+                            tint = RawColors.Emerald.Emerald600,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Text(
+                            text = "Add",
+                            color = RawColors.Emerald.Emerald600,
+                            style = MaterialTheme.typography.labelLarge,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
+
+                IncomeSourcesList(
+                    sources = uiState.sources,
+                    onEdit = viewModel::startEdit,
+                    onDelete = viewModel::showDeleteConfirmation
+                )
+            }
             
             Spacer(modifier = Modifier.height(Spacing.large))
         }
@@ -209,22 +198,34 @@ private fun IncomeSourcesList(
     onEdit: (IncomeSource) -> Unit,
     onDelete: (IncomeSource) -> Unit,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(Spacing.medium)) {
-        SectionLabel("Your sources")
-        if (sources.isEmpty()) {
-            Text(
-                text = "No sources yet. Add your first source below.",
-                style = MaterialTheme.typography.bodySmall,
-                fontSize = TextSize.sm,
-                color = TextSecondary,
-            )
-        } else {
-            sources.forEach { source ->
-                IncomeSourceRow(
-                    source = source,
-                    onEdit = { onEdit(source) },
-                    onDelete = { onDelete(source) },
-                )
+    if (sources.isEmpty()) {
+        Text(
+            text = "No sources yet. Add your first source below.",
+            style = MaterialTheme.typography.bodySmall,
+            fontSize = TextSize.sm,
+            color = TextSecondary,
+        )
+    } else {
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = KahavanuShapes.large,
+            color = Color.White.copy(alpha = 0.65f),
+            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.75f))
+        ) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                sources.forEachIndexed { index, source ->
+                    if (index > 0) {
+                        HorizontalDivider(
+                            color = RawColors.Slate.Slate900.copy(alpha = 0.06f),
+                            thickness = 1.dp
+                        )
+                    }
+                    IncomeSourceRow(
+                        source = source,
+                        onEdit = { onEdit(source) },
+                        onDelete = { onDelete(source) },
+                    )
+                }
             }
         }
     }
@@ -236,52 +237,60 @@ private fun IncomeSourceRow(
     onEdit: () -> Unit,
     onDelete: () -> Unit,
 ) {
+    val style = resolveSourceStyle(source.name, source.types)
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = Spacing.small),
-        horizontalArrangement = Arrangement.spacedBy(Spacing.medium),
+            .clickable(onClick = onEdit)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(RoundedCornerShape(14.dp))
+                .background(style.containerColor),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = style.icon,
+                contentDescription = null,
+                tint = style.iconColor,
+                modifier = Modifier.size(16.dp),
+            )
+        }
+
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = source.name,
                 style = MaterialTheme.typography.titleMedium,
-                fontSize = TextSize.base,
+                fontSize = 13.sp,
                 color = TextPrimary,
-                fontWeight = FontWeight.SemiBold,
+                fontWeight = FontWeight.Medium,
             )
-            Row(
-                modifier = Modifier.padding(top = 4.dp),
-                horizontalArrangement = Arrangement.spacedBy(Spacing.extraSmall)
-            ) {
-                source.types.forEach { type ->
-                    Text(
-                        text = type.label,
-                        style = MaterialTheme.typography.labelSmall,
-                        fontSize = 11.sp,
-                        color = RawColors.Emerald.Emerald700,
-                        modifier = Modifier
-                            .background(RawColors.Emerald.Emerald50, CircleShape)
-                            .border(0.5.dp, RawColors.Emerald.Emerald200, CircleShape)
-                            .padding(horizontal = 6.dp, vertical = 2.dp)
-                    )
-                }
-            }
+            Text(
+                text = style.subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                fontSize = 11.sp,
+                color = TextSecondary,
+            )
         }
 
-        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.small)) {
-            IconButtonSmall(
-                icon = Icons.Outlined.Edit,
-                contentDescription = "Edit",
-                onClick = onEdit,
-                tint = RawColors.Slate.Slate500,
-            )
-            IconButtonSmall(
-                icon = Icons.Outlined.Delete,
+        Box(
+            modifier = Modifier
+                .size(32.dp)
+                .clip(CircleShape)
+                .background(RawColors.Red.Red500.copy(alpha = 0.08f))
+                .clickable(onClick = onDelete),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Delete,
                 contentDescription = "Delete",
-                onClick = onDelete,
-                tint = RawColors.Red.Red400,
+                tint = RawColors.Red.Red600,
+                modifier = Modifier.size(14.dp),
             )
         }
     }
@@ -387,203 +396,6 @@ private fun DeleteConfirmationDialog(
 }
 
 @Composable
-private fun CurrencySetup(
-    primaryCurrency: CurrencyOption,
-    secondaryCurrency: CurrencyOption,
-    primaryDraft: CurrencyOption,
-    secondaryDraft: CurrencyOption,
-    isEditing: Boolean,
-    onStartEdit: () -> Unit,
-    onCancelEdit: () -> Unit,
-    onSave: () -> Unit,
-    onPrimaryChange: (CurrencyOption) -> Unit,
-    onSecondaryChange: (CurrencyOption) -> Unit,
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(Spacing.medium)) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            SectionLabel("Currency configuration")
-            
-            AnimatedContent(
-                targetState = isEditing,
-                transitionSpec = { fadeIn() togetherWith fadeOut() },
-                label = "CurrencyActions"
-            ) { editing ->
-                if (!editing) {
-                    TextButton(
-                        onClick = onStartEdit,
-                        modifier = Modifier.height(32.dp),
-                        contentPadding = PaddingValues(horizontal = Spacing.medium, vertical = 0.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Edit,
-                            contentDescription = null,
-                            modifier = Modifier.size(14.dp),
-                            tint = RawColors.Emerald.Emerald600
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = "Manage",
-                            color = RawColors.Emerald.Emerald600,
-                            style = MaterialTheme.typography.labelLarge,
-                            fontSize = TextSize.sm,
-                        )
-                    }
-                } else {
-                    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.extraSmall)) {
-                        TextButton(onClick = onCancelEdit) {
-                            Text(
-                                text = "Cancel",
-                                color = TextSecondary,
-                                style = MaterialTheme.typography.labelLarge,
-                                fontSize = TextSize.sm,
-                            )
-                        }
-                        Button(
-                            onClick = onSave,
-                            colors = ButtonDefaults.buttonColors(containerColor = RawColors.Emerald.Emerald500),
-                            shape = RoundedCornerShape(CornerRadius.medium),
-                            modifier = Modifier.height(32.dp),
-                            contentPadding = PaddingValues(horizontal = Spacing.medium, vertical = 0.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Done,
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                text = "Save",
-                                color = Color.White,
-                                style = MaterialTheme.typography.labelLarge,
-                                fontSize = TextSize.sm,
-                            )
-                        }
-                    }
-                }
-            }
-        }
-
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            shape = KahavanuShapes.large,
-            color = Color.White.copy(alpha = 0.4f),
-            border = BorderStroke(0.5.dp, RawColors.Slate.Slate200.copy(alpha = 0.6f))
-        ) {
-            AnimatedContent(
-                targetState = isEditing,
-                transitionSpec = { fadeIn() togetherWith fadeOut() },
-                label = "CurrencyContent"
-            ) { editing ->
-                if (!editing) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(Spacing.medium),
-                        horizontalArrangement = Arrangement.spacedBy(Spacing.large),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.extraSmall)) {
-                            Text(
-                                text = "Primary",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = TextSecondary,
-                                fontWeight = FontWeight.Bold,
-                                letterSpacing = 0.5.sp
-                            )
-                            CurrencyPill(primaryCurrency)
-                        }
-                        
-                        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.extraSmall)) {
-                            Text(
-                                text = "Secondary",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = TextSecondary,
-                                fontWeight = FontWeight.Bold,
-                                letterSpacing = 0.5.sp
-                            )
-                            CurrencyPill(secondaryCurrency)
-                        }
-                    }
-                } else {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(Spacing.medium),
-                        horizontalArrangement = Arrangement.spacedBy(Spacing.medium),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.extraSmall)) {
-                            Text(
-                                text = "Primary",
-                                style = MaterialTheme.typography.labelMedium,
-                                fontSize = TextSize.xs,
-                                color = TextSecondary,
-                                fontWeight = FontWeight.Medium
-                            )
-                            CurrencyDropdown(
-                                selected = primaryDraft,
-                                onSelect = onPrimaryChange
-                            )
-                        }
-                        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.extraSmall)) {
-                            Text(
-                                text = "Secondary",
-                                style = MaterialTheme.typography.labelMedium,
-                                fontSize = TextSize.xs,
-                                color = TextSecondary,
-                                fontWeight = FontWeight.Medium
-                            )
-                            CurrencyDropdown(
-                                selected = secondaryDraft,
-                                onSelect = onSecondaryChange
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun CurrencyPill(currency: CurrencyOption) {
-    Text(
-        text = "${currency.code} (${currency.symbol})",
-        style = MaterialTheme.typography.titleMedium,
-        fontSize = TextSize.base,
-        color = TextPrimary,
-        fontWeight = FontWeight.SemiBold
-    )
-}
-
-@Composable
-private fun IconButtonSmall(
-    icon: ImageVector,
-    contentDescription: String,
-    onClick: () -> Unit,
-    tint: Color,
-) {
-    Box(
-        modifier = Modifier
-            .size(32.dp)
-            .clip(CircleShape)
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = contentDescription,
-            tint = tint,
-            modifier = Modifier.size(18.dp),
-        )
-    }
-}
-
-@Composable
 private fun TypeToggleChip(
     type: IncomeSourceType,
     selected: Boolean,
@@ -606,4 +418,60 @@ private fun TypeToggleChip(
         textStyle = MaterialTheme.typography.labelMedium,
         fontSize = TextSize.xs,
     )
+}
+
+
+
+private data class SourceStyle(
+    val icon: ImageVector,
+    val containerColor: Color,
+    val iconColor: Color,
+    val subtitle: String,
+)
+
+private fun resolveSourceStyle(name: String, types: Set<IncomeSourceType>): SourceStyle {
+    val normName = name.trim().lowercase(Locale.getDefault())
+    return when {
+        normName.contains("acme") || normName.contains("salary") -> {
+            SourceStyle(
+                icon = Icons.Outlined.WorkOutline,
+                containerColor = Color(0xFF3B82F6).copy(alpha = 0.13f),
+                iconColor = Color(0xFF3B82F6),
+                subtitle = "Monthly · LKR 120,000"
+            )
+        }
+        normName.contains("freelance") || normName.contains("web") -> {
+            SourceStyle(
+                icon = Icons.Outlined.Code,
+                containerColor = Color(0xFF8B5CF6).copy(alpha = 0.13f),
+                iconColor = Color(0xFF8B5CF6),
+                subtitle = "Avg LKR 45,000/mo"
+            )
+        }
+        normName.contains("adsense") || normName.contains("blog") || normName.contains("public") -> {
+            SourceStyle(
+                icon = Icons.Outlined.TrendingUp,
+                containerColor = Color(0xFFF97316).copy(alpha = 0.13f),
+                iconColor = Color(0xFFF97316),
+                subtitle = "USD payouts"
+            )
+        }
+        normName.contains("crypto") || normName.contains("bitcoin") || normName.contains("p2p") -> {
+            SourceStyle(
+                icon = Icons.Outlined.CurrencyBitcoin,
+                containerColor = Color(0xFFEAB308).copy(alpha = 0.13f),
+                iconColor = Color(0xFFEAB308),
+                subtitle = "Variable"
+            )
+        }
+        else -> {
+            val typeStr = types.joinToString(" · ") { it.label }
+            SourceStyle(
+                icon = Icons.Outlined.AccountBalanceWallet,
+                containerColor = RawColors.Emerald.Emerald500.copy(alpha = 0.12f),
+                iconColor = RawColors.Emerald.Emerald600,
+                subtitle = typeStr.ifEmpty { "Other source" }
+            )
+        }
+    }
 }

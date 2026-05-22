@@ -37,8 +37,8 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.compose.ui.res.stringResource
 import com.kahavanu.R
-import com.kahavanu.core.config.AppConfig
 import com.kahavanu.ui.common.AppDecorativeGradientOverlay
 import com.kahavanu.ui.common.AuthOutlinedButton
 import com.kahavanu.ui.common.AuthPrimaryButton
@@ -216,16 +216,18 @@ fun AuthChoiceScreen(
 @Composable
 private fun TermsFooter() {
     val uriHandler = LocalUriHandler.current
+    val termsOfServiceUrl = stringResource(R.string.terms_of_service_url)
+    val privacyPolicyUrl = stringResource(R.string.privacy_policy_url)
     
     val text = buildAnnotatedString {
         append("By continuing, you agree to our ")
-        pushStringAnnotation(tag = "URL", annotation = AppConfig.termsOfServiceUrl)
+        pushStringAnnotation(tag = "URL", annotation = termsOfServiceUrl)
         withStyle(SpanStyle(color = RawColors.Emerald.Emerald600, fontWeight = FontWeight.Medium)) {
             append("Terms of Service")
         }
         pop()
         append(" and ")
-        pushStringAnnotation(tag = "URL", annotation = AppConfig.privacyPolicyUrl)
+        pushStringAnnotation(tag = "URL", annotation = privacyPolicyUrl)
         withStyle(SpanStyle(color = RawColors.Emerald.Emerald600, fontWeight = FontWeight.Medium)) {
             append("Privacy Policy")
         }

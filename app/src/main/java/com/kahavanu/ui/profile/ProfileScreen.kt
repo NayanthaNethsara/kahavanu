@@ -61,6 +61,7 @@ fun ProfileScreen(
     onNavigateToSmsSenders: () -> Unit,
     onNavigateToIncomeSources: () -> Unit,
     onNavigateToSubscriptions: () -> Unit,
+    onNavigateToHelpSupport: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val userSession by viewModel.userSession.collectAsState()
@@ -199,7 +200,7 @@ fun ProfileScreen(
                     iconBackgroundColor = RawColors.Slate.Slate100,
                     title = "Help & support",
                     subtitle = "FAQ, contact us, send feedback",
-                    onClick = {}
+                    onClick = onNavigateToHelpSupport
                 )
                 HorizontalDivider(color = RawColors.Slate.Slate200.copy(alpha = 0.4f))
                 SettingNavigationRow(

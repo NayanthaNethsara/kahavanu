@@ -20,6 +20,7 @@ sealed class AppDestination(val route: String) {
     data object Profile : AppDestination("profile")
     data object SmsSenderSettings : AppDestination("sms-sender-settings")
     data object ManageSubscriptions : AppDestination("manage-subscriptions")
+    data object HelpSupport : AppDestination("help-support")
     data object IncomeHistory : AppDestination("income-history?filter={filter}") {
         fun createRoute(filter: String? = null) = if (filter != null) "income-history?filter=$filter" else "income-history"
     }

@@ -98,9 +98,6 @@ package com.kahavanu.ui
  * ```
  * com.kahavanu/
  * +-- MainActivity.kt
- * +-- core/
- * |   +-- config/
- * |       +-- AppConfig.kt
  * +-- data/
  * |   +-- auth/
  * |       +-- DefaultAuthRepository.kt

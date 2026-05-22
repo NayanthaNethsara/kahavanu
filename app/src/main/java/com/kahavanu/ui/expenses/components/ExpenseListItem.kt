@@ -115,8 +115,7 @@ fun ExpenseListItem(
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodyMedium,
-                fontSize = TextSize.sm,
-                fontWeight = FontWeight.SemiBold,
+            fontWeight = FontWeight.SemiBold,
                 color = TextPrimary,
                 maxLines = 1,
             )
@@ -127,16 +126,15 @@ fun ExpenseListItem(
                 Text(
                     text = category,
                     style = MaterialTheme.typography.labelSmall,
-                    fontSize = 11.sp,
-                    color = TextSecondary,
+            color = TextSecondary,
                 )
                 if (spentAtEpochMillis != null) {
-                    Text("·", style = MaterialTheme.typography.labelSmall, fontSize = 11.sp, color = TextSecondary)
+                    Text("·", style = MaterialTheme.typography.labelSmall,
+            color = TextSecondary)
                     Text(
                         text = formatDate(spentAtEpochMillis),
                         style = MaterialTheme.typography.labelSmall,
-                        fontSize = 11.sp,
-                        color = TextSecondary,
+            color = TextSecondary,
                     )
                 }
             }
@@ -145,7 +143,6 @@ fun ExpenseListItem(
         Text(
             text = "-$currencyCode ${String.format(Locale.getDefault(), "%,.0f", amount)}",
             style = MaterialTheme.typography.bodyMedium,
-            fontSize = TextSize.sm,
             fontWeight = FontWeight.SemiBold,
             color = TextPrimary,
         )
@@ -242,8 +239,7 @@ private fun ExpenseDetailSheet(
                 Text(
                     text = "-$currencyCode ${String.format(Locale.getDefault(), "%,.0f", amount)}",
                     style = MaterialTheme.typography.headlineMedium,
-                    fontSize = 28.sp,
-                    lineHeight = 32.sp,
+            lineHeight = 32.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = TextPrimary,
                     letterSpacing = (-0.5).sp,
@@ -315,11 +311,9 @@ private fun SheetLabel(text: String) {
     Text(
         text = text.uppercase(),
         style = MaterialTheme.typography.labelSmall,
-        fontSize = 11.sp,
-        letterSpacing = 0.7.sp,
+            letterSpacing = 0.7.sp,
         color = TextSecondary,
-        fontWeight = FontWeight.Medium,
-    )
+        )
 }
 
 @Composable
@@ -353,14 +347,12 @@ private fun DetailRow(
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelSmall,
-                fontSize = 11.sp,
-                color = TextSecondary,
+            color = TextSecondary,
             )
             Text(
                 text = value,
                 style = MaterialTheme.typography.bodyMedium,
-                fontSize = TextSize.sm,
-                color = valueColor,
+            color = valueColor,
                 fontWeight = FontWeight.Medium,
             )
         }

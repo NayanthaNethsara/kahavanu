@@ -1,5 +1,6 @@
 package com.kahavanu.ui.home.components
 
+import com.kahavanu.ui.theme.extendedColors
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -53,7 +54,6 @@ import com.kahavanu.ui.theme.AccentIncome
 import com.kahavanu.ui.theme.AccentIncomeSoft
 import com.kahavanu.ui.theme.CornerRadius
 import com.kahavanu.ui.theme.Elevation
-import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
@@ -87,7 +87,7 @@ fun SieveSection(
                 Row(
                     modifier = Modifier
                         .padding(top = 8.dp)
-                        .background(RawColors.Emerald.Emerald50, CircleShape)
+                        .background(MaterialTheme.extendedColors.brandWashed, CircleShape)
                         .clip(CircleShape)
                         .clickable(enabled = !isScanning) { onScanClick() }
                         .padding(horizontal = 12.dp, vertical = 6.dp),
@@ -98,21 +98,21 @@ fun SieveSection(
                         CircularProgressIndicator(
                             modifier = Modifier.size(12.dp),
                             strokeWidth = 1.5.dp,
-                            color = RawColors.Emerald.Emerald600,
+                            color = MaterialTheme.colorScheme.primary,
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
                             text = "Scanning",
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold,
-                            color = RawColors.Emerald.Emerald600,
+                            color = MaterialTheme.colorScheme.primary,
                             fontSize = 11.sp
                         )
                     } else {
                         Icon(
                             imageVector = Icons.Outlined.Refresh,
                             contentDescription = "Scan SMS",
-                            tint = RawColors.Emerald.Emerald600,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(14.dp),
                         )
                         Spacer(modifier = Modifier.width(6.dp))
@@ -120,7 +120,7 @@ fun SieveSection(
                             text = "Scan",
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold,
-                            color = RawColors.Emerald.Emerald600,
+                            color = MaterialTheme.colorScheme.primary,
                             fontSize = 11.sp
                         )
                     }
@@ -181,7 +181,7 @@ fun SieveCard(
     val isExpense = item.type == SieveType.EXPENSE
     
     val icon = if (isExpense) Icons.AutoMirrored.Outlined.TrendingDown else Icons.AutoMirrored.Outlined.TrendingUp
-    val iconColor = if (isExpense) RawColors.Slate.Slate800 else AccentIncome
+    val iconColor = if (isExpense) MaterialTheme.extendedColors.textDeep else AccentIncome
     
     val badgeColor = if (isExpense) AccentExpense else AccentIncome
     val badgeBg = if (isExpense) AccentExpenseSoft else AccentIncomeSoft
@@ -222,8 +222,7 @@ fun SieveCard(
                         color = badgeColor,
                         fontWeight = FontWeight.Bold,
                         fontSize = 10.sp,
-                        letterSpacing = 0.5.sp
-                    )
+        )
                 }
             }
 
@@ -237,10 +236,8 @@ fun SieveCard(
                 Text(
                     text = item.title,
                     style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Normal,
-                    color = TextSecondary,
-                    fontSize = 14.sp,
-                    maxLines = 1,
+            color = TextSecondary,
+            maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
@@ -255,8 +252,7 @@ fun SieveCard(
                     text = item.detectedFrom,
                     style = MaterialTheme.typography.bodySmall,
                     color = TextTertiary,
-                    fontSize = 12.sp,
-                    maxLines = 1,
+            maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
             }
@@ -271,9 +267,9 @@ fun SieveCard(
             ) {
                 val confirmGradient = Brush.verticalGradient(
                     colors = listOf(
-                        RawColors.Emerald.Emerald500.copy(alpha = 0.9f),
-                        RawColors.Emerald.Emerald500.copy(alpha = 0.75f),
-                        RawColors.Emerald.Emerald500.copy(alpha = 0.9f),
+                        MaterialTheme.extendedColors.brandAccent.copy(alpha = 0.9f),
+                        MaterialTheme.extendedColors.brandAccent.copy(alpha = 0.75f),
+                        MaterialTheme.extendedColors.brandAccent.copy(alpha = 0.9f),
                     )
                 )
                 Box(
@@ -311,8 +307,7 @@ fun SieveCard(
                             style = MaterialTheme.typography.labelMedium,
                             color = Color.White,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 12.sp
-                        )
+        )
                     }
                 }
 

@@ -19,13 +19,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.kahavanu.ui.theme.ButtonTokens
-import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.Primary
-
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.shadow
 import com.kahavanu.ui.theme.appButtonHighlightBrush
@@ -70,8 +67,7 @@ fun AuthPrimaryButton(
             Text(
                 text = text,
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Medium,
-            )
+        )
             if (trailingIcon != null) {
                 Spacer(modifier = Modifier.width(Spacing.small))
                 Icon(
@@ -102,14 +98,14 @@ fun AuthOutlinedButton(
                 elevation = 4.dp,
                 shape = buttonShape,
                 clip = false,
-                ambientColor = RawColors.Slate.Slate900.copy(alpha = 0.05f),
-                spotColor = RawColors.Slate.Slate900.copy(alpha = 0.1f)
+                ambientColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f),
+                spotColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
             ),
         shape = buttonShape,
-        border = BorderStroke(1.2.dp, RawColors.Slate.Slate200.copy(alpha = 0.7f)),
+        border = BorderStroke(1.2.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.7f)),
         colors = ButtonDefaults.buttonColors(
             containerColor = Color.White.copy(alpha = 0.7f),
-            contentColor = RawColors.Slate.Slate900,
+            contentColor = MaterialTheme.colorScheme.onSurface,
         ),
     ) {
         Row(
@@ -129,9 +125,8 @@ fun AuthOutlinedButton(
             Text(
                 text = text,
                 style = MaterialTheme.typography.titleMedium,
-                color = RawColors.Slate.Slate900,
-                fontWeight = FontWeight.Medium,
-            )
+                color = MaterialTheme.colorScheme.onSurface,
+        )
         }
     }
 }

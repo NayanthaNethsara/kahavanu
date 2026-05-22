@@ -36,7 +36,6 @@ import com.kahavanu.ui.common.AuthScaffold
 import com.kahavanu.ui.common.AuthOutlinedButton
 import com.kahavanu.ui.common.AuthPrimaryButton
 import com.kahavanu.ui.common.AuthTextField
-import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 
 @Composable
@@ -122,7 +121,7 @@ fun LoginScreen(
             ) {
                 Text(
                     text = "Forgot password?",
-                    color = RawColors.Emerald.Emerald600,
+                    color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Medium,
                 )
             }

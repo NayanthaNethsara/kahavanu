@@ -1,5 +1,7 @@
 package com.kahavanu.ui.common
 
+import androidx.compose.material3.MaterialTheme
+import com.kahavanu.ui.theme.extendedColors
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -25,7 +27,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.draw.shadow
 import com.kahavanu.ui.theme.KahavanuShapes
-import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
@@ -71,7 +72,7 @@ fun MatchingSection(
                     onDismiss = { onDismiss(item) }
                 )
                 if (index != items.lastIndex) {
-                    HorizontalDivider(color = RawColors.Slate.Slate200.copy(alpha = 0.5f))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                 }
             }
         }
@@ -104,8 +105,7 @@ private fun MatchItem(
                 Text(
                     text = item.amount,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Medium,
-                    color = TextPrimary,
+            color = TextPrimary,
                     fontSize = TextSize.lg,
                     letterSpacing = (-0.8).sp
                 )
@@ -120,10 +120,7 @@ private fun MatchItem(
                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
                     style = MaterialTheme.typography.labelSmall,
                     color = TextTertiaryEmerald,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = TextSize.xs,
-                    letterSpacing = 0.5.sp
-                )
+            fontSize = TextSize.xs,)
             }
         }
         
@@ -131,9 +128,9 @@ private fun MatchItem(
         
         Surface(
             modifier = Modifier.fillMaxWidth(),
-            color = RawColors.Slate.Slate900.copy(alpha = 0.03f),
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.03f),
             shape = KahavanuShapes.large,
-            border = BorderStroke(1.16.dp, RawColors.Slate.Slate500.copy(alpha = 0.1f))
+            border = BorderStroke(1.16.dp, MaterialTheme.extendedColors.iconMuted.copy(alpha = 0.1f))
         ) {
             Row(
                 modifier = Modifier.padding(horizontal = 13.dp, vertical = 9.dp),
@@ -183,9 +180,9 @@ private fun MatchItem(
                         .background(
                             brush = Brush.verticalGradient(
                                 colors = listOf(
-                                    RawColors.Emerald.Emerald500.copy(alpha = 0.9f),
-                                    RawColors.Emerald.Emerald500.copy(alpha = 0.75f),
-                                    RawColors.Emerald.Emerald500.copy(alpha = 0.9f)
+                                    MaterialTheme.extendedColors.brandAccent.copy(alpha = 0.9f),
+                                    MaterialTheme.extendedColors.brandAccent.copy(alpha = 0.75f),
+                                    MaterialTheme.extendedColors.brandAccent.copy(alpha = 0.9f)
                                 )
                             )
                         )
@@ -216,8 +213,7 @@ private fun MatchItem(
                             text = item.primaryActionLabel,
                             style = MaterialTheme.typography.labelMedium,
                             color = Color.White,
-                            fontWeight = FontWeight.Medium,
-                            fontSize = TextSize.sm,
+            fontSize = TextSize.sm,
                             textAlign = TextAlign.Center
                         )
                     }
@@ -229,7 +225,7 @@ private fun MatchItem(
                 modifier = Modifier.height(36.dp),
                 shape = CircleShape,
                 color = Color.White.copy(alpha = 0.6f),
-                border = BorderStroke(1.16.dp, RawColors.Slate.Slate900.copy(alpha = 0.08f))
+                border = BorderStroke(1.16.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
             ) {
                 Box(
                     modifier = Modifier.padding(horizontal = 16.dp),
@@ -239,8 +235,7 @@ private fun MatchItem(
                         text = item.secondaryActionLabel,
                         style = MaterialTheme.typography.labelMedium,
                         color = TextSecondary,
-                        fontWeight = FontWeight.Medium,
-                        fontSize = TextSize.sm,
+            fontSize = TextSize.sm,
                         textAlign = TextAlign.Center
                     )
                 }
@@ -251,7 +246,7 @@ private fun MatchItem(
                 modifier = Modifier.size(36.dp),
                 shape = CircleShape,
                 color = Color.White.copy(alpha = 0.6f),
-                border = BorderStroke(1.16.dp, RawColors.Slate.Slate900.copy(alpha = 0.08f))
+                border = BorderStroke(1.16.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(

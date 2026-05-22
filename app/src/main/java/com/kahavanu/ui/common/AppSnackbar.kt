@@ -1,5 +1,6 @@
 package com.kahavanu.ui.common
 
+import com.kahavanu.ui.theme.extendedColors
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,7 +17,6 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 
@@ -44,8 +44,8 @@ fun AppSnackbar(
             .padding(Spacing.small)
             .shadow(
                 elevation = 20.dp,
-                spotColor = RawColors.Gray.Gray400,
-                ambientColor = RawColors.Gray.Gray500,
+                spotColor = MaterialTheme.extendedColors.textTertiary,
+                ambientColor = MaterialTheme.extendedColors.iconMuted,
                 shape = RoundedCornerShape(Spacing.medium),
             )
             .border(
@@ -60,7 +60,7 @@ fun AppSnackbar(
                 ) {
                     Text(
                         text = actionLabel,
-                        color = RawColors.Emerald.Emerald600,
+                        color = MaterialTheme.colorScheme.primary,
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.SemiBold,
                     )

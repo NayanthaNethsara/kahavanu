@@ -1,5 +1,6 @@
 package com.kahavanu.ui.auth
 
+import com.kahavanu.ui.theme.extendedColors
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -24,7 +25,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
@@ -42,11 +42,9 @@ import com.kahavanu.R
 import com.kahavanu.ui.common.AppDecorativeGradientOverlay
 import com.kahavanu.ui.common.AuthOutlinedButton
 import com.kahavanu.ui.common.AuthPrimaryButton
-import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -56,7 +54,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-
 import androidx.compose.material3.SnackbarHostState
 import com.kahavanu.ui.common.AppSnackbarHost
 import kotlinx.coroutines.flow.collectLatest
@@ -88,7 +85,7 @@ fun AuthChoiceScreen(
 
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = RawColors.Slate.Slate50,
+        color = MaterialTheme.colorScheme.background,
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             AppDecorativeGradientOverlay(
@@ -139,14 +136,14 @@ fun AuthChoiceScreen(
                         Text(
                             text = "Welcome to Kahavanu",
                             style = MaterialTheme.typography.headlineMedium,
-                            color = RawColors.Slate.Slate900,
+                            color = MaterialTheme.colorScheme.onSurface,
                             textAlign = TextAlign.Center,
                             fontWeight = FontWeight.Medium,
                         )
                         Text(
                             text = "Your journey to financial discipline starts here",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = RawColors.Slate.Slate600,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center,
                         )
                     }
@@ -170,14 +167,14 @@ fun AuthChoiceScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(Spacing.medium)
                         ) {
-                            Box(modifier = Modifier.weight(1f).height(1.dp).background(RawColors.Slate.Slate200))
+                            Box(modifier = Modifier.weight(1f).height(1.dp).background(MaterialTheme.colorScheme.outlineVariant))
                             Text(
                                 text = "or",
                                 style = MaterialTheme.typography.labelMedium,
-                                color = RawColors.Slate.Slate400,
+                                color = MaterialTheme.extendedColors.textTertiary,
                                 fontSize = 13.sp,
                             )
-                            Box(modifier = Modifier.weight(1f).height(1.dp).background(RawColors.Slate.Slate200))
+                            Box(modifier = Modifier.weight(1f).height(1.dp).background(MaterialTheme.colorScheme.outlineVariant))
                         }
 
                         AuthPrimaryButton(
@@ -222,13 +219,13 @@ private fun TermsFooter() {
     val text = buildAnnotatedString {
         append("By continuing, you agree to our ")
         pushStringAnnotation(tag = "URL", annotation = termsOfServiceUrl)
-        withStyle(SpanStyle(color = RawColors.Emerald.Emerald600, fontWeight = FontWeight.Medium)) {
+        withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Medium)) {
             append("Terms of Service")
         }
         pop()
         append(" and ")
         pushStringAnnotation(tag = "URL", annotation = privacyPolicyUrl)
-        withStyle(SpanStyle(color = RawColors.Emerald.Emerald600, fontWeight = FontWeight.Medium)) {
+        withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Medium)) {
             append("Privacy Policy")
         }
         pop()
@@ -237,7 +234,7 @@ private fun TermsFooter() {
     Text(
         text = text,
         style = MaterialTheme.typography.bodySmall.copy(
-            color = RawColors.Slate.Slate500,
+            color = MaterialTheme.extendedColors.iconMuted,
             textAlign = TextAlign.Center,
         ),
         modifier = Modifier.pointerInput(Unit) {

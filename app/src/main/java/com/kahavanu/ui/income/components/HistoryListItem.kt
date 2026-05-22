@@ -1,5 +1,6 @@
 package com.kahavanu.ui.income.components
 
+import com.kahavanu.ui.theme.extendedColors
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -67,7 +68,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kahavanu.domain.model.IncomeSourceType
 import com.kahavanu.ui.income.HistoryItem
-import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
@@ -89,9 +89,9 @@ fun HistoryListItem(
     val isPaid = item is HistoryItem.Log
 
     val accentColor = when {
-        isOverdue -> RawColors.Red.Red600
-        isPaid -> RawColors.Emerald.Emerald600
-        else -> RawColors.Amber.Amber600
+        isOverdue -> MaterialTheme.colorScheme.error
+        isPaid -> MaterialTheme.colorScheme.primary
+        else -> MaterialTheme.extendedColors.warning
     }
     val statusLabel = when {
         isOverdue -> "Overdue"
@@ -152,8 +152,7 @@ fun HistoryListItem(
                 Text(
                     text = item.title,
                     style = MaterialTheme.typography.bodyMedium,
-                    fontSize = TextSize.sm,
-                    fontWeight = FontWeight.SemiBold,
+            fontWeight = FontWeight.SemiBold,
                     color = TextPrimary,
                     maxLines = 1,
                     modifier = Modifier.weight(1f, fill = false),
@@ -162,8 +161,7 @@ fun HistoryListItem(
                     Text(
                         text = sourceName,
                         style = MaterialTheme.typography.labelSmall,
-                        fontSize = 11.sp,
-                        color = TextSecondary,
+            color = TextSecondary,
                         maxLines = 1,
                     )
                 }
@@ -177,8 +175,7 @@ fun HistoryListItem(
                 Text(
                     text = dueText,
                     style = MaterialTheme.typography.labelSmall,
-                    fontSize = 11.sp,
-                    color = TextSecondary,
+            color = TextSecondary,
                 )
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -187,21 +184,18 @@ fun HistoryListItem(
                     Text(
                         text = statusLabel,
                         style = MaterialTheme.typography.labelSmall,
-                        fontSize = 11.sp,
-                        color = accentColor,
-                        fontWeight = FontWeight.Medium,
-                    )
+            color = accentColor,)
                     if (isPending && onMarkAsReceived != null) {
                         MiniActionButton(
                             label = "Receive",
-                            color = RawColors.Emerald.Emerald600,
+                            color = MaterialTheme.colorScheme.primary,
                             onClick = onMarkAsReceived,
                         )
                     }
                     if (isOverdue) {
                         MiniActionButton(
                             label = "Nudge",
-                            color = RawColors.Red.Red600,
+                            color = MaterialTheme.colorScheme.error,
                             icon = Icons.AutoMirrored.Outlined.Send,
                             onClick = {},
                         )
@@ -214,7 +208,6 @@ fun HistoryListItem(
         Text(
             text = formatAmount(item.amount, item.currency),
             style = MaterialTheme.typography.bodyMedium,
-            fontSize = TextSize.sm,
             fontWeight = FontWeight.SemiBold,
             color = TextPrimary,
         )
@@ -283,8 +276,7 @@ private fun MiniActionButton(
                 Text(
                     text = label,
                     style = MaterialTheme.typography.labelSmall,
-                    fontSize = 11.sp,
-                    color = color,
+            color = color,
                     fontWeight = FontWeight.SemiBold,
                 )
             }
@@ -393,8 +385,7 @@ private fun HistoryDetailSheet(
                 Text(
                     text = formatAmount(item.amount, item.currency),
                     style = MaterialTheme.typography.headlineMedium,
-                    fontSize = 28.sp,
-                    lineHeight = 32.sp,
+            lineHeight = 32.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = TextPrimary,
                     letterSpacing = (-0.5).sp,
@@ -459,7 +450,7 @@ private fun HistoryDetailSheet(
                         .height(52.dp),
                     shape = CircleShape,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = RawColors.Emerald.Emerald600,
+                        containerColor = MaterialTheme.colorScheme.primary,
                         contentColor = Color.White,
                     ),
                 ) {
@@ -475,11 +466,9 @@ private fun SheetLabel(text: String) {
     Text(
         text = text.uppercase(),
         style = MaterialTheme.typography.labelSmall,
-        fontSize = 11.sp,
-        letterSpacing = 0.7.sp,
+            letterSpacing = 0.7.sp,
         color = TextSecondary,
-        fontWeight = FontWeight.Medium,
-    )
+        )
 }
 
 @Composable
@@ -510,14 +499,12 @@ private fun DetailRow(
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelSmall,
-                fontSize = 11.sp,
-                color = TextSecondary,
+            color = TextSecondary,
             )
             Text(
                 text = value,
                 style = MaterialTheme.typography.bodyMedium,
-                fontSize = TextSize.sm,
-                color = valueColor,
+            color = valueColor,
                 fontWeight = FontWeight.Medium,
             )
         }

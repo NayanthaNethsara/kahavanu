@@ -67,7 +67,6 @@ import com.kahavanu.ui.theme.SurfaceCard
 import com.kahavanu.ui.theme.SurfaceIconBorder
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
-import com.kahavanu.ui.theme.TextSize
 import java.time.Instant
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
@@ -361,8 +360,7 @@ private fun FieldLabel(text: String) {
         style = MaterialTheme.typography.labelMedium,
         fontSize = 13.sp,
         color = TextSecondary,
-        fontWeight = FontWeight.Medium,
-    )
+        )
 }
 
 @Composable
@@ -407,8 +405,7 @@ private fun CategoryButton(
             Text(
                 text = category.label,
                 style = MaterialTheme.typography.labelSmall,
-                fontSize = 11.sp,
-                color = textColor,
+            color = textColor,
             )
         }
     }
@@ -448,8 +445,7 @@ private fun PaymentMethodButton(
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelSmall,
-                fontSize = 11.sp,
-                color = textColor,
+            color = textColor,
             )
         }
     }

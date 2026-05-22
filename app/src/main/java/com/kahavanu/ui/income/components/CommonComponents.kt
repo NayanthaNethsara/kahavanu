@@ -1,5 +1,6 @@
 package com.kahavanu.ui.income.components
 
+import com.kahavanu.ui.theme.extendedColors
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -26,12 +27,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kahavanu.domain.model.CurrencyOption
 import com.kahavanu.ui.theme.KahavanuShapes
-import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
 import com.kahavanu.ui.theme.Spacing
@@ -47,7 +46,7 @@ fun CurrencyToggle(
             .width(110.dp)
             .height(52.dp)
             .background(
-                RawColors.Slate.Slate900.copy(alpha = 0.06f),
+                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f),
                 KahavanuShapes.medium,
             )
             .padding(3.dp),
@@ -80,7 +79,7 @@ fun CurrencyOptionButton(
         modifier = modifier
             .fillMaxSize()
             .background(
-                if (selected) RawColors.Emerald.Emerald500 else Color.Transparent,
+                if (selected) MaterialTheme.extendedColors.brandAccent else Color.Transparent,
                 KahavanuShapes.small,
             )
             .clickable(onClick = onClick),
@@ -90,7 +89,6 @@ fun CurrencyOptionButton(
             text = text,
             style = MaterialTheme.typography.labelMedium,
             fontSize = TextSize.sm,
-            fontWeight = FontWeight.Medium,
             color = if (selected) Color.White else TextSecondary,
         )
     }
@@ -110,7 +108,7 @@ fun CurrencyDropdown(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp)
-                .background(RawColors.Slate.Slate900.copy(alpha = 0.04f), KahavanuShapes.medium)
+                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.04f), KahavanuShapes.medium)
                 .clickable { expanded = true }
                 .padding(horizontal = Spacing.medium),
             verticalAlignment = Alignment.CenterVertically,
@@ -119,8 +117,7 @@ fun CurrencyDropdown(
             Text(
                 text = selected.code,
                 style = MaterialTheme.typography.bodyMedium,
-                fontSize = TextSize.sm,
-                color = TextPrimary
+            color = TextPrimary
             )
             Icon(
                 imageVector = Icons.Default.ArrowDropDown,
@@ -142,8 +139,7 @@ fun CurrencyDropdown(
                         Text(
                             text = option.code,
                             style = MaterialTheme.typography.bodyMedium,
-                            fontSize = TextSize.sm,
-                            color = TextPrimary
+            color = TextPrimary
                         )
                     },
                     onClick = {

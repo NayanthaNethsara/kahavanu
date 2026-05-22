@@ -2,10 +2,12 @@ package com.kahavanu.di
 
 import android.content.Context
 import com.kahavanu.data.local.AppDatabase
+import com.kahavanu.data.sieve.DefaultSmsScanRepository
 import com.kahavanu.data.sieve.DefaultSmsSuggestionRepository
 import com.kahavanu.data.sieve.local.SmsSuggestionDao
 import com.kahavanu.data.sieve.sms.SmsScanScheduler
 import com.kahavanu.data.sieve.sms.SmsReader
+import com.kahavanu.domain.repository.SmsScanRepository
 import com.kahavanu.domain.repository.SmsSuggestionRepository
 import dagger.Binds
 import dagger.Module
@@ -24,6 +26,12 @@ abstract class SmsSuggestionModule {
     abstract fun bindSmsSuggestionRepository(
         impl: DefaultSmsSuggestionRepository,
     ): SmsSuggestionRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindSmsScanRepository(
+        impl: DefaultSmsScanRepository,
+    ): SmsScanRepository
 
     companion object {
 

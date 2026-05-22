@@ -32,7 +32,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import com.kahavanu.R
 import androidx.compose.ui.text.font.FontWeight
-import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import androidx.compose.ui.unit.dp
 
@@ -49,7 +48,7 @@ fun AuthScaffold(
     
     Surface(
         modifier = modifier.fillMaxSize(),
-        color = RawColors.Slate.Slate50,
+        color = MaterialTheme.colorScheme.background,
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             AppDecorativeGradientOverlay(
@@ -86,12 +85,12 @@ fun AuthScaffold(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = null,
-                            tint = RawColors.Slate.Slate600,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Spacer(modifier = Modifier.width(Spacing.small))
                         Text(
                             text = "Back",
-                            color = RawColors.Slate.Slate600,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontWeight = FontWeight.Medium,
                         )
                     }
@@ -114,13 +113,13 @@ fun AuthScaffold(
                     Text(
                         text = title,
                         style = MaterialTheme.typography.headlineMedium,
-                        color = RawColors.Slate.Slate900,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.Medium,
                     )
                     Text(
                         text = subtitle,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = RawColors.Slate.Slate600,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
 
                     Spacer(modifier = Modifier.height(Spacing.huge))

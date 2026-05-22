@@ -1,5 +1,12 @@
 package com.kahavanu.ui.goals
 
+import com.kahavanu.ui.theme.IconMuted
+import com.kahavanu.ui.theme.Romance
+import com.kahavanu.ui.theme.UtilityAccent
+import com.kahavanu.ui.theme.Warning
+import com.kahavanu.ui.theme.Info
+import com.kahavanu.ui.theme.Primary
+import com.kahavanu.ui.theme.extendedColors
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
@@ -58,12 +65,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.kahavanu.data.goals.local.GoalAdjustmentLogEntity
 import com.kahavanu.domain.model.CurrencyOption
+import com.kahavanu.domain.model.GoalAdjustmentLog
 import com.kahavanu.domain.model.GoalCategory
 import com.kahavanu.domain.model.GoalEntry
 import com.kahavanu.ui.goals.components.formatAmount
-import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
@@ -84,7 +90,7 @@ fun CompletedGoalsScreen(
         modifier = Modifier
             .fillMaxSize()
             .windowInsetsPadding(WindowInsets.systemBars),
-        color = RawColors.Slate.Slate50,
+        color = MaterialTheme.colorScheme.background,
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             // Top bar
@@ -93,7 +99,7 @@ fun CompletedGoalsScreen(
                     .fillMaxWidth()
                     .background(
                         Brush.verticalGradient(
-                            listOf(RawColors.Slate.Slate50, RawColors.Emerald.Emerald50.copy(alpha = 0.3f))
+                            listOf(MaterialTheme.colorScheme.background, MaterialTheme.extendedColors.brandWashed.copy(alpha = 0.3f))
                         )
                     )
                     .padding(horizontal = Spacing.large, vertical = Spacing.medium),
@@ -123,7 +129,7 @@ fun CompletedGoalsScreen(
                 }
             }
 
-            HorizontalDivider(color = RawColors.Slate.Slate200)
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
             if (uiState.goals.isEmpty()) {
                 Box(
@@ -134,7 +140,7 @@ fun CompletedGoalsScreen(
                         Icon(
                             imageVector = Icons.Outlined.CheckCircle,
                             contentDescription = null,
-                            tint = RawColors.Slate.Slate300,
+                            tint = MaterialTheme.colorScheme.outline,
                             modifier = Modifier.size(56.dp),
                         )
                         Spacer(modifier = Modifier.height(Spacing.medium))
@@ -142,8 +148,7 @@ fun CompletedGoalsScreen(
                             text = "No completed goals yet",
                             style = MaterialTheme.typography.titleSmall,
                             color = TextPrimary,
-                            fontWeight = FontWeight.Medium,
-                        )
+        )
                         Text(
                             text = "Keep saving — you'll get there!",
                             style = MaterialTheme.typography.bodySmall,
@@ -177,7 +182,7 @@ fun CompletedGoalsScreen(
 private fun CompletedGoalCard(
     goal: GoalEntry,
     currency: CurrencyOption,
-    logsFlow: () -> kotlinx.coroutines.flow.Flow<List<GoalAdjustmentLogEntity>>,
+    logsFlow: () -> kotlinx.coroutines.flow.Flow<List<GoalAdjustmentLog>>,
 ) {
     var expanded by remember { mutableStateOf(false) }
     val logs by remember { logsFlow() }.collectAsState(initial = emptyList())
@@ -191,8 +196,8 @@ private fun CompletedGoalCard(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(RawColors.Emerald.Emerald50.copy(alpha = 0.6f))
-            .border(1.dp, RawColors.Emerald.Emerald200, RoundedCornerShape(16.dp)),
+            .background(MaterialTheme.extendedColors.brandWashed.copy(alpha = 0.6f))
+            .border(1.dp, MaterialTheme.extendedColors.brandBorder, RoundedCornerShape(16.dp)),
     ) {
         // Card header
         Row(
@@ -225,8 +230,7 @@ private fun CompletedGoalCard(
                     Text(
                         text = "Completed ${completedDate.format(formatter)}",
                         style = MaterialTheme.typography.bodySmall,
-                        fontSize = TextSize.xs,
-                        color = RawColors.Emerald.Emerald600,
+            color = MaterialTheme.colorScheme.primary,
                     )
                 }
             }
@@ -235,14 +239,12 @@ private fun CompletedGoalCard(
                     text = formatAmount(goal.currentAmount, currency.code),
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
-                    color = RawColors.Emerald.Emerald600,
-                    fontSize = TextSize.sm,
-                )
+                    color = MaterialTheme.colorScheme.primary,
+        )
                 Text(
                     text = "Target: ${formatAmount(goal.targetAmount, currency.code)}",
                     style = MaterialTheme.typography.bodySmall,
-                    fontSize = TextSize.xs,
-                    color = TextSecondary,
+            color = TextSecondary,
                 )
             }
             Spacer(modifier = Modifier.width(Spacing.small))
@@ -266,7 +268,7 @@ private fun CompletedGoalCard(
                     .padding(horizontal = Spacing.large)
                     .padding(bottom = Spacing.large),
             ) {
-                HorizontalDivider(color = RawColors.Emerald.Emerald200)
+                HorizontalDivider(color = MaterialTheme.extendedColors.brandBorder)
                 Spacer(modifier = Modifier.height(Spacing.medium))
                 Text(
                     text = "Savings Log",
@@ -280,8 +282,7 @@ private fun CompletedGoalCard(
                     Text(
                         text = "No adjustment history recorded",
                         style = MaterialTheme.typography.bodySmall,
-                        fontSize = TextSize.xs,
-                        color = TextSecondary,
+            color = TextSecondary,
                     )
                 } else {
                     Column(verticalArrangement = Arrangement.spacedBy(Spacing.small)) {
@@ -297,11 +298,11 @@ private fun CompletedGoalCard(
 
 @Composable
 private fun AdjustmentLogRow(
-    log: GoalAdjustmentLogEntity,
+    log: GoalAdjustmentLog,
     currency: CurrencyOption,
 ) {
     val isAddition = log.delta >= 0
-    val color = if (isAddition) RawColors.Emerald.Emerald600 else RawColors.Rose.Rose500
+    val color = if (isAddition) MaterialTheme.colorScheme.primary else MaterialTheme.extendedColors.romance
     val icon = if (isAddition) Icons.Outlined.Add else Icons.Outlined.Remove
     val date = Instant.ofEpochMilli(log.timestampEpochMillis)
         .atZone(ZoneId.systemDefault())
@@ -324,8 +325,7 @@ private fun AdjustmentLogRow(
             Text(
                 text = "${if (isAddition) "+" else "−"} ${formatAmount(Math.abs(log.delta), currency.code)}",
                 style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Medium,
-                color = color,
+            color = color,
                 fontSize = TextSize.xs,
             )
         }
@@ -347,13 +347,13 @@ private fun AdjustmentLogRow(
 }
 
 private fun completedCategoryColor(category: GoalCategory) = when (category) {
-    GoalCategory.SAVINGS -> RawColors.Emerald.Emerald600
-    GoalCategory.TRAVEL -> RawColors.Blue.Blue500
-    GoalCategory.EMERGENCY -> RawColors.Amber.Amber600
-    GoalCategory.EDUCATION -> RawColors.Violet.Violet500
-    GoalCategory.PURCHASE -> RawColors.Rose.Rose500
-    GoalCategory.INVESTMENT -> RawColors.Emerald.Emerald600
-    GoalCategory.OTHER -> RawColors.Slate.Slate500
+    GoalCategory.SAVINGS -> Primary
+    GoalCategory.TRAVEL -> Info
+    GoalCategory.EMERGENCY -> Warning
+    GoalCategory.EDUCATION -> UtilityAccent
+    GoalCategory.PURCHASE -> Romance
+    GoalCategory.INVESTMENT -> Primary
+    GoalCategory.OTHER -> IconMuted
 }
 
 private fun categoryIcon(category: GoalCategory): ImageVector = when (category) {

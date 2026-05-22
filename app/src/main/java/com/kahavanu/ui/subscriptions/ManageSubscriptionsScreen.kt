@@ -1,5 +1,6 @@
 package com.kahavanu.ui.subscriptions
 
+import com.kahavanu.ui.theme.extendedColors
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -73,12 +74,10 @@ import com.kahavanu.ui.common.SectionLabel
 import com.kahavanu.ui.common.textFieldColors
 import com.kahavanu.ui.theme.circularIconButton
 import com.kahavanu.ui.theme.KahavanuShapes
-import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
 import com.kahavanu.ui.theme.TextTertiary
-
 import com.kahavanu.ui.common.KahavanuSubScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -115,7 +114,7 @@ fun ManageSubscriptionsScreen(
                 Icon(
                     imageVector = Icons.Default.Add,
                     contentDescription = "Add Subscription",
-                    tint = RawColors.Indigo.Indigo600,
+                    tint = MaterialTheme.colorScheme.tertiary,
                 )
             }
         }
@@ -195,7 +194,7 @@ private fun SpendAnalysisCard(
     GlassCard(
         modifier = Modifier.fillMaxWidth(),
         backgroundColor = Color.White.copy(alpha = 0.9f),
-        borderColor = RawColors.Slate.Slate200.copy(alpha = 0.6f)
+        borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
     ) {
         Column(
             modifier = Modifier
@@ -213,35 +212,33 @@ private fun SpendAnalysisCard(
                         style = MaterialTheme.typography.labelSmall,
                         fontSize = 10.sp,
                         color = TextSecondary,
-                        letterSpacing = 0.5.sp,
-                        fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = String.format("$%.2f", totalSpend),
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
-                        color = RawColors.Red.Red600,
-                        fontSize = 28.sp,
-                        letterSpacing = (-1).sp
+                        color = MaterialTheme.colorScheme.error,
+            letterSpacing = (-1).sp
                     )
                 }
                 Box(
                     modifier = Modifier
                         .size(44.dp)
-                        .background(RawColors.Red.Red50.copy(alpha = 0.8f), RoundedCornerShape(12.dp)),
+                        .background(MaterialTheme.extendedColors.dangerWashed.copy(alpha = 0.8f), RoundedCornerShape(12.dp)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.CreditCard,
                         contentDescription = null,
-                        tint = RawColors.Red.Red500,
+                        tint = MaterialTheme.extendedColors.dangerAccent,
                         modifier = Modifier.size(22.dp)
                     )
                 }
             }
             Spacer(modifier = Modifier.height(Spacing.medium))
-            HorizontalDivider(color = RawColors.Slate.Slate200.copy(alpha = 0.4f))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
             Spacer(modifier = Modifier.height(Spacing.medium))
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -278,7 +275,7 @@ private fun SubscriptionsList(
             GlassCard(
                 modifier = Modifier.fillMaxWidth(),
                 backgroundColor = Color.White.copy(alpha = 0.6f),
-                borderColor = RawColors.Slate.Slate200.copy(alpha = 0.4f)
+                borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
             ) {
                 Box(
                     modifier = Modifier
@@ -297,7 +294,7 @@ private fun SubscriptionsList(
             GlassCard(
                 modifier = Modifier.fillMaxWidth(),
                 backgroundColor = Color.White.copy(alpha = 0.9f),
-                borderColor = RawColors.Slate.Slate200.copy(alpha = 0.6f)
+                borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
             ) {
                 subscriptions.forEachIndexed { index, sub ->
                     SubscriptionRow(
@@ -307,7 +304,7 @@ private fun SubscriptionsList(
                     )
                     if (index < subscriptions.lastIndex) {
                         HorizontalDivider(
-                            color = RawColors.Slate.Slate200.copy(alpha = 0.4f),
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
                             thickness = 0.5.dp
                         )
                     }
@@ -333,7 +330,7 @@ private fun SubscriptionRow(
             modifier = Modifier
                 .size(40.dp)
                 .background(
-                    if (subscription.isPaused) RawColors.Slate.Slate100 else RawColors.Indigo.Indigo50,
+                    if (subscription.isPaused) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.extendedColors.infoWashed,
                     RoundedCornerShape(12.dp)
                 ),
             contentAlignment = Alignment.Center
@@ -341,7 +338,7 @@ private fun SubscriptionRow(
             Icon(
                 imageVector = Icons.Outlined.NotificationsActive,
                 contentDescription = null,
-                tint = if (subscription.isPaused) TextTertiary else RawColors.Indigo.Indigo500,
+                tint = if (subscription.isPaused) TextTertiary else MaterialTheme.extendedColors.infoAccent,
                 modifier = Modifier.size(20.dp)
             )
         }
@@ -361,10 +358,10 @@ private fun SubscriptionRow(
                     style = MaterialTheme.typography.labelSmall,
                     fontSize = 9.sp,
                     fontWeight = FontWeight.Bold,
-                    color = if (subscription.isPaused) RawColors.Slate.Slate500 else RawColors.Emerald.Emerald700,
+                    color = if (subscription.isPaused) MaterialTheme.extendedColors.iconMuted else MaterialTheme.extendedColors.brandText,
                     modifier = Modifier
                         .background(
-                            if (subscription.isPaused) RawColors.Slate.Slate100 else RawColors.Emerald.Emerald50,
+                            if (subscription.isPaused) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.extendedColors.brandWashed,
                             CircleShape
                         )
                         .padding(horizontal = 6.dp, vertical = 2.dp)
@@ -406,9 +403,9 @@ private fun SubscriptionRow(
                 onCheckedChange = onToggle,
                 colors = SwitchDefaults.colors(
                     checkedThumbColor = Color.White,
-                    checkedTrackColor = RawColors.Indigo.Indigo500,
+                    checkedTrackColor = MaterialTheme.extendedColors.infoAccent,
                     uncheckedThumbColor = Color.White,
-                    uncheckedTrackColor = RawColors.Slate.Slate200,
+                    uncheckedTrackColor = MaterialTheme.colorScheme.outlineVariant,
                     uncheckedBorderColor = Color.Transparent,
                     checkedBorderColor = Color.Transparent,
                 ),
@@ -421,7 +418,7 @@ private fun SubscriptionRow(
                 Icon(
                     imageVector = Icons.Outlined.DeleteOutline,
                     contentDescription = "Delete",
-                    tint = RawColors.Red.Red500,
+                    tint = MaterialTheme.extendedColors.dangerAccent,
                     modifier = Modifier.size(18.dp)
                 )
             }
@@ -524,8 +521,8 @@ private fun SubscriptionForm(
                         .height(56.dp),
                     height = 56.dp,
                     shape = KahavanuShapes.large,
-                    containerColor = RawColors.Slate.Slate900.copy(alpha = 0.05f),
-                    indicatorColor = RawColors.Indigo.Indigo500,
+                    containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f),
+                    indicatorColor = MaterialTheme.extendedColors.infoAccent,
                     indicatorShadow = 1.dp,
                     selectedTextColor = Color.White,
                     unselectedTextColor = TextSecondary,

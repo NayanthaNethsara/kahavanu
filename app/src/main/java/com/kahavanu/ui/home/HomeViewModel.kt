@@ -2,7 +2,6 @@ package com.kahavanu.ui.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.kahavanu.data.sieve.sms.SmsScanScheduler
 import com.kahavanu.domain.model.ExpenseLogEntry
 import com.kahavanu.domain.model.GoalEntry
 import com.kahavanu.domain.model.IncomeLogEntry
@@ -12,6 +11,7 @@ import com.kahavanu.domain.repository.ExpensesRepository
 import com.kahavanu.domain.repository.GoalsRepository
 import com.kahavanu.domain.repository.IncomeRepository
 import com.kahavanu.domain.repository.SettingsRepository
+import com.kahavanu.domain.repository.SmsScanRepository
 import com.kahavanu.domain.repository.SmsSenderRepository
 import com.kahavanu.domain.repository.SmsSuggestionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -60,29 +60,23 @@ class HomeViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val smsSenderRepository: SmsSenderRepository,
     private val smsSuggestionRepository: SmsSuggestionRepository,
-    private val smsScanScheduler: SmsScanScheduler,
+    private val smsScanRepository: SmsScanRepository,
 ) : ViewModel() {
 
     val uiState: StateFlow<HomeUiState> = combine(
         goalsRepository.observeGoals(),
         incomeRepository.observeIncomeLogs(),
         smsSuggestionRepository.observePendingSuggestions(),
-        smsScanScheduler.isScanningFlow,
+        smsScanRepository.isScanningFlow,
     ) { goals, incomeLogs, suggestions, isScanning ->
         val featured = goals.firstOrNull { !it.isCompleted }
         val sieveItems = suggestions.map { it.toSieveItem() }
 
-        val localReceived = incomeLogs.filter { it.currency == "LKR" && it.sourceType != "pending" }.sumOf { it.amount }
-        val localPending = incomeLogs.filter { it.currency == "LKR" && it.sourceType == "pending" }.sumOf { it.amount }
+        val lkrReceived = incomeLogs.filter { it.currency == "LKR" && it.sourceType != "pending" }.sumOf { it.amount }
+        val lkrPending = incomeLogs.filter { it.currency == "LKR" && it.sourceType == "pending" }.sumOf { it.amount }
         val usdReceived = incomeLogs.filter { it.currency == "USD" && it.sourceType != "pending" }.sumOf { it.amount }
         val usdInvoiced = incomeLogs.filter { it.currency == "USD" && it.sourceType == "pending" }.sumOf { it.amount }
-        val cryptoReceived = incomeLogs.filter { it.currency == "USDT" || it.currency == "BTC" || it.currency == "ETH" }.sumOf { it.amount }
-
-        val finalLkrRec = if (localReceived > 0) localReceived else 122400.0
-        val finalLkrPend = if (localPending > 0) localPending else 18000.0
-        val finalUsdRec = if (usdReceived > 0) usdReceived else 480.0
-        val finalUsdInv = if (usdInvoiced > 0) usdInvoiced else 320.0
-        val finalCryptoRec = if (cryptoReceived > 0) cryptoReceived else 96.0
+        val cryptoReceived = incomeLogs.filter { it.currency in cryptoCurrencies }.sumOf { it.amount }
 
         HomeUiState(
             featuredGoal = featured,
@@ -90,25 +84,25 @@ class HomeViewModel @Inject constructor(
             incomeStreams = listOf(
                 IncomeStreamItem(
                     title = "Local · LKR",
-                    subtitle = "LKR ${String.format("%,.0f", finalLkrPend)} pending",
-                    receivedAmount = finalLkrRec,
-                    receivedFormatted = "LKR ${String.format("%,.0f", finalLkrRec)}",
-                    pendingText = "LKR ${String.format("%,.0f", finalLkrPend)} pending",
+                    subtitle = "LKR ${String.format("%,.0f", lkrPending)} pending",
+                    receivedAmount = lkrReceived,
+                    receivedFormatted = "LKR ${String.format("%,.0f", lkrReceived)}",
+                    pendingText = "LKR ${String.format("%,.0f", lkrPending)} pending",
                     iconIndex = 12,
                 ),
                 IncomeStreamItem(
                     title = "Global · USD",
-                    subtitle = "$ ${String.format("%,.0f", finalUsdInv)} invoiced",
-                    receivedAmount = finalUsdRec,
-                    receivedFormatted = "$ ${String.format("%,.0f", finalUsdRec)}",
-                    pendingText = "$ ${String.format("%,.0f", finalUsdInv)} invoiced",
+                    subtitle = "$ ${String.format("%,.0f", usdInvoiced)} invoiced",
+                    receivedAmount = usdReceived,
+                    receivedFormatted = "$ ${String.format("%,.0f", usdReceived)}",
+                    pendingText = "$ ${String.format("%,.0f", usdInvoiced)} invoiced",
                     iconIndex = 13,
                 ),
                 IncomeStreamItem(
                     title = "Crypto",
                     subtitle = "—",
-                    receivedAmount = finalCryptoRec,
-                    receivedFormatted = "$ ${String.format("%,.0f", finalCryptoRec)}",
+                    receivedAmount = cryptoReceived,
+                    receivedFormatted = "$ ${String.format("%,.0f", cryptoReceived)}",
                     pendingText = "—",
                     iconIndex = 14,
                 ),
@@ -122,7 +116,7 @@ class HomeViewModel @Inject constructor(
     )
 
     fun scanNow() {
-        smsScanScheduler.enqueue()
+        smsScanRepository.scanNow()
     }
 
     fun confirmSieveItem(itemId: String) {
@@ -198,6 +192,8 @@ private fun SmsSuggestion.toSieveItem() = SieveItem(
     detectedFrom = "From $smsSenderName",
     merchantOrSource = merchant ?: smsSenderName,
 )
+
+private val cryptoCurrencies = setOf("USDT", "BTC", "ETH")
 
 internal fun inferExpenseCategory(senderName: String, merchant: String?): String {
     val text = listOf(senderName, merchant ?: "").joinToString(" ").lowercase()

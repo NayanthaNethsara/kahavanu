@@ -1,5 +1,6 @@
 package com.kahavanu.ui.common
 
+import com.kahavanu.ui.theme.extendedColors
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -58,7 +59,6 @@ import androidx.compose.ui.unit.sp
 import com.kahavanu.ui.navigation.AppDestination
 import com.kahavanu.ui.theme.CornerRadius
 import com.kahavanu.ui.theme.Elevation
-import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
@@ -110,13 +110,13 @@ fun BottomNavBar(
                 .fillMaxWidth()
                 .shadow(
                     elevation = 20.dp,
-                    spotColor = RawColors.Gray.Gray400,
-                    ambientColor = RawColors.Gray.Gray600,
+                    spotColor = MaterialTheme.extendedColors.textTertiary,
+                    ambientColor = MaterialTheme.colorScheme.onSurfaceVariant,
                     shape = CircleShape
                 ),
             shape = CircleShape,
             color = Color.White.copy(alpha = 0.95f),
-            border = BorderStroke(0.5.dp, RawColors.Slate.Slate100.copy(alpha = 0.7f))
+            border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f))
         ) {
             var totalWidth by remember { mutableFloatStateOf(0f) }
             val coroutineScope = rememberCoroutineScope()
@@ -221,9 +221,9 @@ fun BottomNavBar(
                             .background(
                                 brush = Brush.verticalGradient(
                                     colors = listOf(
-                                        RawColors.Emerald.Emerald400.copy(alpha = 0.9f),
-                                        RawColors.Emerald.Emerald400.copy(alpha = 0.75f),
-                                        RawColors.Emerald.Emerald400.copy(alpha = 0.9f)
+                                        MaterialTheme.extendedColors.brandGlow.copy(alpha = 0.9f),
+                                        MaterialTheme.extendedColors.brandGlow.copy(alpha = 0.75f),
+                                        MaterialTheme.extendedColors.brandGlow.copy(alpha = 0.9f)
                                     )
                                 ),
                                 shape = RoundedCornerShape(CornerRadius.full)
@@ -272,7 +272,7 @@ private fun BottomNavItem(
     onClick: () -> Unit,
 ) {
     val contentColor = androidx.compose.ui.graphics.lerp(
-        start = RawColors.Slate.Slate400,
+        start = MaterialTheme.extendedColors.textTertiary,
         stop = Color.White,
         fraction = colorWeight
     )
@@ -300,8 +300,7 @@ private fun BottomNavItem(
             style = MaterialTheme.typography.labelSmall.copy(
                 fontWeight = if (colorWeight > 0.5f) FontWeight.Bold else FontWeight.Medium,
                 letterSpacing = (-0.2).sp,
-                fontSize = 11.sp
-            ),
+        ),
             color = contentColor,
         )
     }

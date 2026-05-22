@@ -1,5 +1,6 @@
 package com.kahavanu.ui.common
 
+import com.kahavanu.ui.theme.extendedColors
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -23,7 +24,6 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kahavanu.ui.theme.KahavanuShapes
-import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
@@ -38,11 +38,11 @@ fun SelectableChip(
     enabled: Boolean = true,
     height: Dp = 44.dp,
     shape: Shape = KahavanuShapes.medium,
-    selectedBackgroundColor: Color = RawColors.Emerald.Emerald500.copy(alpha = 0.12f),
-    unselectedBackgroundColor: Color = RawColors.Slate.Slate900.copy(alpha = 0.04f),
-    selectedBorderColor: Color = RawColors.Emerald.Emerald500,
-    unselectedBorderColor: Color = RawColors.Slate.Slate900.copy(alpha = 0.08f),
-    selectedTextColor: Color = RawColors.Emerald.Emerald700,
+    selectedBackgroundColor: Color = MaterialTheme.extendedColors.brandAccent.copy(alpha = 0.12f),
+    unselectedBackgroundColor: Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.04f),
+    selectedBorderColor: Color = MaterialTheme.extendedColors.brandAccent,
+    unselectedBorderColor: Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+    selectedTextColor: Color = MaterialTheme.extendedColors.brandText,
     unselectedTextColor: Color = TextSecondary,
     textStyle: TextStyle = MaterialTheme.typography.labelMedium,
     fontSize: TextUnit = TextSize.xs,
@@ -87,11 +87,11 @@ fun SelectableCard(
     enabled: Boolean = true,
     height: Dp = 72.dp,
     shape: Shape = KahavanuShapes.large,
-    selectedBackgroundColor: Color = RawColors.Emerald.Emerald400.copy(alpha = 0.12f),
+    selectedBackgroundColor: Color = MaterialTheme.extendedColors.brandGlow.copy(alpha = 0.12f),
     unselectedBackgroundColor: Color = Color.White.copy(alpha = 0.4f),
-    selectedBorderColor: Color = RawColors.Emerald.Emerald300,
-    unselectedBorderColor: Color = RawColors.Slate.Slate900.copy(alpha = 0.08f),
-    selectedTitleColor: Color = RawColors.Emerald.Emerald600,
+    selectedBorderColor: Color = MaterialTheme.extendedColors.brandSoft,
+    unselectedBorderColor: Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+    selectedTitleColor: Color = MaterialTheme.colorScheme.primary,
     unselectedTitleColor: Color = TextPrimary,
     subtitleColor: Color = TextSecondary,
     titleStyle: TextStyle = MaterialTheme.typography.labelMedium,

@@ -90,8 +90,7 @@ fun ExpenseGraphScreen(
                         text = "Spending by Category",
                         style = MaterialTheme.typography.titleSmall,
                         fontSize = TextSize.base,
-                        fontWeight = FontWeight.Medium,
-                        color = TextPrimary,
+            color = TextPrimary,
                     )
 
                     stats.categoryBreakdown.forEach { (category, amount) ->

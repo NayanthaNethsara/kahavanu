@@ -1,5 +1,6 @@
 package com.kahavanu.ui.income
 
+import com.kahavanu.ui.theme.extendedColors
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -41,7 +42,6 @@ import com.kahavanu.domain.model.ScheduledIncome
 import com.kahavanu.ui.income.components.formatAmount
 import com.kahavanu.ui.income.components.formatDate
 import com.kahavanu.ui.theme.KahavanuShapes
-import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
@@ -61,9 +61,9 @@ fun RecurringManagerScreen(
             .background(
                 brush = Brush.verticalGradient(
                     colors = listOf(
-                        RawColors.Slate.Slate50,
-                        RawColors.Emerald.Emerald50.copy(alpha = 0.4f),
-                        RawColors.Slate.Slate100
+                        MaterialTheme.colorScheme.background,
+                        MaterialTheme.extendedColors.brandWashed.copy(alpha = 0.4f),
+                        MaterialTheme.colorScheme.surfaceVariant
                     )
                 )
             ),
@@ -121,7 +121,7 @@ fun RecurringManagerScreen(
                         Icon(
                             imageVector = Icons.Outlined.EventRepeat,
                             contentDescription = null,
-                            tint = RawColors.Emerald.Emerald400,
+                            tint = MaterialTheme.extendedColors.brandGlow,
                             modifier = Modifier.size(32.dp)
                         )
                         Text(
@@ -170,12 +170,12 @@ private fun RecurringCard(
                 ) {
                     Surface(
                         shape = RoundedCornerShape(12.dp),
-                        color = RawColors.Emerald.Emerald500.copy(alpha = 0.12f)
+                        color = MaterialTheme.extendedColors.brandAccent.copy(alpha = 0.12f)
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.Autorenew,
                             contentDescription = null,
-                            tint = RawColors.Emerald.Emerald700,
+                            tint = MaterialTheme.extendedColors.brandText,
                             modifier = Modifier.padding(8.dp)
                         )
                     }
@@ -183,8 +183,7 @@ private fun RecurringCard(
                         Text(
                             text = item.title,
                             style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Medium,
-                            color = TextPrimary,
+            color = TextPrimary,
                             fontSize = 15.sp
                         )
                         Text(
@@ -197,7 +196,7 @@ private fun RecurringCard(
 
                 Surface(
                     shape = CircleShape,
-                    color = RawColors.Slate.Slate100
+                    color = MaterialTheme.colorScheme.surfaceVariant
                 ) {
                     Text(
                         text = item.frequency ?: "Monthly",
@@ -224,7 +223,7 @@ private fun RecurringCard(
                 Surface(
                     onClick = onDisable,
                     shape = CircleShape,
-                    color = RawColors.Red.Red500.copy(alpha = 0.12f)
+                    color = MaterialTheme.extendedColors.dangerAccent.copy(alpha = 0.12f)
                 ) {
                     Row(
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
@@ -234,15 +233,14 @@ private fun RecurringCard(
                         Icon(
                             imageVector = Icons.Outlined.Block,
                             contentDescription = null,
-                            tint = RawColors.Red.Red600,
+                            tint = MaterialTheme.colorScheme.error,
                             modifier = Modifier.size(14.dp)
                         )
                         Text(
                             text = "Disable",
                             style = MaterialTheme.typography.labelSmall,
-                            color = RawColors.Red.Red600,
-                            fontWeight = FontWeight.Medium
-                        )
+                            color = MaterialTheme.colorScheme.error,
+        )
                     }
                 }
             }
@@ -269,7 +267,6 @@ private fun InfoRow(
             text = value,
             style = MaterialTheme.typography.labelSmall,
             color = TextPrimary,
-            fontWeight = FontWeight.Medium
         )
     }
 }

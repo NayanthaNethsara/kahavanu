@@ -1,5 +1,6 @@
 package com.kahavanu.ui.auth
 
+import com.kahavanu.ui.theme.extendedColors
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -33,10 +34,8 @@ import com.kahavanu.ui.common.AuthScaffold
 import com.kahavanu.ui.common.AuthOutlinedButton
 import com.kahavanu.ui.common.AuthPrimaryButton
 import com.kahavanu.ui.common.AuthTextField
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.Primary
 
@@ -107,7 +106,7 @@ fun SignupScreen(
                             Icons.Outlined.Visibility
                         },
                         contentDescription = null,
-                        tint = RawColors.Slate.Slate400,
+                        tint = MaterialTheme.extendedColors.textTertiary,
                     )
                 }
             },
@@ -121,7 +120,7 @@ fun SignupScreen(
         Text(
             text = "Must be at least 8 characters",
             style = MaterialTheme.typography.bodySmall,
-            color = RawColors.Slate.Slate500,
+            color = MaterialTheme.extendedColors.iconMuted,
         )
 
         Spacer(modifier = Modifier.height(Spacing.medium))

@@ -1,5 +1,6 @@
 package com.kahavanu.ui.income
 
+import com.kahavanu.ui.theme.extendedColors
 import android.content.Intent
 import android.provider.ContactsContract
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -82,7 +83,6 @@ import com.kahavanu.ui.common.SelectableChip
 import com.kahavanu.ui.common.textFieldColors
 import com.kahavanu.ui.income.components.CurrencyDropdown
 import com.kahavanu.ui.theme.KahavanuShapes
-import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextPrimaryEmerald
@@ -190,8 +190,8 @@ fun IncomeLogScreen(
                 modifier = Modifier.offset(x = (-96).dp, y = (-128).dp),
                 size = 360.dp,
                 colors = listOf(
-                    RawColors.Emerald.Emerald400.copy(alpha = 0.16f),
-                    RawColors.Emerald.Emerald800.copy(alpha = 0.08f),
+                    MaterialTheme.extendedColors.brandGlow.copy(alpha = 0.16f),
+                    MaterialTheme.extendedColors.brandDark.copy(alpha = 0.08f),
                     Color.Transparent,
                 ),
             )
@@ -199,7 +199,7 @@ fun IncomeLogScreen(
                 modifier = Modifier.offset(x = 170.dp, y = 284.dp),
                 size = 320.dp,
                 colors = listOf(
-                    RawColors.Emerald.Emerald400.copy(alpha = 0.1f),
+                    MaterialTheme.extendedColors.brandGlow.copy(alpha = 0.1f),
                     Color.Transparent,
                 ),
             )
@@ -270,7 +270,7 @@ fun IncomeLogScreen(
                                         val intent = Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI)
                                         contactPickerLauncher.launch(intent)
                                     },
-                                    tint = RawColors.Emerald.Emerald600
+                                    tint = MaterialTheme.colorScheme.primary
                                 )
                             }
                         },
@@ -354,8 +354,7 @@ private fun TopBar(
                     fontSize = TextSize.xs,
                     color = TextSecondary,
                     letterSpacing = 0.72.sp,
-                    fontWeight = FontWeight.Medium,
-                )
+        )
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleLarge,
@@ -426,11 +425,11 @@ private fun IncomeTypeCard(
         onClick = onClick,
         modifier = modifier,
         height = 72.dp,
-        selectedBackgroundColor = RawColors.Emerald.Emerald400.copy(alpha = 0.12f),
+        selectedBackgroundColor = MaterialTheme.extendedColors.brandGlow.copy(alpha = 0.12f),
         unselectedBackgroundColor = Color.White.copy(alpha = 0.4f),
-        selectedBorderColor = RawColors.Emerald.Emerald300,
-        unselectedBorderColor = RawColors.Slate.Slate900.copy(alpha = 0.08f),
-        selectedTitleColor = RawColors.Emerald.Emerald600,
+        selectedBorderColor = MaterialTheme.extendedColors.brandSoft,
+        unselectedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+        selectedTitleColor = MaterialTheme.colorScheme.primary,
         unselectedTitleColor = TextPrimary,
         subtitleColor = TextSecondary,
         titleStyle = MaterialTheme.typography.labelMedium,
@@ -456,7 +455,7 @@ private fun IncomeSourceSection(
                 text = "No sources yet. Add one from settings.",
                 style = MaterialTheme.typography.bodySmall,
                 fontSize = TextSize.sm,
-                color = RawColors.Slate.Slate500,
+                color = MaterialTheme.extendedColors.iconMuted,
             )
         } else {
             LazyRow(
@@ -495,11 +494,11 @@ private fun SourceChip(
             .width(110.dp)
             .alpha(if (enabled) 1f else 0.4f),
         height = 56.dp,
-        selectedBackgroundColor = RawColors.Emerald.Emerald400.copy(alpha = 0.12f),
+        selectedBackgroundColor = MaterialTheme.extendedColors.brandGlow.copy(alpha = 0.12f),
         unselectedBackgroundColor = Color.White.copy(alpha = 0.4f),
-        selectedBorderColor = RawColors.Emerald.Emerald300,
-        unselectedBorderColor = RawColors.Slate.Slate900.copy(alpha = 0.08f),
-        selectedTitleColor = RawColors.Emerald.Emerald600,
+        selectedBorderColor = MaterialTheme.extendedColors.brandSoft,
+        unselectedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+        selectedTitleColor = MaterialTheme.colorScheme.primary,
         unselectedTitleColor = TextPrimary,
         titleStyle = MaterialTheme.typography.labelMedium,
         titleFontSize = TextSize.sm,
@@ -596,7 +595,7 @@ private fun DateSection(
                     Icon(
                         imageVector = Icons.Outlined.CalendarMonth,
                         contentDescription = null,
-                        tint = RawColors.Slate.Slate500,
+                        tint = MaterialTheme.extendedColors.iconMuted,
                     )
                 },
                 colors = textFieldColors(),
@@ -644,11 +643,11 @@ private fun FrequencyChip(
         modifier = modifier,
         height = 44.dp,
         shape = KahavanuShapes.medium,
-        selectedBackgroundColor = RawColors.Emerald.Emerald500.copy(alpha = 0.12f),
-        unselectedBackgroundColor = RawColors.Slate.Slate900.copy(alpha = 0.04f),
-        selectedBorderColor = RawColors.Emerald.Emerald500,
-        unselectedBorderColor = RawColors.Slate.Slate900.copy(alpha = 0.08f),
-        selectedTextColor = RawColors.Emerald.Emerald700,
+        selectedBackgroundColor = MaterialTheme.extendedColors.brandAccent.copy(alpha = 0.12f),
+        unselectedBackgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.04f),
+        selectedBorderColor = MaterialTheme.extendedColors.brandAccent,
+        unselectedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+        selectedTextColor = MaterialTheme.extendedColors.brandText,
         unselectedTextColor = TextSecondary,
         textStyle = MaterialTheme.typography.labelMedium,
         fontSize = TextSize.xs,
@@ -659,11 +658,11 @@ private fun FrequencyChip(
 private fun InfoBanner(text: String) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        color = RawColors.Emerald.Emerald500.copy(alpha = 0.14f),
+        color = MaterialTheme.extendedColors.brandAccent.copy(alpha = 0.14f),
         shape = RoundedCornerShape(16.dp),
         border = androidx.compose.foundation.BorderStroke(
             0.7.dp,
-            RawColors.Emerald.Emerald500.copy(alpha = 0.2f),
+            MaterialTheme.extendedColors.brandAccent.copy(alpha = 0.2f),
         ),
     ) {
         Text(
@@ -671,7 +670,7 @@ private fun InfoBanner(text: String) {
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
             style = MaterialTheme.typography.bodySmall,
             fontSize = TextSize.sm,
-            color = RawColors.Emerald.Emerald700,
+            color = MaterialTheme.extendedColors.brandText,
             lineHeight = 18.sp,
         )
     }
@@ -694,9 +693,9 @@ private fun SelectedContactBadge(
     onClear: () -> Unit
 ) {
     Surface(
-        color = RawColors.Emerald.Emerald500.copy(alpha = 0.08f),
+        color = MaterialTheme.extendedColors.brandAccent.copy(alpha = 0.08f),
         shape = CircleShape,
-        border = BorderStroke(1.dp, RawColors.Emerald.Emerald500.copy(alpha = 0.2f)),
+        border = BorderStroke(1.dp, MaterialTheme.extendedColors.brandAccent.copy(alpha = 0.2f)),
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
@@ -707,13 +706,13 @@ private fun SelectedContactBadge(
                 imageVector = Icons.Outlined.PersonAdd,
                 contentDescription = null,
                 modifier = Modifier.size(14.dp),
-                tint = RawColors.Emerald.Emerald600
+                tint = MaterialTheme.colorScheme.primary
             )
             Text(
                 text = name,
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.SemiBold,
-                color = RawColors.Emerald.Emerald700
+                color = MaterialTheme.extendedColors.brandText
             )
             Icon(
                 imageVector = androidx.compose.material.icons.Icons.Default.Close,
@@ -721,7 +720,7 @@ private fun SelectedContactBadge(
                 modifier = Modifier
                     .size(14.dp)
                     .clickable { onClear() },
-                tint = RawColors.Emerald.Emerald600
+                tint = MaterialTheme.colorScheme.primary
             )
         }
     }

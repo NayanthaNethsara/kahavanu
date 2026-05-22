@@ -14,7 +14,6 @@ import com.kahavanu.ui.auth.LoginScreen
 import com.kahavanu.ui.auth.SignupScreen
 import com.kahavanu.ui.onboarding.OnboardingScreen
 import com.kahavanu.ui.main.MainTabsScreen
-
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally

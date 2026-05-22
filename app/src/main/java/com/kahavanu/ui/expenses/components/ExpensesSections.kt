@@ -84,7 +84,7 @@ fun ByCategorySection(
                         currency = currency,
                     )
                     if (index != categories.lastIndex) {
-                        HorizontalDivider(color = RawColors.Slate.Slate200.copy(alpha = 0.4f))
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
                     }
                 }
             }
@@ -126,16 +126,14 @@ private fun CategorySpendItem(
                 Text(
                     text = summary.label,
                     style = MaterialTheme.typography.bodyMedium,
-                    fontSize = TextSize.sm,
-                    color = TextPrimary,
+            color = TextPrimary,
                 )
             }
             Column(horizontalAlignment = Alignment.End) {
                 Text(
                     text = formatAmountNoDecimals(summary.amount, currency.code),
                     style = MaterialTheme.typography.bodyMedium,
-                    fontSize = TextSize.sm,
-                    color = summary.color,
+            color = summary.color,
                     fontWeight = FontWeight.Medium,
                 )
                 Text(
@@ -151,7 +149,7 @@ private fun CategorySpendItem(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(4.dp)
-                .background(RawColors.Slate.Slate100, RoundedCornerShape(99.dp)),
+                .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(99.dp)),
         ) {
             Box(
                 modifier = Modifier
@@ -204,7 +202,7 @@ fun RecentExpensesSection(
                         if (index != expenses.lastIndex) {
                             HorizontalDivider(
                                 modifier = Modifier.padding(horizontal = Spacing.medium),
-                                color = RawColors.Slate.Slate200.copy(alpha = 0.4f),
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
                             )
                         }
                     }

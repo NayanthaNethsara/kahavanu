@@ -1,5 +1,13 @@
 package com.kahavanu.ui.goals.components
 
+import com.kahavanu.ui.theme.BrandAccent
+import com.kahavanu.ui.theme.IconMuted
+import com.kahavanu.ui.theme.Romance
+import com.kahavanu.ui.theme.UtilityAccent
+import com.kahavanu.ui.theme.Warning
+import com.kahavanu.ui.theme.Info
+import com.kahavanu.ui.theme.Primary
+import com.kahavanu.ui.theme.extendedColors
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
@@ -50,7 +58,6 @@ import com.kahavanu.domain.model.GoalCategory
 import com.kahavanu.domain.model.GoalEntry
 import com.kahavanu.ui.common.GlassCard
 import com.kahavanu.ui.common.SectionHeader
-import com.kahavanu.ui.theme.RawColors
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
@@ -168,8 +175,7 @@ private fun GoalCard(
                         Text(
                             text = goal.category.label,
                             style = MaterialTheme.typography.bodySmall,
-                            fontSize = TextSize.xs,
-                            color = TextSecondary,
+            color = TextSecondary,
                         )
                     }
                 }
@@ -177,15 +183,13 @@ private fun GoalCard(
                     Text(
                         text = formatAmount(goal.currentAmount, currency.code),
                         style = MaterialTheme.typography.titleSmall,
-                        fontSize = TextSize.sm,
-                        fontWeight = FontWeight.SemiBold,
-                        color = if (isCompleted) RawColors.Emerald.Emerald600 else TextPrimary,
+            fontWeight = FontWeight.SemiBold,
+                        color = if (isCompleted) MaterialTheme.colorScheme.primary else TextPrimary,
                     )
                     Text(
                         text = "of ${formatAmount(goal.targetAmount, currency.code)}",
                         style = MaterialTheme.typography.bodySmall,
-                        fontSize = TextSize.xs,
-                        color = TextSecondary,
+            color = TextSecondary,
                     )
                 }
             }
@@ -198,14 +202,14 @@ private fun GoalCard(
                     .fillMaxWidth()
                     .height(6.dp)
                     .clip(RoundedCornerShape(99.dp))
-                    .background(RawColors.Slate.Slate200),
+                    .background(MaterialTheme.colorScheme.outlineVariant),
             ) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth(progressPercent / 100f)
                         .height(6.dp)
                         .clip(RoundedCornerShape(99.dp))
-                        .background(if (isCompleted) RawColors.Emerald.Emerald500 else color),
+                        .background(if (isCompleted) MaterialTheme.extendedColors.brandAccent else color),
                 )
             }
 
@@ -221,8 +225,7 @@ private fun GoalCard(
                     text = "$progressPercent% complete",
                     style = MaterialTheme.typography.labelSmall,
                     fontSize = TextSize.xs,
-                    fontWeight = FontWeight.Medium,
-                    color = color,
+            color = color,
                 )
                 if (!isCompleted && remaining > 0.0) {
                     Text(
@@ -275,7 +278,7 @@ private fun GoalCard(
                     AdjustButton(
                         icon = Icons.Outlined.Remove,
                         label = "− ${formatAmount(QUICK_STEP_AMOUNT, currency.code)}",
-                        color = RawColors.Slate.Slate500,
+                        color = MaterialTheme.extendedColors.iconMuted,
                         enabled = goal.currentAmount > 0.0,
                         onTap = { onAdjustSaved(-QUICK_STEP_AMOUNT) },
                         onLongPress = { dialogState = AdjustDialogMode.Subtract },
@@ -355,8 +358,6 @@ private fun AdjustButton(
         Text(
             text = label,
             style = MaterialTheme.typography.labelMedium,
-            fontSize = TextSize.xs,
-            fontWeight = FontWeight.Medium,
             color = color.copy(alpha = contentAlpha),
         )
     }
@@ -411,15 +412,15 @@ private fun SoftLimitBanner(count: Int, limit: Int) {
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
-            .background(RawColors.Amber.Amber50)
-            .border(1.dp, RawColors.Amber.Amber200, RoundedCornerShape(12.dp))
+            .background(MaterialTheme.extendedColors.warningWashed)
+            .border(1.dp, MaterialTheme.extendedColors.warningBorder, RoundedCornerShape(12.dp))
             .padding(horizontal = Spacing.medium, vertical = Spacing.small),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(
             imageVector = Icons.Outlined.Flag,
             contentDescription = null,
-            tint = RawColors.Amber.Amber600,
+            tint = MaterialTheme.extendedColors.warning,
             modifier = Modifier.size(16.dp),
         )
         Spacer(modifier = Modifier.width(Spacing.small))
@@ -427,7 +428,7 @@ private fun SoftLimitBanner(count: Int, limit: Int) {
             text = "You have $count active goals. We suggest keeping it under $limit to stay focused.",
             style = MaterialTheme.typography.labelSmall,
             fontSize = TextSize.xs,
-            color = RawColors.Amber.Amber600,
+            color = MaterialTheme.extendedColors.warning,
         )
     }
 }
@@ -444,7 +445,7 @@ private fun EmptyGoalsPlaceholder() {
             Icon(
                 imageVector = Icons.Outlined.Flag,
                 contentDescription = null,
-                tint = RawColors.Slate.Slate400,
+                tint = MaterialTheme.extendedColors.textTertiary,
                 modifier = Modifier.size(40.dp),
             )
             Spacer(modifier = Modifier.height(Spacing.small))
@@ -452,8 +453,7 @@ private fun EmptyGoalsPlaceholder() {
                 text = "Set your first goal",
                 style = MaterialTheme.typography.titleSmall,
                 color = TextPrimary,
-                fontWeight = FontWeight.Medium,
-            )
+        )
             Spacer(modifier = Modifier.height(Spacing.extraSmall))
             Text(
                 text = "Track savings targets and milestones",
@@ -487,13 +487,13 @@ private fun relativeTime(epochMillis: Long): String {
 }
 
 private fun categoryColor(category: GoalCategory) = when (category) {
-    GoalCategory.SAVINGS -> RawColors.Emerald.Emerald500
-    GoalCategory.TRAVEL -> RawColors.Blue.Blue500
-    GoalCategory.EMERGENCY -> RawColors.Amber.Amber600
-    GoalCategory.EDUCATION -> RawColors.Violet.Violet500
-    GoalCategory.PURCHASE -> RawColors.Rose.Rose500
-    GoalCategory.INVESTMENT -> RawColors.Emerald.Emerald600
-    GoalCategory.OTHER -> RawColors.Slate.Slate500
+    GoalCategory.SAVINGS -> BrandAccent
+    GoalCategory.TRAVEL -> Info
+    GoalCategory.EMERGENCY -> Warning
+    GoalCategory.EDUCATION -> UtilityAccent
+    GoalCategory.PURCHASE -> Romance
+    GoalCategory.INVESTMENT -> Primary
+    GoalCategory.OTHER -> IconMuted
 }
 
 private fun categoryIcon(category: GoalCategory): ImageVector = when (category) {

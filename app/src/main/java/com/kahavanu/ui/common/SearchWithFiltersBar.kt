@@ -28,7 +28,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.SurfaceIconBorder
@@ -119,7 +118,6 @@ private fun ActiveChip(chip: ActiveFilterChip) {
             style = MaterialTheme.typography.labelSmall,
             fontSize = TextSize.xs,
             color = MaterialTheme.colorScheme.primary,
-            fontWeight = FontWeight.Medium,
         )
         Icon(
             imageVector = Icons.Outlined.Close,

@@ -14,6 +14,7 @@ import com.kahavanu.data.goals.local.GoalAdjustmentLogDao
 import com.kahavanu.data.goals.local.GoalAdjustmentLogEntity
 import com.kahavanu.data.goals.local.GoalLogDao
 import com.kahavanu.data.goals.sync.GoalsSyncScheduler
+import com.kahavanu.domain.model.GoalAdjustmentLog
 import com.kahavanu.domain.model.GoalEntry
 import com.kahavanu.domain.repository.GoalsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -60,8 +61,9 @@ class DefaultGoalsRepository @Inject constructor(
         auth.currentUser?.uid?.let { startRealtimeListeners(it) }
     }
 
-    override fun observeAdjustmentLogs(goalClientId: String): Flow<List<GoalAdjustmentLogEntity>> =
+    override fun observeAdjustmentLogs(goalClientId: String): Flow<List<GoalAdjustmentLog>> =
         goalAdjustmentLogDao.observeLogsForGoal(goalClientId)
+            .map { entities -> entities.map { it.toDomain() } }
 
     override fun observeGoals(): Flow<List<GoalEntry>> {
         val uid = auth.currentUser?.uid ?: return flowOf(emptyList())

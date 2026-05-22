@@ -1,9 +1,11 @@
 package com.kahavanu.data.goals
 
+import com.kahavanu.data.goals.local.GoalAdjustmentLogEntity
 import com.kahavanu.data.goals.local.GoalLogEntity
+import com.kahavanu.domain.model.CurrencyOption
+import com.kahavanu.domain.model.GoalAdjustmentLog
 import com.kahavanu.domain.model.GoalCategory
 import com.kahavanu.domain.model.GoalEntry
-import com.kahavanu.domain.model.CurrencyOption
 import java.util.UUID
 
 fun GoalLogEntity.toDomain(): GoalEntry = GoalEntry(
@@ -33,3 +35,10 @@ fun GoalEntry.toEntity(userId: String): GoalLogEntity = GoalLogEntity(
 )
 
 fun generateGoalClientId(): String = UUID.randomUUID().toString()
+
+fun GoalAdjustmentLogEntity.toDomain(): GoalAdjustmentLog = GoalAdjustmentLog(
+    goalId = goalClientId,
+    delta = delta,
+    newAmount = newAmount,
+    timestampEpochMillis = timestampEpochMillis,
+)

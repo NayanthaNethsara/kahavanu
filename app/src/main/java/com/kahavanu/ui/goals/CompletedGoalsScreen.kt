@@ -58,8 +58,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.kahavanu.data.goals.local.GoalAdjustmentLogEntity
 import com.kahavanu.domain.model.CurrencyOption
+import com.kahavanu.domain.model.GoalAdjustmentLog
 import com.kahavanu.domain.model.GoalCategory
 import com.kahavanu.domain.model.GoalEntry
 import com.kahavanu.ui.goals.components.formatAmount
@@ -177,7 +177,7 @@ fun CompletedGoalsScreen(
 private fun CompletedGoalCard(
     goal: GoalEntry,
     currency: CurrencyOption,
-    logsFlow: () -> kotlinx.coroutines.flow.Flow<List<GoalAdjustmentLogEntity>>,
+    logsFlow: () -> kotlinx.coroutines.flow.Flow<List<GoalAdjustmentLog>>,
 ) {
     var expanded by remember { mutableStateOf(false) }
     val logs by remember { logsFlow() }.collectAsState(initial = emptyList())
@@ -297,7 +297,7 @@ private fun CompletedGoalCard(
 
 @Composable
 private fun AdjustmentLogRow(
-    log: GoalAdjustmentLogEntity,
+    log: GoalAdjustmentLog,
     currency: CurrencyOption,
 ) {
     val isAddition = log.delta >= 0

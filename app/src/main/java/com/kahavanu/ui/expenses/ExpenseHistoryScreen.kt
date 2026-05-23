@@ -1,5 +1,6 @@
 package com.kahavanu.ui.expenses
 
+import com.kahavanu.ui.util.formatDate
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -46,10 +47,9 @@ import com.kahavanu.ui.common.GlassCard
 import com.kahavanu.ui.common.HistoryDateRange
 import com.kahavanu.ui.common.KahavanuSubScreen
 import com.kahavanu.ui.common.SearchWithFiltersBar
-import com.kahavanu.ui.common.categoryColor
-import com.kahavanu.ui.common.categoryIcon
+import com.kahavanu.ui.util.categoryColor
+import com.kahavanu.ui.util.categoryIcon
 import com.kahavanu.ui.expenses.components.ExpenseListItem
-import com.kahavanu.ui.expenses.components.formatDate
 import com.kahavanu.ui.theme.AccentIncomeBorder
 import com.kahavanu.ui.theme.AccentIncomeSoft
 import com.kahavanu.ui.theme.Spacing

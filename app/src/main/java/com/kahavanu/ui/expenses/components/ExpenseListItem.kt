@@ -1,5 +1,6 @@
 package com.kahavanu.ui.expenses.components
 
+import com.kahavanu.ui.util.formatDate
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -27,6 +28,9 @@ import androidx.compose.material.icons.outlined.Category
 import androidx.compose.material.icons.outlined.Notes
 import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material.icons.outlined.Store
+import com.kahavanu.ui.common.DetailRow
+import com.kahavanu.ui.common.SheetLabel
+import com.kahavanu.ui.common.StatusBadge
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -47,8 +51,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.kahavanu.ui.common.categoryColor
-import com.kahavanu.ui.common.categoryIcon
+import com.kahavanu.ui.util.categoryColor
+import com.kahavanu.ui.util.categoryIcon
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
@@ -229,7 +233,7 @@ private fun ExpenseDetailSheet(
                         fontWeight = FontWeight.SemiBold,
                         color = TextPrimary,
                     )
-                    CategoryBadge(label = category, color = tint)
+                    StatusBadge(label = category, color = tint)
                 }
             }
 
@@ -289,72 +293,3 @@ private fun ExpenseDetailSheet(
     }
 }
 
-@Composable
-private fun CategoryBadge(label: String, color: Color) {
-    Box(
-        modifier = Modifier
-            .background(color.copy(alpha = 0.1f), CircleShape)
-            .padding(horizontal = 8.dp, vertical = 3.dp),
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            fontSize = 10.sp,
-            color = color,
-            fontWeight = FontWeight.SemiBold,
-        )
-    }
-}
-
-@Composable
-private fun SheetLabel(text: String) {
-    Text(
-        text = text.uppercase(),
-        style = MaterialTheme.typography.labelSmall,
-            letterSpacing = 0.7.sp,
-        color = TextSecondary,
-        )
-}
-
-@Composable
-private fun DetailRow(
-    icon: ImageVector,
-    label: String,
-    value: String,
-    valueColor: Color = TextPrimary,
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Spacing.medium),
-    ) {
-        Box(
-            modifier = Modifier
-                .size(36.dp)
-                .background(
-                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
-                    RoundedCornerShape(10.dp),
-                ),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = TextSecondary,
-                modifier = Modifier.size(16.dp),
-            )
-        }
-        Column {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelSmall,
-            color = TextSecondary,
-            )
-            Text(
-                text = value,
-                style = MaterialTheme.typography.bodyMedium,
-            color = valueColor,
-                fontWeight = FontWeight.Medium,
-            )
-        }
-    }
-}

@@ -1,5 +1,7 @@
 package com.kahavanu.ui.income.components
 
+import com.kahavanu.ui.util.formatDate
+import com.kahavanu.ui.util.formatAmount
 import com.kahavanu.ui.theme.extendedColors
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
@@ -44,6 +46,9 @@ import androidx.compose.material.icons.outlined.Source
 import androidx.compose.material.icons.outlined.Store
 import androidx.compose.material.icons.outlined.TrendingUp
 import androidx.compose.material.icons.outlined.Work
+import com.kahavanu.ui.common.DetailRow
+import com.kahavanu.ui.common.SheetLabel
+import com.kahavanu.ui.common.StatusBadge
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -229,25 +234,6 @@ fun HistoryListItem(
 }
 
 @Composable
-private fun TypeBadge(label: String, color: Color) {
-    Box(
-        modifier = Modifier
-            .background(color.copy(alpha = 0.1f), CircleShape)
-            .border(0.5.dp, color.copy(alpha = 0.25f), CircleShape)
-            .padding(horizontal = 8.dp, vertical = 3.dp),
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            fontSize = 10.sp,
-            color = color,
-            fontWeight = FontWeight.SemiBold,
-            letterSpacing = 0.2.sp,
-        )
-    }
-}
-
-@Composable
 private fun MiniActionButton(
     label: String,
     color: Color,
@@ -375,7 +361,7 @@ private fun HistoryDetailSheet(
                         fontWeight = FontWeight.SemiBold,
                         color = TextPrimary,
                     )
-                    TypeBadge(label = statusLabel, color = accentColor)
+                    StatusBadge(label = statusLabel, color = accentColor, bordered = true)
                 }
             }
 
@@ -461,55 +447,6 @@ private fun HistoryDetailSheet(
     }
 }
 
-@Composable
-private fun SheetLabel(text: String) {
-    Text(
-        text = text.uppercase(),
-        style = MaterialTheme.typography.labelSmall,
-            letterSpacing = 0.7.sp,
-        color = TextSecondary,
-        )
-}
-
-@Composable
-private fun DetailRow(
-    icon: ImageVector,
-    label: String,
-    value: String,
-    valueColor: Color = TextPrimary,
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Spacing.medium),
-    ) {
-        Box(
-            modifier = Modifier
-                .size(36.dp)
-                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f), RoundedCornerShape(10.dp)),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = TextSecondary,
-                modifier = Modifier.size(16.dp),
-            )
-        }
-        Column {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelSmall,
-            color = TextSecondary,
-            )
-            Text(
-                text = value,
-                style = MaterialTheme.typography.bodyMedium,
-            color = valueColor,
-                fontWeight = FontWeight.Medium,
-            )
-        }
-    }
-}
 
 /**
  * Picks a meaningful money/work icon based on keywords in [title] and

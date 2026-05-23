@@ -1,5 +1,6 @@
 package com.kahavanu.ui.expenses.components
 
+import com.kahavanu.ui.util.formatAmount
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -76,7 +77,7 @@ fun ExpensesSummaryCard(
             Spacer(modifier = Modifier.height(Spacing.extraSmall))
 
             Text(
-                text = formatAmountNoDecimals(totalSpent, currency.code),
+                text = formatAmount(totalSpent, currency.code, decimals = 0),
                 style = MaterialTheme.typography.headlineLarge,
                 fontSize = TextSize.xxxl,
                 fontWeight = FontWeight.Medium,
@@ -87,7 +88,7 @@ fun ExpensesSummaryCard(
             Spacer(modifier = Modifier.height(Spacing.medium))
 
             Text(
-                text = "Budget: ${formatAmountNoDecimals(budgetLimit, currency.code)} · $budgetRatio% used",
+                text = "Budget: ${formatAmount(budgetLimit, currency.code, decimals = 0)} · $budgetRatio% used",
                 style = MaterialTheme.typography.bodySmall,
             color = TextSecondary,
             )
@@ -122,7 +123,7 @@ fun ExpensesSummaryCard(
                     activeSummaries.forEach { summary ->
                         SummaryItem(
                             label = summary.label,
-                            value = formatAmountNoDecimals(summary.amount, currency.code),
+                            value = formatAmount(summary.amount, currency.code, decimals = 0),
                             color = summary.color
                         )
                     }

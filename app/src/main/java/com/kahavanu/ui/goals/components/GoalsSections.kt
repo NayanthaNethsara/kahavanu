@@ -1,5 +1,8 @@
 package com.kahavanu.ui.goals.components
 
+import com.kahavanu.ui.util.goalCategoryIcon
+import com.kahavanu.ui.util.goalCategoryColor
+import com.kahavanu.ui.util.formatAmount
 import com.kahavanu.ui.theme.BrandAccent
 import com.kahavanu.ui.theme.IconMuted
 import com.kahavanu.ui.theme.Romance
@@ -56,6 +59,7 @@ import androidx.compose.ui.unit.dp
 import com.kahavanu.domain.model.CurrencyOption
 import com.kahavanu.domain.model.GoalCategory
 import com.kahavanu.domain.model.GoalEntry
+import com.kahavanu.ui.common.EmptyState
 import com.kahavanu.ui.common.GlassCard
 import com.kahavanu.ui.common.SectionHeader
 import com.kahavanu.ui.theme.Spacing
@@ -141,7 +145,7 @@ private fun GoalCard(
         0
     }
     val remaining = (goal.targetAmount - goal.currentAmount).coerceAtLeast(0.0)
-    val color = categoryColor(goal.category)
+    val color = goalCategoryColor(goal.category)
 
     var dialogState by remember { mutableStateOf<AdjustDialogMode?>(null) }
 
@@ -158,7 +162,7 @@ private fun GoalCard(
                     modifier = Modifier.weight(1f),
                 ) {
                     Icon(
-                        imageVector = categoryIcon(goal.category),
+                        imageVector = goalCategoryIcon(goal.category),
                         contentDescription = null,
                         tint = color,
                         modifier = Modifier.size(24.dp),
@@ -435,34 +439,13 @@ private fun SoftLimitBanner(count: Int, limit: Int) {
 
 @Composable
 private fun EmptyGoalsPlaceholder() {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = Spacing.extraLarge),
-        contentAlignment = Alignment.Center,
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(
-                imageVector = Icons.Outlined.Flag,
-                contentDescription = null,
-                tint = MaterialTheme.extendedColors.textTertiary,
-                modifier = Modifier.size(40.dp),
-            )
-            Spacer(modifier = Modifier.height(Spacing.small))
-            Text(
-                text = "Set your first goal",
-                style = MaterialTheme.typography.titleSmall,
-                color = TextPrimary,
-        )
-            Spacer(modifier = Modifier.height(Spacing.extraSmall))
-            Text(
-                text = "Track savings targets and milestones",
-                style = MaterialTheme.typography.bodySmall,
-                fontSize = TextSize.sm,
-                color = TextSecondary,
-            )
-        }
-    }
+    EmptyState(
+        icon = Icons.Outlined.Flag,
+        title = "Set your first goal",
+        subtitle = "Track savings targets and milestones",
+        iconTint = MaterialTheme.extendedColors.textTertiary,
+        iconSize = 40.dp,
+    )
 }
 
 private fun relativeTime(epochMillis: Long): String {
@@ -486,22 +469,3 @@ private fun relativeTime(epochMillis: Long): String {
     }
 }
 
-private fun categoryColor(category: GoalCategory) = when (category) {
-    GoalCategory.SAVINGS -> BrandAccent
-    GoalCategory.TRAVEL -> Info
-    GoalCategory.EMERGENCY -> Warning
-    GoalCategory.EDUCATION -> UtilityAccent
-    GoalCategory.PURCHASE -> Romance
-    GoalCategory.INVESTMENT -> Primary
-    GoalCategory.OTHER -> IconMuted
-}
-
-private fun categoryIcon(category: GoalCategory): ImageVector = when (category) {
-    GoalCategory.SAVINGS -> Icons.Outlined.Savings
-    GoalCategory.TRAVEL -> Icons.Outlined.FlightTakeoff
-    GoalCategory.EMERGENCY -> Icons.Outlined.Shield
-    GoalCategory.EDUCATION -> Icons.Outlined.School
-    GoalCategory.PURCHASE -> Icons.Outlined.ShoppingBag
-    GoalCategory.INVESTMENT -> Icons.Outlined.BarChart
-    GoalCategory.OTHER -> Icons.Outlined.Flag
-}

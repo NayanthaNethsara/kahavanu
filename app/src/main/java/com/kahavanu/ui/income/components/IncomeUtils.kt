@@ -1,76 +1,38 @@
 package com.kahavanu.ui.income.components
 
-import android.text.format.DateUtils
-
+import com.kahavanu.ui.util.dueLabel
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccountBalanceWallet
 import androidx.compose.material.icons.outlined.CurrencyBitcoin
 import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material.icons.outlined.WorkOutline
 import androidx.compose.ui.graphics.vector.ImageVector
-import java.time.Instant
-import java.time.YearMonth
-import java.time.ZoneId
-import java.time.format.TextStyle
+import android.text.format.DateUtils
 import java.util.Locale
 
-fun formatAmount(amount: Double, currency: String): String {
-    val formatted = String.format(Locale.getDefault(), "%,.2f", amount)
-    return "$currency $formatted"
-}
+// formatAmount / formatDate / currentMonthLabel moved to ui/common
+// (MoneyFormat.kt and DateFormat.kt). Re-import from there.
 
-fun formatDate(epochMillis: Long): String {
-    val date = Instant.ofEpochMilli(epochMillis)
-        .atZone(ZoneId.systemDefault())
-        .toLocalDate()
-    val month = date.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
-    return "$month ${date.dayOfMonth}, ${date.year}"
-}
-
-fun currentMonthLabel(): String {
-    val month = YearMonth.now()
-    return month.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
-}
-
-fun sourceIconFor(name: String): ImageVector {
-    return when (name.trim().lowercase(Locale.getDefault())) {
+/** Resolves an icon for a known income source by name. */
+fun sourceIconFor(name: String): ImageVector =
+    when (name.trim().lowercase(Locale.getDefault())) {
         "salary" -> Icons.Outlined.AccountBalanceWallet
         "freelance" -> Icons.Outlined.WorkOutline
         "adsense" -> Icons.Outlined.Public
         "crypto" -> Icons.Outlined.CurrencyBitcoin
         else -> Icons.Outlined.AccountBalanceWallet
     }
-}
 
-fun isPending(sourceType: String?): Boolean {
-    return sourceType == "pending"
-}
+fun isPending(sourceType: String?): Boolean = sourceType == "pending"
 
-fun isRecurrent(sourceType: String?): Boolean {
-    return sourceType == "recurrent"
-}
+fun isRecurrent(sourceType: String?): Boolean = sourceType == "recurrent"
 
-fun isPersistent(sourceType: String?): Boolean {
-    return isPending(sourceType) || isRecurrent(sourceType)
-}
+fun isPersistent(sourceType: String?): Boolean = isPending(sourceType) || isRecurrent(sourceType)
 
 fun isOverdue(epochMillis: Long): Boolean {
     val now = System.currentTimeMillis()
-    // A payment is overdue if it's pending and the expected date is in the past (more than a day)
     return epochMillis < (now - DateUtils.DAY_IN_MILLIS)
 }
 
-fun getDueText(epochMillis: Long): String {
-    val now = System.currentTimeMillis()
-    val diff = epochMillis - now
-    val days = (diff / DateUtils.DAY_IN_MILLIS).toInt()
-    
-    return when {
-        days < -1 -> "Due ${-days} days ago"
-        days == -1 -> "Due yesterday"
-        days == 0 -> "Due today"
-        days == 1 -> "Due tomorrow"
-        days > 1 -> "Due in $days days"
-        else -> "Due today"
-    }
-}
+/** @deprecated Use `com.kahavanu.ui.util.dueLabel` instead. Kept as a thin alias for now. */
+fun getDueText(epochMillis: Long): String = com.kahavanu.ui.util.dueLabel(epochMillis)

@@ -1,5 +1,9 @@
 package com.kahavanu.ui.expenses.components
 
+import com.kahavanu.ui.util.categoryIcon
+import com.kahavanu.ui.util.categoryColor
+import com.kahavanu.ui.util.formatDate
+import com.kahavanu.ui.util.formatAmount
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -42,7 +46,7 @@ fun MatchAndCategorizeSection(
                 id = item.id,
                 title = item.title,
                 subtitle = item.receivedAtLabel,
-                amount = formatAmountNoDecimals(item.amount, currency.code),
+                amount = formatAmount(item.amount, currency.code, decimals = 0),
                 matchPercent = item.confidencePercent,
                 likelyFor = "Likely ${item.category}",
                 icon = categoryIcon(item.category),
@@ -131,7 +135,7 @@ private fun CategorySpendItem(
             }
             Column(horizontalAlignment = Alignment.End) {
                 Text(
-                    text = formatAmountNoDecimals(summary.amount, currency.code),
+                    text = formatAmount(summary.amount, currency.code, decimals = 0),
                     style = MaterialTheme.typography.bodyMedium,
             color = summary.color,
                     fontWeight = FontWeight.Medium,

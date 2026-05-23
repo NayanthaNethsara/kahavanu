@@ -24,7 +24,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kahavanu.ui.common.GlassCard
 import com.kahavanu.ui.common.KahavanuSubScreen
-import com.kahavanu.ui.common.categoryColor
+import com.kahavanu.ui.util.categoryColor
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary

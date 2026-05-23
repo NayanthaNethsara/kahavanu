@@ -1,5 +1,6 @@
 package com.kahavanu.ui.goals
 
+import com.kahavanu.ui.util.categoryIcon
 import com.kahavanu.ui.theme.extendedColors
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border

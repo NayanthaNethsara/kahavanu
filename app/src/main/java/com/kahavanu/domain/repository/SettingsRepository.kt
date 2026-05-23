@@ -8,4 +8,8 @@ interface SettingsRepository {
     suspend fun updateCurrencySettings(primary: CurrencyOption, secondary: CurrencyOption): Result<Unit>
     suspend fun getLastSmsScanEpochMillis(): Long
     suspend fun updateLastSmsScanEpochMillis(epochMillis: Long)
+    fun observeAutoMatchDeposits(): Flow<Boolean>
+    suspend fun updateAutoMatchDeposits(enabled: Boolean): Result<Unit>
+    fun observePushAlerts(): Flow<Boolean>
+    suspend fun updatePushAlerts(enabled: Boolean): Result<Unit>
 }

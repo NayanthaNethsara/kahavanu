@@ -22,4 +22,10 @@ interface UserSettingsDao {
 
     @Query("SELECT lastSmsScanEpochMillis FROM user_settings WHERE userId = :userId")
     suspend fun getLastSmsScan(userId: String): Long?
+
+    @Query("UPDATE user_settings SET isAutoMatchDepositsEnabled = :enabled WHERE userId = :userId")
+    suspend fun updateAutoMatchDeposits(userId: String, enabled: Boolean)
+
+    @Query("UPDATE user_settings SET isPushAlertsEnabled = :enabled WHERE userId = :userId")
+    suspend fun updatePushAlerts(userId: String, enabled: Boolean)
 }

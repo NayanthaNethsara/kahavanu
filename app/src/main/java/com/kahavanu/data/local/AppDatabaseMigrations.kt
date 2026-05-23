@@ -330,6 +330,13 @@ object AppDatabaseMigrations {
         }
     }
 
+    val MIGRATION_20_21 = object : Migration(20, 21) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE user_settings ADD COLUMN isAutoMatchDepositsEnabled INTEGER NOT NULL DEFAULT 1")
+            db.execSQL("ALTER TABLE user_settings ADD COLUMN isPushAlertsEnabled INTEGER NOT NULL DEFAULT 1")
+        }
+    }
+
     val MIGRATION_18_19 = object : Migration(18, 19) {
         override fun migrate(db: SupportSQLiteDatabase) {
             db.execSQL("ALTER TABLE user_settings ADD COLUMN lastSmsScanEpochMillis INTEGER NOT NULL DEFAULT 0")

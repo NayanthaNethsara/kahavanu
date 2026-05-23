@@ -103,6 +103,36 @@ class DefaultSettingsRepository @Inject constructor(
             .map { }
     }
 
+    override fun observeAutoMatchDeposits(): Flow<Boolean> {
+        val uid = auth.currentUser?.uid ?: return flowOf(true)
+        return userSettingsDao.observeSettings(uid).map { it?.isAutoMatchDepositsEnabled ?: true }
+    }
+
+    override suspend fun updateAutoMatchDeposits(enabled: Boolean): Result<Unit> {
+        val uid = auth.currentUser?.uid
+            ?: return Result.failure(IllegalStateException("User not authenticated"))
+        userSettingsDao.updateAutoMatchDeposits(uid, enabled)
+        val data = mapOf("isAutoMatchDepositsEnabled" to enabled, "updatedAt" to System.currentTimeMillis())
+        return firestore.collection(USERS_COLLECTION).document(uid)
+            .collection(SETTINGS_COLLECTION).document(CONFIG_DOCUMENT)
+            .set(data, SetOptions.merge()).awaitResult().map { }
+    }
+
+    override fun observePushAlerts(): Flow<Boolean> {
+        val uid = auth.currentUser?.uid ?: return flowOf(true)
+        return userSettingsDao.observeSettings(uid).map { it?.isPushAlertsEnabled ?: true }
+    }
+
+    override suspend fun updatePushAlerts(enabled: Boolean): Result<Unit> {
+        val uid = auth.currentUser?.uid
+            ?: return Result.failure(IllegalStateException("User not authenticated"))
+        userSettingsDao.updatePushAlerts(uid, enabled)
+        val data = mapOf("isPushAlertsEnabled" to enabled, "updatedAt" to System.currentTimeMillis())
+        return firestore.collection(USERS_COLLECTION).document(uid)
+            .collection(SETTINGS_COLLECTION).document(CONFIG_DOCUMENT)
+            .set(data, SetOptions.merge()).awaitResult().map { }
+    }
+
     override suspend fun getLastSmsScanEpochMillis(): Long {
         val uid = auth.currentUser?.uid ?: return 0L
         return userSettingsDao.getLastSmsScan(uid) ?: 0L
@@ -139,6 +169,8 @@ class DefaultSettingsRepository @Inject constructor(
                 val secondaryCode = snapshot.getString("secondaryCurrency") ?: return@addSnapshotListener
                 val updatedAt = snapshot.getLong("updatedAt") ?: 0L
                 val lastSmsScan = snapshot.getLong("lastSmsScanEpochMillis") ?: 0L
+                val autoMatch = snapshot.getBoolean("isAutoMatchDepositsEnabled") ?: true
+                val pushAlerts = snapshot.getBoolean("isPushAlertsEnabled") ?: true
 
                 repositoryScope.launch {
                     val local = userSettingsDao.getSettings(uid)
@@ -150,6 +182,8 @@ class DefaultSettingsRepository @Inject constructor(
                                 secondaryCurrency = secondaryCode,
                                 updatedAtEpochMillis = updatedAt,
                                 lastSmsScanEpochMillis = maxOf(local?.lastSmsScanEpochMillis ?: 0L, lastSmsScan),
+                                isAutoMatchDepositsEnabled = autoMatch,
+                                isPushAlertsEnabled = pushAlerts,
                             )
                         )
                     }
@@ -182,6 +216,8 @@ class DefaultSettingsRepository @Inject constructor(
         val data = mapOf(
             "primaryCurrency" to primary.name,
             "secondaryCurrency" to secondary.name,
+            "isAutoMatchDepositsEnabled" to true,
+            "isPushAlertsEnabled" to true,
             "updatedAt" to now,
         )
 

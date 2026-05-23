@@ -28,7 +28,10 @@ import com.kahavanu.ui.income.components.IncomeLogSection
 import com.kahavanu.ui.income.components.MatchAndCatchSection
 import com.kahavanu.ui.income.components.PersistenceSection
 import com.kahavanu.ui.income.components.TotalExpectedCard
+import com.kahavanu.ui.income.components.InsightsSection
 import com.kahavanu.ui.theme.Spacing
+import com.kahavanu.ui.theme.AccentIncome
+import com.kahavanu.ui.theme.AccentExpense
 
 
 @Composable
@@ -93,13 +96,36 @@ fun IncomeScreen(
                 )
                 QuickActionRow(
                     actions = listOf(
-                        QuickAction(Icons.AutoMirrored.Outlined.PlaylistAdd, "Log Income", onLogIncome),
-                        QuickAction(Icons.Outlined.Repeat, "View Recurrents", onViewRecurrents),
-                        QuickAction(Icons.Outlined.PendingActions, "Pending", onViewPersistence),
-                        QuickAction(Icons.Outlined.History, "History", onViewHistory),
+                        QuickAction(
+                            icon = Icons.AutoMirrored.Outlined.PlaylistAdd,
+                            label = "Add",
+                            onClick = onLogIncome,
+                            iconTint = AccentIncome
+                        ),
+                        QuickAction(
+                            icon = Icons.Outlined.History,
+                            label = "All",
+                            onClick = onViewHistory,
+                            iconTint = MaterialTheme.extendedColors.infoAccent
+                        ),
+                        QuickAction(
+                            icon = Icons.Outlined.Repeat,
+                            label = "Recurring",
+                            onClick = onViewRecurrents,
+                            iconTint = MaterialTheme.extendedColors.accentExpense
+                        ),
+                        QuickAction(
+                            icon = Icons.Outlined.PendingActions,
+                            label = "Stats",
+                            onClick = onViewPersistence,
+                            iconTint = MaterialTheme.extendedColors.warning
+                        )
                     ),
                 )
             }
+        }
+        item {
+            InsightsSection()
         }
         item {
             MatchAndCatchSection(

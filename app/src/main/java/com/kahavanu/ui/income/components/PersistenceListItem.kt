@@ -59,38 +59,23 @@ fun PersistenceListItem(
             .padding(Spacing.large),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Icon Box
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .background(
-                    color = when {
-                        isOverdue -> MaterialTheme.extendedColors.dangerAccent.copy(alpha = 0.1f)
-                        isRecurrent -> MaterialTheme.extendedColors.brandAccent.copy(alpha = 0.14f)
-                        !isPending -> MaterialTheme.extendedColors.brandAccent.copy(alpha = 0.14f)
-                        else -> MaterialTheme.extendedColors.warningAccent.copy(alpha = 0.12f)
-                    },
-                    shape = RoundedCornerShape(14.dp)
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = when {
-                    isOverdue -> Icons.Outlined.ErrorOutline
-                    isRecurrent -> Icons.Default.Autorenew
-                    !isPending -> Icons.Default.CheckCircle
-                    else -> Icons.Outlined.Schedule
-                },
-                contentDescription = null,
-                modifier = Modifier.size(16.dp),
-                tint = when {
-                    isOverdue -> MaterialTheme.colorScheme.error
-                    isRecurrent -> MaterialTheme.colorScheme.primary
-                    !isPending -> MaterialTheme.colorScheme.primary
-                    else -> MaterialTheme.extendedColors.warning
-                }
-            )
-        }
+        // Source icon — no background
+        Icon(
+            imageVector = when {
+                isOverdue -> Icons.Outlined.ErrorOutline
+                isRecurrent -> Icons.Default.Autorenew
+                !isPending -> Icons.Default.CheckCircle
+                else -> Icons.Outlined.Schedule
+            },
+            contentDescription = null,
+            modifier = Modifier.size(24.dp),
+            tint = when {
+                isOverdue -> MaterialTheme.colorScheme.error
+                isRecurrent -> MaterialTheme.colorScheme.primary
+                !isPending -> MaterialTheme.colorScheme.primary
+                else -> MaterialTheme.extendedColors.warning
+            }
+        )
         
         Spacer(modifier = Modifier.width(Spacing.medium))
         

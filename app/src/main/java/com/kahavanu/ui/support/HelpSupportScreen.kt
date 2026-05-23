@@ -249,7 +249,6 @@ private fun ContactInfoSection() {
                 ContactRow(
                     icon = Icons.Default.Email,
                     iconColor = MaterialTheme.colorScheme.primary,
-                    iconBgColor = MaterialTheme.extendedColors.brandWashed,
                     label = "Support Email",
                     value = stringResource(R.string.support_email)
                 )
@@ -257,7 +256,6 @@ private fun ContactInfoSection() {
                 ContactRow(
                     icon = Icons.Default.Phone,
                     iconColor = MaterialTheme.extendedColors.infoAccent,
-                    iconBgColor = MaterialTheme.extendedColors.infoWashed,
                     label = "Hotline Phone",
                     value = stringResource(R.string.support_phone)
                 )
@@ -265,7 +263,6 @@ private fun ContactInfoSection() {
                 ContactRow(
                     icon = Icons.Default.Place,
                     iconColor = MaterialTheme.extendedColors.dangerAccent,
-                    iconBgColor = MaterialTheme.extendedColors.dangerWashed.copy(alpha = 0.8f),
                     label = "Main Office",
                     value = stringResource(R.string.office_address)
                 )
@@ -278,7 +275,6 @@ private fun ContactInfoSection() {
 private fun ContactRow(
     icon: ImageVector,
     iconColor: Color,
-    iconBgColor: Color,
     label: String,
     value: String
 ) {
@@ -288,19 +284,12 @@ private fun ContactRow(
             .padding(Spacing.medium),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .background(iconBgColor, RoundedCornerShape(12.dp)),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = iconColor,
-                modifier = Modifier.size(20.dp)
-            )
-        }
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = iconColor,
+            modifier = Modifier.size(24.dp)
+        )
         Spacer(modifier = Modifier.width(Spacing.medium))
         Column {
             Text(

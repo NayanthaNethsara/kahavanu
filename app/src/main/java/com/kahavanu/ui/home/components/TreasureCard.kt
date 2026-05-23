@@ -49,13 +49,6 @@ fun TreasureCard(
     val progressLabel = "${(goalProgress * 100).toInt()}%"
 
     Column(modifier = modifier.fillMaxWidth()) {
-        SectionHeader(
-            title = "The Treasure",
-            subtitle = "Target Goal Progress",
-            actionText = "Details",
-            onActionClick = onGoalClick
-        )
-
         GlassCard(
             modifier = Modifier
                 .fillMaxWidth()

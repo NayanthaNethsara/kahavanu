@@ -138,53 +138,6 @@ fun textFieldColors() = OutlinedTextFieldDefaults.colors(
     errorContainerColor = Color.White.copy(alpha = 0.7f),
 )
 
-@Composable
-fun QuickActionButton(
-    icon: ImageVector,
-    label: String,
-    onClick: () -> Unit,
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .size(65.dp)
-                .shadow(
-                    elevation = 20.dp,
-                    spotColor = MaterialTheme.extendedColors.textTertiary,
-                    ambientColor = MaterialTheme.extendedColors.iconMuted,
-                    shape = KahavanuShapes.large
-                )
-                .background(
-                    color = Color.White.copy(alpha = 0.85f),
-                    shape = KahavanuShapes.large
-                )
-                .border(
-                    width = 0.5.dp,
-                    color = Color.White.copy(alpha = 0.5f),
-                    shape = KahavanuShapes.large
-                )
-                .clickable(onClick = onClick)
-                .padding(Spacing.small),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = TextSecondary,
-                modifier = Modifier.size(25.dp)
-            )
-        }
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            fontSize = TextSize.xs,
-            color = TextSecondary,
-        )
-    }
-}
 
 @Composable
 fun SummaryItem(label: String, value: String, color: Color) {

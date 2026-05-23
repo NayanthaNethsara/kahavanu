@@ -289,16 +289,14 @@ private fun ContactRow(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
-            modifier = Modifier
-                .size(40.dp)
-                .background(iconBgColor, RoundedCornerShape(12.dp)),
+            modifier = Modifier.size(40.dp),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
                 tint = iconColor,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(22.dp)
             )
         }
         Spacer(modifier = Modifier.width(Spacing.medium))

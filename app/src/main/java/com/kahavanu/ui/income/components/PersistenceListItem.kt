@@ -61,17 +61,7 @@ fun PersistenceListItem(
     ) {
         // Icon Box
         Box(
-            modifier = Modifier
-                .size(40.dp)
-                .background(
-                    color = when {
-                        isOverdue -> MaterialTheme.extendedColors.dangerAccent.copy(alpha = 0.1f)
-                        isRecurrent -> MaterialTheme.extendedColors.brandAccent.copy(alpha = 0.14f)
-                        !isPending -> MaterialTheme.extendedColors.brandAccent.copy(alpha = 0.14f)
-                        else -> MaterialTheme.extendedColors.warningAccent.copy(alpha = 0.12f)
-                    },
-                    shape = RoundedCornerShape(14.dp)
-                ),
+            modifier = Modifier.size(40.dp),
             contentAlignment = Alignment.Center
         ) {
             Icon(
@@ -82,7 +72,7 @@ fun PersistenceListItem(
                     else -> Icons.Outlined.Schedule
                 },
                 contentDescription = null,
-                modifier = Modifier.size(16.dp),
+                modifier = Modifier.size(22.dp),
                 tint = when {
                     isOverdue -> MaterialTheme.colorScheme.error
                     isRecurrent -> MaterialTheme.colorScheme.primary

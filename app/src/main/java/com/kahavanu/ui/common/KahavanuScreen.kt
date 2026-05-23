@@ -26,12 +26,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Surface
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshState
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -84,20 +84,9 @@ fun KahavanuScreen(
             modifier = Modifier.offset(x = 98.dp, y = 648.dp),
         )
 
-        val lazyColumnContent = @Composable { pullProgress: Float ->
+        val lazyColumnContent = @Composable {
             LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .graphicsLayer {
-                        // Premium rubber band dampening: translate = max * (1 - e^(-progress * k))
-                        val maxTranslation = 200f
-                        val dampenedTranslation = if (pullProgress > 0f) {
-                            maxTranslation * (1f - kotlin.math.exp(-pullProgress * 0.8f))
-                        } else {
-                            0f
-                        }
-                        translationY = dampenedTranslation
-                    },
+                modifier = Modifier.fillMaxSize(),
                 contentPadding = contentPadding,
                 verticalArrangement = Arrangement.spacedBy(Spacing.large),
             ) {
@@ -125,28 +114,29 @@ fun KahavanuScreen(
                         modifier = Modifier
                             .align(Alignment.TopCenter)
                             .graphicsLayer {
+                                val fraction = pullState.distanceFraction
                                 val maxIndicatorTranslation = 80.dp.toPx()
-                                val indicatorTranslation = if (pullState.distanceFraction > 0f) {
-                                    maxIndicatorTranslation * (1f - kotlin.math.exp(-pullState.distanceFraction * 0.8f))
+                                val indicatorTranslation = if (fraction > 0f) {
+                                    maxIndicatorTranslation * (1f - kotlin.math.exp(-fraction * 0.8f))
                                 } else {
                                     0f
                                 }
                                 translationY = indicatorTranslation - 16.dp.toPx()
-                                alpha = pullState.distanceFraction.coerceIn(0f, 1f)
+                                alpha = fraction.coerceIn(0f, 1f)
                             }
                             .padding(top = 16.dp)
                     ) {
                         BouncingDotsIndicator(
-                            progress = pullState.distanceFraction,
+                            pullState = pullState,
                             isRefreshing = isRefreshing
                         )
                     }
                 }
             ) {
-                lazyColumnContent(pullState.distanceFraction)
+                lazyColumnContent()
             }
         } else {
-            lazyColumnContent(0f)
+            lazyColumnContent()
         }
     }
 }
@@ -158,7 +148,7 @@ fun KahavanuScreen(
  */
 @Composable
 fun BouncingDotsIndicator(
-    progress: Float,
+    pullState: PullToRefreshState,
     isRefreshing: Boolean,
     modifier: Modifier = Modifier,
 ) {
@@ -179,8 +169,6 @@ fun BouncingDotsIndicator(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             val infiniteTransition = rememberInfiniteTransition(label = "BouncingDots")
-
-            // Dot 1
             val animatedScale1 by infiniteTransition.animateFloat(
                 initialValue = 0.4f,
                 targetValue = 1.2f,
@@ -191,19 +179,6 @@ fun BouncingDotsIndicator(
                 ),
                 label = "dotScale_0"
             )
-            val dragScale1 = (progress * 3f - 0f).coerceIn(0f, 1f) * 0.9f
-            val scale1 = if (isRefreshing) animatedScale1 else dragScale1
-            Box(
-                modifier = Modifier
-                    .size(8.dp)
-                    .scale(scale1)
-                    .background(
-                        color = MaterialTheme.extendedColors.brandAccent,
-                        shape = CircleShape
-                    )
-            )
-
-            // Dot 2
             val animatedScale2 by infiniteTransition.animateFloat(
                 initialValue = 0.4f,
                 targetValue = 1.2f,
@@ -214,19 +189,6 @@ fun BouncingDotsIndicator(
                 ),
                 label = "dotScale_1"
             )
-            val dragScale2 = (progress * 3f - 1f).coerceIn(0f, 1f) * 0.9f
-            val scale2 = if (isRefreshing) animatedScale2 else dragScale2
-            Box(
-                modifier = Modifier
-                    .size(8.dp)
-                    .scale(scale2)
-                    .background(
-                        color = MaterialTheme.extendedColors.brandAccent,
-                        shape = CircleShape
-                    )
-            )
-
-            // Dot 3
             val animatedScale3 by infiniteTransition.animateFloat(
                 initialValue = 0.4f,
                 targetValue = 1.2f,
@@ -237,19 +199,59 @@ fun BouncingDotsIndicator(
                 ),
                 label = "dotScale_2"
             )
-            val dragScale3 = (progress * 3f - 2f).coerceIn(0f, 1f) * 0.9f
-            val scale3 = if (isRefreshing) animatedScale3 else dragScale3
-            Box(
-                modifier = Modifier
-                    .size(8.dp)
-                    .scale(scale3)
-                    .background(
-                        color = MaterialTheme.extendedColors.brandAccent,
-                        shape = CircleShape
-                    )
+
+            // Read distanceFraction inside graphicsLayer to update scale during draw
+            // without recomposing the whole indicator on every fractional drag change.
+            Dot(
+                graphicsBlock = {
+                    val s = if (isRefreshing) {
+                        animatedScale1
+                    } else {
+                        (pullState.distanceFraction * 3f).coerceIn(0f, 1f) * 0.9f
+                    }
+                    scaleX = s
+                    scaleY = s
+                }
+            )
+            Dot(
+                graphicsBlock = {
+                    val s = if (isRefreshing) {
+                        animatedScale2
+                    } else {
+                        (pullState.distanceFraction * 3f - 1f).coerceIn(0f, 1f) * 0.9f
+                    }
+                    scaleX = s
+                    scaleY = s
+                }
+            )
+            Dot(
+                graphicsBlock = {
+                    val s = if (isRefreshing) {
+                        animatedScale3
+                    } else {
+                        (pullState.distanceFraction * 3f - 2f).coerceIn(0f, 1f) * 0.9f
+                    }
+                    scaleX = s
+                    scaleY = s
+                }
             )
         }
     }
+}
+
+@Composable
+private fun Dot(
+    graphicsBlock: androidx.compose.ui.graphics.GraphicsLayerScope.() -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .size(8.dp)
+            .graphicsLayer(block = graphicsBlock)
+            .background(
+                color = MaterialTheme.extendedColors.brandAccent,
+                shape = CircleShape
+            )
+    )
 }
 
 /**

@@ -49,6 +49,8 @@ data class HomeUiState(
     val sieveItems: List<SieveItem> = emptyList(),
     val incomeStreams: List<IncomeStreamItem> = emptyList(),
     val currentUserName: String = "User",
+    val totalIncomeThisMonth: Double = 0.0,
+    val totalExpensesThisMonth: Double = 0.0,
     val isScanning: Boolean = false,
     val isSieveEnabled: Boolean = false,
 )
@@ -65,12 +67,18 @@ class HomeViewModel @Inject constructor(
 ) : ViewModel() {
 
     val uiState: StateFlow<HomeUiState> = combine(
-        goalsRepository.observeGoals(),
-        incomeRepository.observeIncomeLogs(),
+        combine(
+            goalsRepository.observeGoals(),
+            incomeRepository.observeIncomeLogs(),
+            expensesRepository.observeExpenseLogs()
+        ) { goals, income, expenses ->
+            Triple(goals, income, expenses)
+        },
         smsSuggestionRepository.observePendingSuggestions(),
         smsScanRepository.isScanningFlow,
         smsSenderRepository.observeAuthorizedSenders(),
-    ) { goals, incomeLogs, suggestions, isScanning, senders ->
+    ) { triple, suggestions, isScanning, senders ->
+        val (goals, incomeLogs, expenseLogs) = triple
         val featured = goals.firstOrNull { !it.isCompleted }
         val hasEnabledSenders = senders.any { it.isEnabled }
         val sieveItems = if (hasEnabledSenders) suggestions.map { it.toSieveItem() } else emptyList()
@@ -81,6 +89,24 @@ class HomeViewModel @Inject constructor(
         val usdReceived = incomeLogs.filter { it.currency == "USD" && it.sourceType != "pending" }.sumOf { it.amount }
         val usdInvoiced = incomeLogs.filter { it.currency == "USD" && it.sourceType == "pending" }.sumOf { it.amount }
         val cryptoReceived = incomeLogs.filter { it.currency in cryptoCurrencies }.sumOf { it.amount }
+
+        val cal = java.util.Calendar.getInstance()
+        val currentYear = cal.get(java.util.Calendar.YEAR)
+        val currentMonth = cal.get(java.util.Calendar.MONTH)
+
+        fun isCurrentMonth(epochMillis: Long): Boolean {
+            val c = java.util.Calendar.getInstance()
+            c.timeInMillis = epochMillis
+            return c.get(java.util.Calendar.YEAR) == currentYear && c.get(java.util.Calendar.MONTH) == currentMonth
+        }
+
+        val totalIncomeThisMonth = incomeLogs
+            .filter { it.currency == "LKR" && it.sourceType != "pending" && isCurrentMonth(it.receivedAtEpochMillis) }
+            .sumOf { it.amount }
+
+        val totalExpensesThisMonth = expenseLogs
+            .filter { it.currency == "LKR" && isCurrentMonth(it.spentAtEpochMillis) }
+            .sumOf { it.amount }
 
         HomeUiState(
             featuredGoal = featured,
@@ -111,6 +137,8 @@ class HomeViewModel @Inject constructor(
                     iconIndex = 14,
                 ),
             ),
+            totalIncomeThisMonth = totalIncomeThisMonth,
+            totalExpensesThisMonth = totalExpensesThisMonth,
             isScanning = isScanning,
             isSieveEnabled = hasEnabledSenders,
         )

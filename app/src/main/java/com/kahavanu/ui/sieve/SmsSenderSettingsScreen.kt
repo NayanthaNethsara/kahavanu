@@ -360,19 +360,16 @@ private fun SmsSenderRowItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         val iconColor = if (sender.isEnabled) MaterialTheme.extendedColors.brandAccent else MaterialTheme.extendedColors.textTertiary
-        val iconBackground = if (sender.isEnabled) Color.Transparent else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f)
 
         Box(
-            modifier = Modifier
-                .size(40.dp)
-                .background(iconBackground, RoundedCornerShape(14.dp)),
+            modifier = Modifier.size(40.dp),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = Icons.Outlined.ChatBubbleOutline,
                 contentDescription = null,
                 tint = iconColor,
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier.size(22.dp)
             )
         }
 

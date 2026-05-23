@@ -5,12 +5,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.graphics.Color
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.BarChart
-import androidx.compose.material.icons.automirrored.outlined.ReceiptLong
+import androidx.compose.material.icons.outlined.Category
 import androidx.compose.material.icons.outlined.History
 import com.kahavanu.ui.common.KahavanuScreen
 import com.kahavanu.ui.common.QuickAction
@@ -18,6 +19,7 @@ import com.kahavanu.ui.common.QuickActionRow
 import com.kahavanu.ui.common.screenSection
 import com.kahavanu.ui.expenses.components.ByCategorySection
 import com.kahavanu.ui.expenses.components.ExpensesSummaryCard
+import com.kahavanu.ui.expenses.components.ExpensesInsightsSection
 import com.kahavanu.ui.expenses.components.MatchAndCategorizeSection
 import com.kahavanu.ui.expenses.components.RecentExpensesSection
 import com.kahavanu.ui.theme.Spacing
@@ -32,6 +34,16 @@ fun ExpensesScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val monthLabel = currentMonthLabel()
+
+    // Dynamically calculate the biggest spend metrics based on database summaries
+    val activeSummaries = uiState.categorySummaries.filter { it.amount > 0.0 }
+    val biggestSpend = activeSummaries.maxByOrNull { it.amount }
+    val totalSpent = uiState.totalSpent
+    
+    val biggestSpendCategory = biggestSpend?.label ?: "Food"
+    val biggestSpendAmount = biggestSpend?.amount ?: 45000.0
+    val biggestSpendPercent = if (totalSpent > 0.0) ((biggestSpendAmount / totalSpent) * 100).toInt() else 30
+    val biggestSpendSubtitle = "LKR ${String.format("%,.0f", biggestSpendAmount / 1000)}K · $biggestSpendPercent%"
 
     KahavanuScreen(
         headerLabel = "Expenses",
@@ -49,13 +61,41 @@ fun ExpensesScreen(
                 )
                 QuickActionRow(
                     actions = listOf(
-                        QuickAction(Icons.Outlined.Add, "Log Expense", onLogExpense),
-                        QuickAction(Icons.Outlined.BarChart, "Budgets", onViewBudgets),
-                        QuickAction(Icons.AutoMirrored.Outlined.ReceiptLong, "Bills", onViewBills),
-                        QuickAction(Icons.Outlined.History, "History", onViewHistory),
+                        QuickAction(
+                            icon = Icons.Outlined.Add, 
+                            label = "Add", 
+                            onClick = onLogExpense,
+                            iconTint = Color(0xFF00BC7D)
+                        ),
+                        QuickAction(
+                            icon = Icons.Outlined.History, 
+                            label = "All", 
+                            onClick = onViewHistory,
+                            iconTint = Color(0xFF3B82F6)
+                        ),
+                        QuickAction(
+                            icon = Icons.Outlined.Category, 
+                            label = "Categories", 
+                            onClick = onViewHistory,
+                            iconTint = Color(0xFF8B5CF6)
+                        ),
+                        QuickAction(
+                            icon = Icons.Outlined.BarChart, 
+                            label = "Budget", 
+                            onClick = onViewBudgets,
+                            iconTint = Color(0xFFEF4444)
+                        ),
                     ),
                 )
             }
+        }
+        screenSection {
+            ExpensesInsightsSection(
+                biggestSpendCategory = biggestSpendCategory,
+                biggestSpendSubtitle = biggestSpendSubtitle,
+                subscriptionCost = 4850.0,
+                subscriptionCount = 3
+            )
         }
         screenSection {
             MatchAndCategorizeSection(

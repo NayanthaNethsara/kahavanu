@@ -310,16 +310,14 @@ private fun SettingToggleRow(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
-            modifier = Modifier
-                .size(40.dp)
-                .background(iconBackgroundColor, RoundedCornerShape(12.dp)),
+            modifier = Modifier.size(40.dp),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
                 tint = iconColor,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(22.dp)
             )
         }
         Spacer(modifier = Modifier.width(Spacing.medium))
@@ -372,16 +370,14 @@ private fun SettingNavigationRow(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
-            modifier = Modifier
-                .size(40.dp)
-                .background(iconBackgroundColor, RoundedCornerShape(12.dp)),
+            modifier = Modifier.size(40.dp),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
                 tint = iconColor,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(22.dp)
             )
         }
         Spacer(modifier = Modifier.width(Spacing.medium))

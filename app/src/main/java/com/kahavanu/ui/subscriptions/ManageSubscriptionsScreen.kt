@@ -327,19 +327,14 @@ private fun SubscriptionRow(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
-            modifier = Modifier
-                .size(40.dp)
-                .background(
-                    if (subscription.isPaused) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.extendedColors.infoWashed,
-                    RoundedCornerShape(12.dp)
-                ),
+            modifier = Modifier.size(40.dp),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = Icons.Outlined.NotificationsActive,
                 contentDescription = null,
                 tint = if (subscription.isPaused) TextTertiary else MaterialTheme.extendedColors.infoAccent,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(22.dp)
             )
         }
         Spacer(modifier = Modifier.width(Spacing.medium))

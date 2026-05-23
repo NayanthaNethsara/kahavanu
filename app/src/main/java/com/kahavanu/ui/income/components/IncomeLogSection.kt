@@ -108,19 +108,14 @@ private fun LogItem(
     ) {
         // Icon Container
         Box(
-            modifier = Modifier
-                .size(40.dp)
-                .background(
-                    color = MaterialTheme.extendedColors.brandAccent.copy(alpha = 0.14f),
-                    shape = RoundedCornerShape(14.dp)
-                ),
+            modifier = Modifier.size(40.dp),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
                 tint = TextTertiaryEmerald,
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier.size(22.dp)
             )
         }
         

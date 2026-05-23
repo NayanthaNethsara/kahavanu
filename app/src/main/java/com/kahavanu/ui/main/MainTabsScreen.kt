@@ -104,6 +104,22 @@ fun MainTabsScreen(
                             restoreState = true
                         }
                     },
+                    onLogIncomeClick = {
+                        navController.navigate(AppDestination.IncomeLog.route)
+                    },
+                    onLogExpenseClick = {
+                        navController.navigate(AppDestination.ExpenseLog.route)
+                    },
+                    onPendingClick = {
+                        navController.navigate(AppDestination.IncomeHistory.createRoute("PENDING"))
+                    },
+                    onAnalyticsClick = {
+                        navController.navigate(AppDestination.Goals.route) {
+                            popUpTo(AppDestination.Home.route) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
                 )
             }
             composable(AppDestination.Income.route) {

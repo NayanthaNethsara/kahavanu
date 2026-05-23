@@ -115,16 +115,14 @@ private fun CategorySpendItem(
                 horizontalArrangement = Arrangement.spacedBy(Spacing.small),
             ) {
                 Box(
-                    modifier = Modifier
-                        .size(28.dp)
-                        .background(summary.color.copy(alpha = 0.14f), RoundedCornerShape(10.dp)),
+                    modifier = Modifier.size(28.dp),
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
                         imageVector = categoryIcon(summary.label),
                         contentDescription = null,
                         tint = summary.color,
-                        modifier = Modifier.size(14.dp),
+                        modifier = Modifier.size(22.dp),
                     )
                 }
                 Text(

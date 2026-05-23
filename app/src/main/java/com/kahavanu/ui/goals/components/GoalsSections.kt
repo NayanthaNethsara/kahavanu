@@ -13,6 +13,7 @@ import com.kahavanu.ui.theme.Primary
 import com.kahavanu.ui.theme.extendedColors
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,14 +30,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.BarChart
+import androidx.compose.material.icons.outlined.DragHandle
 import androidx.compose.material.icons.outlined.Flag
-import androidx.compose.material.icons.outlined.FlightTakeoff
+import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Remove
-import androidx.compose.material.icons.outlined.Savings
-import androidx.compose.material.icons.outlined.School
-import androidx.compose.material.icons.outlined.Shield
-import androidx.compose.material.icons.outlined.ShoppingBag
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -51,11 +50,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.kahavanu.domain.model.CurrencyOption
 import com.kahavanu.domain.model.GoalCategory
 import com.kahavanu.domain.model.GoalEntry
@@ -75,39 +76,159 @@ import kotlin.math.roundToInt
 private const val QUICK_STEP_AMOUNT = 1_000.0
 
 @Composable
-fun ActiveGoalsSection(
+fun BacklogSection(
     goals: List<GoalEntry>,
     currency: CurrencyOption,
-    softLimit: Int,
-    isAtLimit: Boolean,
-    onAddGoal: () -> Unit,
     onAdjustSaved: (goalId: String, delta: Double) -> Unit,
+    onAddGoal: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    Column {
+    Column(modifier = modifier) {
         SectionHeader(
-            title = "Active Goals",
-            subtitle = if (goals.isEmpty()) "No active goals yet" else "${goals.size} of $softLimit recommended",
-            actionText = if (goals.isEmpty()) "Add one" else null,
+            title = "Backlog Targets",
+            subtitle = if (goals.isEmpty()) "No other targets" else "${goals.size} target${if (goals.size > 1) "s" else ""} in backlog",
+            actionText = if (goals.isEmpty()) "Add Goal" else null,
             onActionClick = if (goals.isEmpty()) onAddGoal else null,
         )
-        if (isAtLimit && goals.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(Spacing.small))
-            SoftLimitBanner(count = goals.size, limit = softLimit)
-        }
+        
         Spacer(modifier = Modifier.height(Spacing.small))
+
         if (goals.isEmpty()) {
             EmptyGoalsPlaceholder()
         } else {
-            Column(verticalArrangement = Arrangement.spacedBy(Spacing.medium)) {
-                goals.forEach { goal ->
-                    GoalCard(
-                        goal = goal,
-                        currency = currency,
-                        onAdjustSaved = { delta -> onAdjustSaved(goal.id, delta) },
-                    )
+            GlassCard(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(Spacing.medium)) {
+                    goals.forEachIndexed { index, goal ->
+                        BacklogItemRow(
+                            goal = goal,
+                            currency = currency,
+                            onAdjustSaved = { delta -> onAdjustSaved(goal.id, delta) }
+                        )
+                        if (index < goals.lastIndex) {
+                            HorizontalDivider(
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                                modifier = Modifier.padding(vertical = Spacing.small)
+                            )
+                        }
+                    }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun BacklogItemRow(
+    goal: GoalEntry,
+    currency: CurrencyOption,
+    onAdjustSaved: (Double) -> Unit,
+) {
+    val progressPercent = if (goal.targetAmount > 0.0) {
+        ((goal.currentAmount / goal.targetAmount) * 100).roundToInt().coerceIn(0, 100)
+    } else {
+        0
+    }
+    val color = goalCategoryColor(goal.category)
+
+    var dialogMode by remember { mutableStateOf<AdjustDialogMode?>(null) }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { dialogMode = AdjustDialogMode.Add }
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Spacing.medium)
+    ) {
+        // Drag handle (Grab handle)
+        Icon(
+            imageVector = Icons.Outlined.DragHandle,
+            contentDescription = "Reorder handle",
+            tint = TextSecondary.copy(alpha = 0.5f),
+            modifier = Modifier.size(20.dp)
+        )
+
+        // Raw Category Icon (no background box, size 22.dp)
+        Icon(
+            imageVector = goalCategoryIcon(goal.category),
+            contentDescription = null,
+            tint = color,
+            modifier = Modifier.size(22.dp)
+        )
+
+        // Center: Title, elegant thin progress bar, saved vs target metrics
+        Column(modifier = Modifier.weight(1f)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = goal.title,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = TextPrimary,
+                    maxLines = 1
+                )
+                Text(
+                    text = "$progressPercent%",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = color,
+                )
+            }
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            // Thin progress bar
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(4.dp)
+                    .clip(RoundedCornerShape(99.dp))
+                    .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(progressPercent / 100f)
+                        .height(4.dp)
+                        .clip(RoundedCornerShape(99.dp))
+                        .background(color),
+                )
+            }
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            // Details info
+            Text(
+                text = "${formatAmount(goal.currentAmount, currency.code)} of ${formatAmount(goal.targetAmount, currency.code)}",
+                style = MaterialTheme.typography.labelSmall,
+                color = TextSecondary,
+                fontSize = 10.sp,
+            )
+        }
+
+        // Reorder options icon
+        Icon(
+            imageVector = Icons.Outlined.MoreVert,
+            contentDescription = "Options",
+            tint = TextSecondary,
+            modifier = Modifier
+                .size(20.dp)
+                .clickable { dialogMode = AdjustDialogMode.Add }
+        )
+    }
+
+    dialogMode?.let { mode ->
+        AdjustAmountDialog(
+            mode = mode,
+            currencyCode = currency.code,
+            onDismiss = { dialogMode = null },
+            onConfirm = { amount ->
+                onAdjustSaved(amount)
+                dialogMode = null
+            }
+        )
     }
 }
 
@@ -119,8 +240,8 @@ fun CompletedGoalsSection(
     if (goals.isEmpty()) return
     Column {
         SectionHeader(
-            title = "Completed",
-            subtitle = "${goals.size} goal${if (goals.size == 1) "" else "s"} achieved",
+            title = "Completed Targets",
+            subtitle = "${goals.size} target${if (goals.size == 1) "" else "s"} achieved",
         )
         Spacer(modifier = Modifier.height(Spacing.small))
         Column(verticalArrangement = Arrangement.spacedBy(Spacing.medium)) {
@@ -151,7 +272,6 @@ private fun GoalCard(
 
     GlassCard(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(Spacing.large)) {
-            // Header: bare icon + title/category, amounts to the right
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -165,7 +285,7 @@ private fun GoalCard(
                         imageVector = goalCategoryIcon(goal.category),
                         contentDescription = null,
                         tint = color,
-                        modifier = Modifier.size(24.dp),
+                        modifier = Modifier.size(22.dp),
                     )
                     Spacer(modifier = Modifier.width(Spacing.medium))
                     Column(modifier = Modifier.weight(1f)) {
@@ -179,7 +299,7 @@ private fun GoalCard(
                         Text(
                             text = goal.category.label,
                             style = MaterialTheme.typography.bodySmall,
-            color = TextSecondary,
+                            color = TextSecondary,
                         )
                     }
                 }
@@ -187,26 +307,25 @@ private fun GoalCard(
                     Text(
                         text = formatAmount(goal.currentAmount, currency.code),
                         style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.SemiBold,
+                        fontWeight = FontWeight.SemiBold,
                         color = if (isCompleted) MaterialTheme.colorScheme.primary else TextPrimary,
                     )
                     Text(
                         text = "of ${formatAmount(goal.targetAmount, currency.code)}",
                         style = MaterialTheme.typography.bodySmall,
-            color = TextSecondary,
+                        color = TextSecondary,
                     )
                 }
             }
 
             Spacer(modifier = Modifier.height(Spacing.medium))
 
-            // Progress bar
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(6.dp)
                     .clip(RoundedCornerShape(99.dp))
-                    .background(MaterialTheme.colorScheme.outlineVariant),
+                    .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
             ) {
                 Box(
                     modifier = Modifier
@@ -219,7 +338,6 @@ private fun GoalCard(
 
             Spacer(modifier = Modifier.height(Spacing.small))
 
-            // Meta row: progress%, remaining, target date
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -229,7 +347,7 @@ private fun GoalCard(
                     text = "$progressPercent% complete",
                     style = MaterialTheme.typography.labelSmall,
                     fontSize = TextSize.xs,
-            color = color,
+                    color = color,
                 )
                 if (!isCompleted && remaining > 0.0) {
                     Text(
@@ -241,7 +359,6 @@ private fun GoalCard(
                 }
             }
 
-            // Last updated + target date row
             val targetDateText = goal.targetDateEpochMillis?.let { millis ->
                 val date = Instant.ofEpochMilli(millis)
                     .atZone(ZoneId.systemDefault())
@@ -271,101 +388,11 @@ private fun GoalCard(
                     )
                 }
             }
-
-            // Adjust buttons (only for active goals)
-            if (!isCompleted && onAdjustSaved != null) {
-                Spacer(modifier = Modifier.height(Spacing.medium))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(Spacing.small),
-                ) {
-                    AdjustButton(
-                        icon = Icons.Outlined.Remove,
-                        label = "− ${formatAmount(QUICK_STEP_AMOUNT, currency.code)}",
-                        color = MaterialTheme.extendedColors.iconMuted,
-                        enabled = goal.currentAmount > 0.0,
-                        onTap = { onAdjustSaved(-QUICK_STEP_AMOUNT) },
-                        onLongPress = { dialogState = AdjustDialogMode.Subtract },
-                        modifier = Modifier.weight(1f),
-                    )
-                    AdjustButton(
-                        icon = Icons.Outlined.Add,
-                        label = "+ ${formatAmount(QUICK_STEP_AMOUNT, currency.code)}",
-                        color = color,
-                        enabled = true,
-                        onTap = { onAdjustSaved(QUICK_STEP_AMOUNT) },
-                        onLongPress = { dialogState = AdjustDialogMode.Add },
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-                Text(
-                    text = "Long-press for custom amount",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontSize = TextSize.xs,
-                    color = TextSecondary,
-                    modifier = Modifier.padding(top = Spacing.extraSmall),
-                )
-            }
         }
-    }
-
-    dialogState?.let { mode ->
-        AdjustAmountDialog(
-            mode = mode,
-            currencyCode = currency.code,
-            onDismiss = { dialogState = null },
-            onConfirm = { amount ->
-                val delta = if (mode == AdjustDialogMode.Add) amount else -amount
-                onAdjustSaved?.invoke(delta)
-                dialogState = null
-            },
-        )
     }
 }
 
 private enum class AdjustDialogMode { Add, Subtract }
-
-@OptIn(ExperimentalComposeUiApi::class)
-@Composable
-private fun AdjustButton(
-    icon: ImageVector,
-    label: String,
-    color: androidx.compose.ui.graphics.Color,
-    enabled: Boolean,
-    onTap: () -> Unit,
-    onLongPress: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val bgAlpha = if (enabled) 0.10f else 0.04f
-    val contentAlpha = if (enabled) 1f else 0.4f
-    Row(
-        modifier = modifier
-            .clip(RoundedCornerShape(12.dp))
-            .background(color.copy(alpha = bgAlpha))
-            .border(1.dp, color.copy(alpha = 0.18f), RoundedCornerShape(12.dp))
-            .combinedClickable(
-                enabled = enabled,
-                onClick = onTap,
-                onLongClick = onLongPress,
-            )
-            .padding(vertical = 10.dp, horizontal = Spacing.medium),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = color.copy(alpha = contentAlpha),
-            modifier = Modifier.size(16.dp),
-        )
-        Spacer(modifier = Modifier.width(Spacing.extraSmall))
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelMedium,
-            color = color.copy(alpha = contentAlpha),
-        )
-    }
-}
 
 @Composable
 private fun AdjustAmountDialog(
@@ -375,7 +402,7 @@ private fun AdjustAmountDialog(
     onConfirm: (Double) -> Unit,
 ) {
     var input by remember { mutableStateOf("") }
-    val title = if (mode == AdjustDialogMode.Add) "Add to savings" else "Remove from savings"
+    val title = "Quick Adjust Target Fund"
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -383,7 +410,7 @@ private fun AdjustAmountDialog(
         text = {
             Column {
                 Text(
-                    text = "Enter an amount in $currencyCode",
+                    text = "Specify the savings amount to allocate in $currencyCode",
                     fontSize = TextSize.sm,
                     color = TextSecondary,
                 )
@@ -393,6 +420,7 @@ private fun AdjustAmountDialog(
                     onValueChange = { new -> input = new.filter { it.isDigit() || it == '.' } },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    placeholder = { Text("e.g. 5000") }
                 )
             }
         },
@@ -401,7 +429,7 @@ private fun AdjustAmountDialog(
                 enabled = input.toDoubleOrNull()?.let { it > 0 } == true,
                 onClick = { input.toDoubleOrNull()?.let { onConfirm(it) } },
             ) {
-                Text(if (mode == AdjustDialogMode.Add) "Add" else "Remove")
+                Text("Confirm")
             }
         },
         dismissButton = {
@@ -411,40 +439,13 @@ private fun AdjustAmountDialog(
 }
 
 @Composable
-private fun SoftLimitBanner(count: Int, limit: Int) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(MaterialTheme.extendedColors.warningWashed)
-            .border(1.dp, MaterialTheme.extendedColors.warningBorder, RoundedCornerShape(12.dp))
-            .padding(horizontal = Spacing.medium, vertical = Spacing.small),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(
-            imageVector = Icons.Outlined.Flag,
-            contentDescription = null,
-            tint = MaterialTheme.extendedColors.warning,
-            modifier = Modifier.size(16.dp),
-        )
-        Spacer(modifier = Modifier.width(Spacing.small))
-        Text(
-            text = "You have $count active goals. We suggest keeping it under $limit to stay focused.",
-            style = MaterialTheme.typography.labelSmall,
-            fontSize = TextSize.xs,
-            color = MaterialTheme.extendedColors.warning,
-        )
-    }
-}
-
-@Composable
 private fun EmptyGoalsPlaceholder() {
     EmptyState(
         icon = Icons.Outlined.Flag,
-        title = "Set your first goal",
-        subtitle = "Track savings targets and milestones",
-        iconTint = MaterialTheme.extendedColors.textTertiary,
-        iconSize = 40.dp,
+        title = "No Backlog Targets",
+        subtitle = "Set more goals to see them lined up in your backlog",
+        iconTint = TextSecondary.copy(alpha = 0.5f),
+        iconSize = 36.dp,
     )
 }
 
@@ -468,4 +469,3 @@ private fun relativeTime(epochMillis: Long): String {
         }
     }
 }
-

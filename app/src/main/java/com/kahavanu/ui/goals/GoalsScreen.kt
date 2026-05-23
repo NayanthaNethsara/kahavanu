@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -23,9 +24,11 @@ import androidx.compose.material.icons.automirrored.outlined.Sort
 import com.kahavanu.ui.common.QuickAction
 import com.kahavanu.ui.common.QuickActionRow
 import com.kahavanu.ui.common.ScreenHeader
-import com.kahavanu.ui.goals.components.ActiveGoalsSection
+import com.kahavanu.ui.goals.components.BacklogSection
 import com.kahavanu.ui.goals.components.CompletedGoalsSection
 import com.kahavanu.ui.goals.components.GoalsSummaryCard
+import com.kahavanu.ui.goals.components.ProjectionsSection
+import com.kahavanu.ui.goals.components.TradeOffSimulator
 import com.kahavanu.ui.theme.Spacing
 
 @Composable
@@ -36,6 +39,7 @@ fun GoalsScreen(
     viewModel: GoalsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val featuredGoal = uiState.activeGoals.firstOrNull()
 
     LazyColumn(
         modifier = Modifier
@@ -65,33 +69,73 @@ fun GoalsScreen(
         }
         item {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.large)) {
+                // Featured Active Goal Card
                 GoalsSummaryCard(
-                    totalSaved = uiState.totalSavedAmount,
-                    totalTarget = uiState.totalTargetAmount,
-                    activeCount = uiState.activeGoals.size,
-                    completedCount = uiState.completedGoals.size,
+                    featuredGoal = featuredGoal,
                     currency = uiState.currency,
                 )
+                
+                // Color-coded Quick Actions
                 QuickActionRow(
                     actions = listOf(
-                        QuickAction(Icons.Outlined.Add, "New Goal", onAddGoal),
-                        QuickAction(Icons.Outlined.CheckCircle, "Completed", onViewCompleted),
-                        QuickAction(Icons.Outlined.BarChart, "Stats", onViewStats),
-                        QuickAction(Icons.AutoMirrored.Outlined.Sort, "Sort", viewModel::toggleSortMode),
+                        QuickAction(
+                            icon = Icons.Outlined.Add,
+                            label = "New Goal",
+                            onClick = onAddGoal,
+                            iconTint = Color(0xFF00BC7D) // Emerald
+                        ),
+                        QuickAction(
+                            icon = Icons.Outlined.CheckCircle,
+                            label = "Completed",
+                            onClick = onViewCompleted,
+                            iconTint = Color(0xFF3B82F6) // Blue
+                        ),
+                        QuickAction(
+                            icon = Icons.Outlined.BarChart,
+                            label = "Stats",
+                            onClick = onViewStats,
+                            iconTint = Color(0xFF8B5CF6) // Violet
+                        ),
+                        QuickAction(
+                            icon = Icons.AutoMirrored.Outlined.Sort,
+                            label = "Sort",
+                            onClick = viewModel::toggleSortMode,
+                            iconTint = Color(0xFFF97316) // Orange
+                        ),
                     ),
                 )
             }
         }
+        
+        // Estimated Arrival & Capacity Projections
         item {
-            ActiveGoalsSection(
-                goals = uiState.activeGoals,
+            val remaining = featuredGoal?.let { it.targetAmount - it.currentAmount } ?: 478800.0
+            ProjectionsSection(
+                remainingAmount = remaining,
+                rcsAmount = 53000.0,
                 currency = uiState.currency,
-                softLimit = uiState.activeGoalSoftLimit,
-                isAtLimit = uiState.isAtActiveGoalLimit,
-                onAddGoal = onAddGoal,
-                onAdjustSaved = viewModel::adjustSavedAmount,
             )
         }
+
+        // Live Interactive Trade-Off Simulator
+        item {
+            TradeOffSimulator(
+                featuredGoal = featuredGoal,
+                currency = uiState.currency,
+            )
+        }
+
+        // Remaining active backlog goals
+        item {
+            BacklogSection(
+                goals = uiState.activeGoals.drop(1),
+                currency = uiState.currency,
+                onAdjustSaved = viewModel::adjustSavedAmount,
+                onAddGoal = onAddGoal,
+            )
+        }
+
+        // Achieved completed goals
         item {
             CompletedGoalsSection(
                 goals = uiState.completedGoals,

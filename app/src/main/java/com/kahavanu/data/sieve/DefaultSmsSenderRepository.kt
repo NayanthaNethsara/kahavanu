@@ -21,7 +21,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.withLock
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -38,16 +37,12 @@ class DefaultSmsSenderRepository @Inject constructor(
     private val repositoryScope = CoroutineScope(Dispatchers.IO)
     private var smsSendersListener: ListenerRegistration? = null
     private var listenerUserId: String? = null
-    private val seedingMutex = kotlinx.coroutines.sync.Mutex()
 
     private val authStateListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
         val uid = firebaseAuth.currentUser?.uid
         if (uid == null) {
             stopRealtimeListeners()
             return@AuthStateListener
-        }
-        repositoryScope.launch {
-            ensureDefaultSenders(uid)
         }
         startRealtimeListeners(uid)
         syncScheduler.enqueue()
@@ -56,29 +51,6 @@ class DefaultSmsSenderRepository @Inject constructor(
     init {
         syncScheduler.enqueue()
         auth.addAuthStateListener(authStateListener)
-    }
-
-    private suspend fun ensureDefaultSenders(uid: String) = seedingMutex.withLock {
-        val existing = smsSenderDao.getSendersForUser(uid)
-        if (existing.isNotEmpty()) return@withLock
-
-        val now = System.currentTimeMillis()
-        SmsSender.PREDEFINED_SENDERS.forEach { predefined ->
-            val clientId = UUID.nameUUIDFromBytes("default_${uid}_${predefined.name}".toByteArray()).toString()
-            val entity = SmsSenderEntity(
-                userId = uid,
-                senderName = predefined.name,
-                subtitle = predefined.subtitle,
-                isEnabled = true,
-                createdAtEpochMillis = now,
-                clientId = clientId,
-                isSynced = false,
-                isDeleted = false,
-                updatedAtEpochMillis = now
-            )
-            smsSenderDao.insert(entity)
-        }
-        syncScheduler.enqueue()
     }
 
     override fun observeAuthorizedSenders(): Flow<List<SmsSender>> {

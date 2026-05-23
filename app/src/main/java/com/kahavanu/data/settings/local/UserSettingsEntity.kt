@@ -10,4 +10,6 @@ data class UserSettingsEntity(
     val secondaryCurrency: String,
     val updatedAtEpochMillis: Long,
     val lastSmsScanEpochMillis: Long = 0L,
+    val isAutoMatchDepositsEnabled: Boolean = true,
+    val isPushAlertsEnabled: Boolean = true,
 )

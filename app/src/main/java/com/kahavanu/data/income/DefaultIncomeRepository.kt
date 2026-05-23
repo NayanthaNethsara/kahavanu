@@ -5,7 +5,6 @@ import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
-import com.google.firebase.firestore.SetOptions
 import com.kahavanu.data.common.awaitResult
 import com.kahavanu.data.income.local.IncomeLogDao
 import com.kahavanu.data.income.local.IncomeLogEntity
@@ -636,10 +635,6 @@ class DefaultIncomeRepository @Inject constructor(
         uid: String,
         scheduled: ScheduledIncomeEntity,
     ): Result<String?> {
-        if (scheduled.remoteId == null) {
-            val ensureResult = ensureScheduledCollection(uid)
-            if (ensureResult.isFailure) return Result.failure(ensureResult.exceptionOrNull()!!)
-        }
         val status = when {
             scheduled.type == IncomeSourceType.PENDING.id && scheduled.lastGeneratedEpochMillis != null -> "received"
             scheduled.type == IncomeSourceType.PENDING.id -> "pending"
@@ -680,23 +675,6 @@ class DefaultIncomeRepository @Inject constructor(
             .set(data)
             .awaitResult()
             .map { docId }
-    }
-
-    private suspend fun ensureScheduledCollection(uid: String): Result<Unit> {
-        val now = System.currentTimeMillis()
-        val userResult = firestore.collection(USERS_COLLECTION)
-            .document(uid)
-            .set(mapOf("updatedAt" to now), SetOptions.merge())
-            .awaitResult()
-        if (userResult.isFailure) return Result.failure(userResult.exceptionOrNull()!!)
-
-        return firestore.collection(USERS_COLLECTION)
-            .document(uid)
-            .collection(SCHEDULED_COLLECTION)
-            .document("_meta")
-            .set(mapOf("createdAt" to now), SetOptions.merge())
-            .awaitResult()
-            .map { }
     }
 
     private suspend fun deleteRemoteScheduled(

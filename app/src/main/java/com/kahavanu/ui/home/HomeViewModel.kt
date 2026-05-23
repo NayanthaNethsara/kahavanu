@@ -50,6 +50,7 @@ data class HomeUiState(
     val incomeStreams: List<IncomeStreamItem> = emptyList(),
     val currentUserName: String = "User",
     val isScanning: Boolean = false,
+    val isSieveEnabled: Boolean = false,
 )
 
 @HiltViewModel
@@ -68,9 +69,12 @@ class HomeViewModel @Inject constructor(
         incomeRepository.observeIncomeLogs(),
         smsSuggestionRepository.observePendingSuggestions(),
         smsScanRepository.isScanningFlow,
-    ) { goals, incomeLogs, suggestions, isScanning ->
+        smsSenderRepository.observeAuthorizedSenders(),
+    ) { goals, incomeLogs, suggestions, isScanning, senders ->
         val featured = goals.firstOrNull { !it.isCompleted }
-        val sieveItems = suggestions.map { it.toSieveItem() }
+        val hasEnabledSenders = senders.any { it.isEnabled }
+        val sieveItems = if (hasEnabledSenders) suggestions.map { it.toSieveItem() } else emptyList()
+
 
         val lkrReceived = incomeLogs.filter { it.currency == "LKR" && it.sourceType != "pending" }.sumOf { it.amount }
         val lkrPending = incomeLogs.filter { it.currency == "LKR" && it.sourceType == "pending" }.sumOf { it.amount }
@@ -108,6 +112,7 @@ class HomeViewModel @Inject constructor(
                 ),
             ),
             isScanning = isScanning,
+            isSieveEnabled = hasEnabledSenders,
         )
     }.stateIn(
         scope = viewModelScope,

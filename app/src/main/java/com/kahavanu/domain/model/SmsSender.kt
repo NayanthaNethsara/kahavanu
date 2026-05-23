@@ -10,12 +10,6 @@ data class SmsSender(
     val createdAtEpochMillis: Long = System.currentTimeMillis()
 ) {
     companion object {
-        val PREDEFINED_SENDERS = listOf(
-            PredefinedSender("PickMe", "SMS Sender Filter"),
-            PredefinedSender("Commercial Bank", "Commercial Bank"),
-            PredefinedSender("Keells", "SMS Sender Filter")
-        )
-
         fun resolveSubtitle(name: String): String {
             return when (name.trim().uppercase(Locale.getDefault())) {
                 "COMBANK", "COMMERCIAL BANK" -> "Commercial Bank"
@@ -28,8 +22,3 @@ data class SmsSender(
         }
     }
 }
-
-data class PredefinedSender(
-    val name: String,
-    val subtitle: String
-)

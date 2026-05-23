@@ -56,14 +56,16 @@ fun HomeScreen(
                 onGoalClick = onGoalClick,
             )
         }
-        item {
-            SieveSection(
-                items = uiState.sieveItems,
-                onConfirm = viewModel::confirmSieveItem,
-                onIgnore = viewModel::dismissSieveItem,
-                onScanClick = onScanClick,
-                isScanning = uiState.isScanning,
-            )
+        if (uiState.isSieveEnabled) {
+            item {
+                SieveSection(
+                    items = uiState.sieveItems,
+                    onConfirm = viewModel::confirmSieveItem,
+                    onIgnore = viewModel::dismissSieveItem,
+                    onScanClick = onScanClick,
+                    isScanning = uiState.isScanning,
+                )
+            }
         }
         screenSection {
             StreamsCard(

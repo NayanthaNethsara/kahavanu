@@ -104,15 +104,17 @@ fun MainTabsScreen(
                             restoreState = true
                         }
                     },
-                    onExpenseClick = {
-                        navController.navigate(AppDestination.Expenses.route) {
-                            popUpTo(AppDestination.Home.route) { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
+                    onLogIncomeClick = {
+                        navController.navigate(AppDestination.IncomeLog.route)
+                    },
+                    onLogExpenseClick = {
+                        navController.navigate(AppDestination.ExpenseLog.route)
                     },
                     onPendingClick = {
-                        navController.navigate(AppDestination.SmsSenderSettings.route) {
+                        navController.navigate(AppDestination.IncomeHistory.createRoute("PENDING"))
+                    },
+                    onAnalyticsClick = {
+                        navController.navigate(AppDestination.Goals.route) {
                             popUpTo(AppDestination.Home.route) { saveState = true }
                             launchSingleTop = true
                             restoreState = true

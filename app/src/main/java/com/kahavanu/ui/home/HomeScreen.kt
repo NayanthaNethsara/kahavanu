@@ -19,7 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccountBalanceWallet
 import androidx.compose.material.icons.automirrored.outlined.TrendingDown
 import androidx.compose.material.icons.outlined.HourglassEmpty
-import androidx.compose.material.icons.outlined.Flag
+import androidx.compose.material.icons.outlined.Analytics
 import com.kahavanu.ui.theme.AccentIncome
 import com.kahavanu.ui.theme.AccentExpense
 import com.kahavanu.ui.theme.InfoAccent
@@ -34,8 +34,10 @@ fun HomeScreen(
     currentSession: UserSession?,
     onGoalClick: () -> Unit = {},
     onIncomeClick: () -> Unit = {},
-    onExpenseClick: () -> Unit = {},
+    onLogIncomeClick: () -> Unit = {},
+    onLogExpenseClick: () -> Unit = {},
     onPendingClick: () -> Unit = {},
+    onAnalyticsClick: () -> Unit = {},
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -81,13 +83,13 @@ fun HomeScreen(
                 QuickAction(
                     icon = Icons.Outlined.AccountBalanceWallet,
                     label = "Income",
-                    onClick = onIncomeClick,
+                    onClick = onLogIncomeClick,
                     iconTint = AccentIncome
                 ),
                 QuickAction(
                     icon = Icons.AutoMirrored.Outlined.TrendingDown,
                     label = "Expense",
-                    onClick = onExpenseClick,
+                    onClick = onLogExpenseClick,
                     iconTint = AccentExpense
                 ),
                 QuickAction(
@@ -98,9 +100,9 @@ fun HomeScreen(
                     iconTint = InfoAccent
                 ),
                 QuickAction(
-                    icon = Icons.Outlined.Flag,
-                    label = "Goals",
-                    onClick = onGoalClick,
+                    icon = Icons.Outlined.Analytics,
+                    label = "Stats",
+                    onClick = onAnalyticsClick,
                     iconTint = Warning
                 )
             )

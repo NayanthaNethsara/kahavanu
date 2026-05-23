@@ -361,12 +361,17 @@ private fun SmsSenderRowItem(
     ) {
         val iconColor = if (sender.isEnabled) MaterialTheme.extendedColors.brandAccent else MaterialTheme.extendedColors.textTertiary
 
-        Icon(
-            imageVector = Icons.Outlined.ChatBubbleOutline,
-            contentDescription = null,
-            tint = iconColor,
-            modifier = Modifier.size(24.dp)
-        )
+        Box(
+            modifier = Modifier.size(40.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.ChatBubbleOutline,
+                contentDescription = null,
+                tint = iconColor,
+                modifier = Modifier.size(22.dp)
+            )
+        }
 
         Column(modifier = Modifier.weight(1f)) {
             Text(

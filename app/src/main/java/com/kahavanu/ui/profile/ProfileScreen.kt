@@ -96,6 +96,7 @@ fun ProfileScreen(
                 SettingToggleRow(
                     icon = Icons.Default.Autorenew,
                     iconColor = AccentIncome,
+                    iconBackgroundColor = AccentIncomeSoft,
                     title = "Auto-match deposits",
                     subtitle = "Link bank SMS to pending invoices",
                     checked = isAutoMatchDepositsEnabled,
@@ -105,6 +106,7 @@ fun ProfileScreen(
                 SettingToggleRow(
                     icon = Icons.Default.NotificationsActive,
                     iconColor = AccentExpense,
+                    iconBackgroundColor = AccentExpenseSoft,
                     title = "Push alerts",
                     subtitle = "Overspend & arrival updates",
                     checked = isPushAlertsEnabled,
@@ -114,6 +116,7 @@ fun ProfileScreen(
                 SettingToggleRow(
                     icon = Icons.Default.DarkMode,
                     iconColor = AccentIncome,
+                    iconBackgroundColor = AccentIncomeSoft,
                     title = "Dark mode",
                     subtitle = "Easier on the eyes at night",
                     checked = isDarkModeEnabled,
@@ -141,6 +144,7 @@ fun ProfileScreen(
                 SettingNavigationRow(
                     icon = Icons.Default.Language,
                     iconColor = AccentIncome,
+                    iconBackgroundColor = AccentIncomeSoft,
                     title = "Currencies & Income Sources",
                     subtitle = "LKR (USD) · 4 sources",
                     onClick = onNavigateToIncomeSources
@@ -149,6 +153,7 @@ fun ProfileScreen(
                 SettingNavigationRow(
                     icon = Icons.Default.CreditCard,
                     iconColor = MaterialTheme.extendedColors.dangerAccent,
+                    iconBackgroundColor = MaterialTheme.extendedColors.dangerAccent.copy(alpha = 0.1f),
                     title = "Manage Subscriptions",
                     subtitle = "Track recurring leaks",
                     onClick = onNavigateToSubscriptions
@@ -175,6 +180,7 @@ fun ProfileScreen(
                 SettingNavigationRow(
                     icon = Icons.Default.Sms,
                     iconColor = AccentIncome,
+                    iconBackgroundColor = AccentIncomeSoft,
                     title = "SMS Sender IDs",
                     subtitle = "Authorized SMS senders for tracking",
                     onClick = onNavigateToSmsSenders
@@ -191,6 +197,7 @@ fun ProfileScreen(
                 SettingNavigationRow(
                     icon = Icons.AutoMirrored.Filled.HelpOutline,
                     iconColor = TextSecondary,
+                    iconBackgroundColor = MaterialTheme.colorScheme.surfaceVariant,
                     title = "Help & support",
                     subtitle = "FAQ, contact us, send feedback",
                     onClick = onNavigateToHelpSupport
@@ -199,6 +206,7 @@ fun ProfileScreen(
                 SettingNavigationRow(
                     icon = Icons.AutoMirrored.Filled.ExitToApp,
                     iconColor = MaterialTheme.colorScheme.error,
+                    iconBackgroundColor = MaterialTheme.colorScheme.error.copy(alpha = 0.1f),
                     title = "Log out",
                     subtitle = "Sign out on this device",
                     onClick = { viewModel.logout() },
@@ -288,6 +296,7 @@ private fun ProfileCard(
 private fun SettingToggleRow(
     icon: ImageVector,
     iconColor: Color,
+    iconBackgroundColor: Color,
     title: String,
     subtitle: String,
     checked: Boolean,
@@ -300,12 +309,17 @@ private fun SettingToggleRow(
             .padding(Spacing.medium),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = iconColor,
-            modifier = Modifier.size(24.dp)
-        )
+        Box(
+            modifier = Modifier.size(40.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = iconColor,
+                modifier = Modifier.size(22.dp)
+            )
+        }
         Spacer(modifier = Modifier.width(Spacing.medium))
         Column(modifier = Modifier.weight(1f)) {
             Text(
@@ -341,6 +355,7 @@ private fun SettingToggleRow(
 private fun SettingNavigationRow(
     icon: ImageVector,
     iconColor: Color,
+    iconBackgroundColor: Color,
     title: String,
     subtitle: String,
     onClick: () -> Unit,
@@ -354,12 +369,17 @@ private fun SettingNavigationRow(
             .padding(Spacing.medium),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = iconColor,
-            modifier = Modifier.size(24.dp)
-        )
+        Box(
+            modifier = Modifier.size(40.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = iconColor,
+                modifier = Modifier.size(22.dp)
+            )
+        }
         Spacer(modifier = Modifier.width(Spacing.medium))
         Column(modifier = Modifier.weight(1f)) {
             Text(

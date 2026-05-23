@@ -59,23 +59,28 @@ fun PersistenceListItem(
             .padding(Spacing.large),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Source icon — no background
-        Icon(
-            imageVector = when {
-                isOverdue -> Icons.Outlined.ErrorOutline
-                isRecurrent -> Icons.Default.Autorenew
-                !isPending -> Icons.Default.CheckCircle
-                else -> Icons.Outlined.Schedule
-            },
-            contentDescription = null,
-            modifier = Modifier.size(24.dp),
-            tint = when {
-                isOverdue -> MaterialTheme.colorScheme.error
-                isRecurrent -> MaterialTheme.colorScheme.primary
-                !isPending -> MaterialTheme.colorScheme.primary
-                else -> MaterialTheme.extendedColors.warning
-            }
-        )
+        // Icon Box
+        Box(
+            modifier = Modifier.size(40.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = when {
+                    isOverdue -> Icons.Outlined.ErrorOutline
+                    isRecurrent -> Icons.Default.Autorenew
+                    !isPending -> Icons.Default.CheckCircle
+                    else -> Icons.Outlined.Schedule
+                },
+                contentDescription = null,
+                modifier = Modifier.size(22.dp),
+                tint = when {
+                    isOverdue -> MaterialTheme.colorScheme.error
+                    isRecurrent -> MaterialTheme.colorScheme.primary
+                    !isPending -> MaterialTheme.colorScheme.primary
+                    else -> MaterialTheme.extendedColors.warning
+                }
+            )
+        }
         
         Spacer(modifier = Modifier.width(Spacing.medium))
         

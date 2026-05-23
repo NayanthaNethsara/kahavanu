@@ -78,12 +78,6 @@ fun IncomeStreamRow(
         else -> Icons.Outlined.CurrencyBitcoin
     }
     
-    val iconBg = when (stream.iconIndex) {
-        12 -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-        13 -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f)
-        else -> MaterialTheme.extendedColors.warningContainer.copy(alpha = 0.45f)
-    }
-    
     val iconColor = when (stream.iconIndex) {
         12 -> MaterialTheme.extendedColors.textStrong
         13 -> MaterialTheme.colorScheme.primary
@@ -96,19 +90,12 @@ fun IncomeStreamRow(
             .padding(Spacing.medium),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
-            modifier = Modifier
-                .size(36.dp)
-                .background(iconBg, RoundedCornerShape(10.dp)),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = iconColor,
-                modifier = Modifier.size(16.dp)
-            )
-        }
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = iconColor,
+            modifier = Modifier.size(20.dp)
+        )
 
         Spacer(modifier = Modifier.width(Spacing.medium))
 

@@ -104,6 +104,20 @@ fun MainTabsScreen(
                             restoreState = true
                         }
                     },
+                    onExpenseClick = {
+                        navController.navigate(AppDestination.Expenses.route) {
+                            popUpTo(AppDestination.Home.route) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    onPendingClick = {
+                        navController.navigate(AppDestination.SmsSenderSettings.route) {
+                            popUpTo(AppDestination.Home.route) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
                 )
             }
             composable(AppDestination.Income.route) {

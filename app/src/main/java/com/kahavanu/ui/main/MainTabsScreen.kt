@@ -97,6 +97,9 @@ fun MainTabsScreen(
                             restoreState = true
                         }
                     },
+                    onCreateGoalClick = {
+                        navController.navigate(AppDestination.GoalSetup.route)
+                    },
                     onIncomeClick = {
                         navController.navigate(AppDestination.Income.route) {
                             popUpTo(AppDestination.Home.route) { saveState = true }

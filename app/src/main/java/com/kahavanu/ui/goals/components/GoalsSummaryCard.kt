@@ -2,6 +2,7 @@ package com.kahavanu.ui.goals.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,11 +13,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Flag
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -25,11 +30,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kahavanu.domain.model.CurrencyOption
 import com.kahavanu.domain.model.GoalEntry
 import com.kahavanu.ui.common.GlassCard
+import com.kahavanu.ui.theme.CornerRadius
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
@@ -43,33 +50,50 @@ import kotlin.math.roundToInt
 fun GoalsSummaryCard(
     featuredGoal: GoalEntry?,
     currency: CurrencyOption,
+    onAddGoal: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
-    // If empty active goals, show MacBook Pro M4 mock details
-    val title = featuredGoal?.title ?: "MacBook Pro M4"
-    val savedAmount = featuredGoal?.currentAmount ?: 11200.0
-    val targetAmount = featuredGoal?.targetAmount ?: 490000.0
+    if (featuredGoal == null) {
+        ActiveGoalEmptyCard(
+            currency = currency,
+            onAddGoal = onAddGoal,
+            modifier = modifier,
+        )
+    } else {
+        ActiveGoalSummary(
+            featuredGoal = featuredGoal,
+            currency = currency,
+            modifier = modifier,
+        )
+    }
+}
+
+@Composable
+private fun ActiveGoalSummary(
+    featuredGoal: GoalEntry,
+    currency: CurrencyOption,
+    modifier: Modifier = Modifier,
+) {
+    val savedAmount = featuredGoal.currentAmount
+    val targetAmount = featuredGoal.targetAmount
     val progressPercent = if (targetAmount > 0.0) {
         ((savedAmount / targetAmount) * 100).roundToInt().coerceIn(0, 100)
-    } else {
-        0
-    }
+    } else 0
 
     val progressBrush = Brush.horizontalGradient(
         colors = listOf(
-            Color(0xFF34D399), // Emerald 400
-            Color(0xFF10B981), // Emerald 500
-            Color(0xFF059669), // Emerald 600
-        )
+            Color(0xFF34D399),
+            Color(0xFF10B981),
+            Color(0xFF059669),
+        ),
     )
 
     GlassCard(modifier = modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(Spacing.large)) {
-            // Header: Category label + progress pill
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
                     text = "ACTIVE GOAL",
@@ -78,12 +102,12 @@ fun GoalsSummaryCard(
                     color = TextSecondary,
                     letterSpacing = 1.2.sp,
                 )
-                
+
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(8.dp))
                         .background(Color(0xFF10B981).copy(alpha = 0.12f))
-                        .padding(horizontal = Spacing.small, vertical = 4.dp)
+                        .padding(horizontal = Spacing.small, vertical = 4.dp),
                 ) {
                     Text(
                         text = "$progressPercent%",
@@ -96,9 +120,8 @@ fun GoalsSummaryCard(
 
             Spacer(modifier = Modifier.height(Spacing.small))
 
-            // Goal Title
             Text(
-                text = title,
+                text = featuredGoal.title,
                 style = MaterialTheme.typography.titleLarge,
                 fontSize = TextSize.xxl,
                 fontWeight = FontWeight.Bold,
@@ -107,11 +130,10 @@ fun GoalsSummaryCard(
 
             Spacer(modifier = Modifier.height(Spacing.medium))
 
-            // Saved / Target amounts row
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Bottom
+                verticalAlignment = Alignment.Bottom,
             ) {
                 Column {
                     Text(
@@ -146,7 +168,6 @@ fun GoalsSummaryCard(
 
             Spacer(modifier = Modifier.height(Spacing.medium))
 
-            // Custom green gradient progress bar
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -168,7 +189,6 @@ fun GoalsSummaryCard(
 
             Spacer(modifier = Modifier.height(Spacing.large))
 
-            // On track info banner
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -176,13 +196,13 @@ fun GoalsSummaryCard(
                     .background(Color(0xFF10B981).copy(alpha = 0.08f))
                     .border(1.dp, Color(0xFF10B981).copy(alpha = 0.15f), RoundedCornerShape(12.dp))
                     .padding(horizontal = Spacing.medium, vertical = Spacing.small),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(
                     imageVector = Icons.Outlined.CheckCircle,
                     contentDescription = null,
                     tint = Color(0xFF059669),
-                    modifier = Modifier.size(16.dp)
+                    modifier = Modifier.size(16.dp),
                 )
                 Spacer(modifier = Modifier.width(Spacing.small))
                 Text(
@@ -192,6 +212,98 @@ fun GoalsSummaryCard(
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Medium,
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ActiveGoalEmptyCard(
+    currency: CurrencyOption,
+    onAddGoal: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    GlassCard(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable { onAddGoal() },
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(Spacing.large),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                text = "ACTIVE GOAL",
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+                color = TextSecondary,
+                letterSpacing = 1.2.sp,
+            )
+
+            Spacer(modifier = Modifier.height(Spacing.medium))
+
+            Box(
+                modifier = Modifier
+                    .size(64.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.extendedColors.brandWashed.copy(alpha = 0.5f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Flag,
+                    contentDescription = null,
+                    tint = MaterialTheme.extendedColors.brandAccent,
+                    modifier = Modifier.size(32.dp),
+                )
+            }
+
+            Spacer(modifier = Modifier.height(Spacing.medium))
+
+            Text(
+                text = "Pick your first target",
+                style = MaterialTheme.typography.titleLarge,
+                fontSize = TextSize.xl,
+                fontWeight = FontWeight.Bold,
+                color = TextPrimary,
+                textAlign = TextAlign.Center,
+            )
+
+            Spacer(modifier = Modifier.height(Spacing.extraSmall))
+
+            Text(
+                text = "Set a goal and we'll feature it here, project arrival time, and show how much of your ${currency.code} capacity to allocate each month.",
+                style = MaterialTheme.typography.bodySmall,
+                color = TextSecondary,
+                textAlign = TextAlign.Center,
+            )
+
+            Spacer(modifier = Modifier.height(Spacing.large))
+
+            Surface(
+                shape = RoundedCornerShape(CornerRadius.large),
+                color = MaterialTheme.extendedColors.brandAccent,
+                modifier = Modifier.clickable { onAddGoal() },
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = Spacing.large, vertical = Spacing.small),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Add,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Spacer(modifier = Modifier.width(Spacing.small))
+                    Text(
+                        text = "Set Your First Goal",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onPrimary,
+                    )
+                }
             }
         }
     }

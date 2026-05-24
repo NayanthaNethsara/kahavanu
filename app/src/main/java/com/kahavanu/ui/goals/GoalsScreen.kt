@@ -73,6 +73,7 @@ fun GoalsScreen(
                 GoalsSummaryCard(
                     featuredGoal = activeGoal,
                     currency = uiState.currency,
+                    onAddGoal = onAddGoal,
                 )
 
                 QuickActionRow(
@@ -106,20 +107,23 @@ fun GoalsScreen(
             }
         }
 
-        item {
-            ProjectionsSection(
-                remainingAmount = remaining,
-                capacity = uiState.capacity,
-                currency = uiState.currency,
-                activeGoalTitle = activeGoal?.title,
-            )
-        }
+        if (activeGoal != null) {
+            item {
+                ProjectionsSection(
+                    remainingAmount = remaining,
+                    capacity = uiState.capacity,
+                    currency = uiState.currency,
+                    activeGoalTitle = activeGoal.title,
+                )
+            }
 
-        item {
-            TradeOffSimulator(
-                featuredGoal = activeGoal,
-                currency = uiState.currency,
-            )
+            item {
+                TradeOffSimulator(
+                    featuredGoal = activeGoal,
+                    currency = uiState.currency,
+                    baselineRcs = uiState.capacity.realCapacityToSave,
+                )
+            }
         }
 
         item {

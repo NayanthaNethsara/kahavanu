@@ -33,6 +33,7 @@ import com.kahavanu.ui.home.components.TreasureCard
 fun HomeScreen(
     currentSession: UserSession?,
     onGoalClick: () -> Unit = {},
+    onCreateGoalClick: () -> Unit = onGoalClick,
     onIncomeClick: () -> Unit = {},
     onLogIncomeClick: () -> Unit = {},
     onLogExpenseClick: () -> Unit = {},
@@ -70,6 +71,7 @@ fun HomeScreen(
             TreasureCard(
                 activeGoal = uiState.featuredGoal,
                 onGoalClick = onGoalClick,
+                onCreateGoalClick = onCreateGoalClick,
             )
         }
         screenSection {

@@ -51,10 +51,11 @@ import kotlin.math.roundToInt
 fun TradeOffSimulator(
     featuredGoal: GoalEntry?,
     currency: CurrencyOption,
+    baselineRcs: Double = 0.0,
     modifier: Modifier = Modifier,
 ) {
-    val remainingTarget = featuredGoal?.let { it.targetAmount - it.currentAmount } ?: 478800.0
-    val baselineRcs = 53000.0
+    if (featuredGoal == null || baselineRcs <= 0.0) return
+    val remainingTarget = (featuredGoal.targetAmount - featuredGoal.currentAmount).coerceAtLeast(0.0)
     val baselineMonths = ceil(remainingTarget / baselineRcs).toInt().coerceAtLeast(1)
 
     var diningSpend by remember { mutableFloatStateOf(24000f) }

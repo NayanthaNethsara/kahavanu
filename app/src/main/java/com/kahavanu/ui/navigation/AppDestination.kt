@@ -17,6 +17,7 @@ sealed class AppDestination(val route: String) {
     data object Goals : AppDestination("goals")
     data object GoalSetup : AppDestination("goal-setup")
     data object GoalStats : AppDestination("goal-stats")
+    data object ManageGoals : AppDestination("manage-goals")
     data object Profile : AppDestination("profile")
     data object SmsSenderSettings : AppDestination("sms-sender-settings")
     data object ManageSubscriptions : AppDestination("manage-subscriptions")

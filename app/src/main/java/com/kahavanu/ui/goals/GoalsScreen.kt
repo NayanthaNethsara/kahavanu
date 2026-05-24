@@ -7,10 +7,10 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.Sort
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -36,6 +36,7 @@ fun GoalsScreen(
     onAddGoal: () -> Unit = {},
     onViewCompleted: () -> Unit = {},
     onViewStats: () -> Unit = {},
+    onManageGoals: () -> Unit = {},
     viewModel: GoalsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -97,9 +98,9 @@ fun GoalsScreen(
                             iconTint = Color(0xFF8B5CF6),
                         ),
                         QuickAction(
-                            icon = Icons.AutoMirrored.Outlined.Sort,
-                            label = "Sort",
-                            onClick = viewModel::toggleSortMode,
+                            icon = Icons.Outlined.Tune,
+                            label = "Manage",
+                            onClick = onManageGoals,
                             iconTint = Color(0xFFF97316),
                         ),
                     ),

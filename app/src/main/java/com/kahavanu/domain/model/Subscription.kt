@@ -8,5 +8,6 @@ data class Subscription(
     val frequency: String = "monthly", // "monthly" or "yearly"
     val nextBillingDate: String,
     val isPaused: Boolean = false,
-    val category: String = "subscriptions"
+    val category: String = "subscriptions",
+    val scheduledDateEpochMillis: Long = 0L,
 )

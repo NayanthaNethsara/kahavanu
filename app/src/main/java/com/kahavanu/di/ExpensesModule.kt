@@ -5,6 +5,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.kahavanu.data.expenses.DefaultExpensesRepository
 import com.kahavanu.data.expenses.local.ExpenseLogDao
+import com.kahavanu.data.expenses.local.SubscriptionDao
 import com.kahavanu.data.expenses.sync.ExpensesSyncManager
 import com.kahavanu.data.expenses.sync.ExpensesSyncScheduler
 import com.kahavanu.data.local.AppDatabase
@@ -47,5 +48,10 @@ abstract class ExpensesModule {
         fun provideExpenseLogDao(
             database: AppDatabase,
         ): ExpenseLogDao = database.expenseLogDao()
+
+        @Provides
+        fun provideSubscriptionDao(
+            database: AppDatabase,
+        ): SubscriptionDao = database.subscriptionDao()
     }
 }

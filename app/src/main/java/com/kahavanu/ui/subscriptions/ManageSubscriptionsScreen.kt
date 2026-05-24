@@ -36,6 +36,8 @@ import androidx.compose.material.icons.outlined.CreditCard
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.NotificationsActive
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -67,6 +69,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.kahavanu.domain.model.Subscription
 import com.kahavanu.ui.common.AppSegmentedToggle
+import com.kahavanu.ui.common.SelectableChip
+import androidx.compose.material.icons.outlined.CalendarMonth
 import com.kahavanu.ui.common.GlassCard
 import com.kahavanu.ui.common.GradientBlob
 import com.kahavanu.ui.common.PrimaryActionButton
@@ -145,6 +149,42 @@ fun ManageSubscriptionsScreen(
             Spacer(modifier = Modifier.height(Spacing.large))
         }
 
+        if (uiState.isDatePickerOpen) {
+            val pickerState = androidx.compose.material3.rememberDatePickerState(
+                initialSelectedDateMillis = uiState.nextBillingDate
+                    .atStartOfDay(java.time.ZoneOffset.UTC)
+                    .toInstant()
+                    .toEpochMilli()
+            )
+            DatePickerDialog(
+                onDismissRequest = { viewModel.onDatePickerOpenChange(false) },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            val millis = pickerState.selectedDateMillis
+                            if (millis != null) {
+                                val selectedDate = java.time.Instant.ofEpochMilli(millis)
+                                    .atZone(java.time.ZoneOffset.UTC)
+                                    .toLocalDate()
+                                viewModel.onDateChange(selectedDate)
+                            } else {
+                                viewModel.onDatePickerOpenChange(false)
+                            }
+                        },
+                    ) {
+                        Text("OK")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { viewModel.onDatePickerOpenChange(false) }) {
+                        Text("Cancel")
+                    }
+                },
+            ) {
+                androidx.compose.material3.DatePicker(state = pickerState)
+            }
+        }
+
         if (uiState.isSheetOpen) {
             ModalBottomSheet(
                 onDismissRequest = viewModel::closeSheet,
@@ -160,11 +200,13 @@ fun ManageSubscriptionsScreen(
                         currencyInput = uiState.currencyInput,
                         frequencyInput = uiState.frequencyInput,
                         nextBillingInput = uiState.nextBillingInput,
+                        categoryInput = uiState.categoryInput,
                         onNameChange = viewModel::onNameChange,
                         onCostChange = viewModel::onCostChange,
                         onCurrencyChange = viewModel::onCurrencyChange,
                         onFrequencyChange = viewModel::onFrequencyChange,
-                        onNextBillingChange = viewModel::onNextBillingChange,
+                        onCategoryChange = viewModel::onCategoryChange,
+                        onOpenDatePicker = { viewModel.onDatePickerOpenChange(true) },
                         onSave = viewModel::addSubscription,
                         onCancel = viewModel::closeSheet
                     )
@@ -433,11 +475,13 @@ private fun SubscriptionForm(
     currencyInput: String,
     frequencyInput: String,
     nextBillingInput: String,
+    categoryInput: String,
     onNameChange: (String) -> Unit,
     onCostChange: (String) -> Unit,
     onCurrencyChange: (String) -> Unit,
     onFrequencyChange: (String) -> Unit,
-    onNextBillingChange: (String) -> Unit,
+    onCategoryChange: (String) -> Unit,
+    onOpenDatePicker: () -> Unit,
     onSave: () -> Unit,
     onCancel: () -> Unit
 ) {
@@ -475,6 +519,34 @@ private fun SubscriptionForm(
                 shape = KahavanuShapes.large,
                 colors = textFieldColors()
             )
+        }
+
+        Column(verticalArrangement = Arrangement.spacedBy(Spacing.small)) {
+            SectionLabel("Category")
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(Spacing.small)
+            ) {
+                listOf("Food", "Transport", "Utilities", "Shopping", "Health", "Fun").forEach { cat ->
+                    val isCatSelected = categoryInput == cat
+                    SelectableChip(
+                        text = cat,
+                        selected = isCatSelected,
+                        onClick = { onCategoryChange(cat) },
+                        modifier = Modifier.weight(1f),
+                        height = 40.dp,
+                        shape = KahavanuShapes.medium,
+                        selectedBackgroundColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.12f),
+                        unselectedBackgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.04f),
+                        selectedBorderColor = MaterialTheme.colorScheme.tertiary,
+                        unselectedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                        selectedTextColor = MaterialTheme.colorScheme.tertiary,
+                        unselectedTextColor = TextSecondary,
+                        textStyle = MaterialTheme.typography.labelSmall,
+                        fontSize = 11.sp,
+                    )
+                }
+            }
         }
 
         Row(
@@ -529,15 +601,33 @@ private fun SubscriptionForm(
 
         Column(verticalArrangement = Arrangement.spacedBy(Spacing.small)) {
             SectionLabel("Next billing date")
-            OutlinedTextField(
-                value = nextBillingInput,
-                onValueChange = onNextBillingChange,
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("e.g. June 15, 2026") },
-                singleLine = true,
-                shape = KahavanuShapes.large,
-                colors = textFieldColors()
-            )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .clip(KahavanuShapes.large)
+                    .clickable(onClick = onOpenDatePicker)
+            ) {
+                OutlinedTextField(
+                    value = nextBillingInput,
+                    onValueChange = {},
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text("Select next billing date") },
+                    singleLine = true,
+                    readOnly = true,
+                    enabled = false,
+                    shape = KahavanuShapes.large,
+                    trailingIcon = {
+                        Icon(
+                            imageVector = Icons.Outlined.CalendarMonth,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                        )
+                    },
+                    colors = textFieldColors(),
+                )
+                Box(modifier = Modifier.matchParentSize())
+            }
         }
 
         PrimaryActionButton(

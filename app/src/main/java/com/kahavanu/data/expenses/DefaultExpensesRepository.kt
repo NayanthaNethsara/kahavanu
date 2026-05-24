@@ -14,9 +14,11 @@ import com.kahavanu.data.expenses.toDomain
 import com.kahavanu.data.expenses.toEntity
 import com.kahavanu.data.expenses.local.ExpenseLogDao
 import com.kahavanu.data.expenses.local.ExpenseLogEntity
+import com.kahavanu.data.expenses.local.SubscriptionDao
 import com.kahavanu.data.expenses.sync.ExpensesSyncScheduler
 import com.kahavanu.domain.model.ExpenseLogEntry
 import com.kahavanu.domain.model.ExpenseLogResult
+import com.kahavanu.domain.model.Subscription
 import com.kahavanu.domain.repository.ExpensesRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -33,6 +35,7 @@ class DefaultExpensesRepository @Inject constructor(
     private val firestore: FirebaseFirestore,
     private val auth: FirebaseAuth,
     private val expenseLogDao: ExpenseLogDao,
+    private val subscriptionDao: SubscriptionDao,
     private val syncScheduler: ExpensesSyncScheduler,
     @ApplicationContext private val appContext: Context,
 ) : ExpensesRepository {
@@ -56,8 +59,12 @@ class DefaultExpensesRepository @Inject constructor(
 
     init {
         syncScheduler.enqueue()
+        syncScheduler.scheduleSubscriptionProcessing()
         auth.addAuthStateListener(authStateListener)
         auth.currentUser?.uid?.let { startRealtimeListeners(it) }
+        repositoryScope.launch {
+            processSubscriptions()
+        }
     }
 
     override fun observeExpenseLogs(): Flow<List<ExpenseLogEntry>> {
@@ -195,6 +202,88 @@ class DefaultExpensesRepository @Inject constructor(
         if (duplicates.isNotEmpty()) {
             expenseLogDao.deleteByLocalIds(duplicates)
         }
+    }
+
+    override fun observeSubscriptions(): Flow<List<Subscription>> {
+        val uid = auth.currentUser?.uid ?: return flowOf(emptyList())
+        return subscriptionDao.observeActiveSubscriptions(uid)
+            .map { entries -> entries.map { it.toDomain() } }
+    }
+
+    override suspend fun upsertSubscription(subscription: Subscription): Result<Unit> {
+        val uid = auth.currentUser?.uid
+            ?: return Result.failure(IllegalStateException("User not authenticated"))
+
+        val existing = subscriptionDao.getByClientId(subscription.id)
+        val entity = subscription.toEntity(uid, existing?.clientId)
+        subscriptionDao.upsert(entity)
+
+        // Re-process subscriptions right away to check if due
+        repositoryScope.launch {
+            processSubscriptions()
+        }
+
+        return Result.success(Unit)
+    }
+
+    override suspend fun deleteSubscription(id: String): Result<Unit> {
+        subscriptionDao.markDeleted(id)
+        return Result.success(Unit)
+    }
+
+    override suspend fun processSubscriptions(): Result<Unit> = runCatching {
+        val uid = auth.currentUser?.uid ?: return@runCatching
+        val now = System.currentTimeMillis()
+        val dueItems = subscriptionDao.getDueSubscriptions(uid, now)
+
+        dueItems.forEach { item ->
+            var nextDate = item.scheduledDateEpochMillis
+            var lastGenerated = item.lastGeneratedEpochMillis ?: item.scheduledDateEpochMillis
+            var generatedCount = 0
+
+            while (nextDate <= now) {
+                val logEntry = ExpenseLogEntry(
+                    title = item.title,
+                    amount = item.amount,
+                    currency = item.currency,
+                    spentAtEpochMillis = nextDate,
+                    category = item.category,
+                    merchant = "Subscription",
+                )
+                logExpense(logEntry)
+                generatedCount += 1
+                lastGenerated = nextDate
+
+                val computedNext = calculateNextScheduledDate(nextDate, item.frequency)
+                if (computedNext <= nextDate) break
+                nextDate = computedNext
+            }
+
+            if (generatedCount > 0) {
+                val updated = item.copy(
+                    scheduledDateEpochMillis = nextDate,
+                    lastGeneratedEpochMillis = lastGenerated,
+                    occurrenceCount = item.occurrenceCount + generatedCount,
+                    isSynced = false
+                )
+                subscriptionDao.upsert(updated)
+            }
+        }
+    }
+
+    private fun calculateNextScheduledDate(currentDate: Long, frequency: String): Long {
+        val date = java.time.Instant.ofEpochMilli(currentDate)
+            .atZone(java.time.ZoneId.systemDefault())
+            .toLocalDate()
+
+        val nextDate = when (frequency.lowercase()) {
+            "daily" -> date.plusDays(1)
+            "weekly" -> date.plusWeeks(1)
+            "monthly" -> date.plusMonths(1)
+            "yearly" -> date.plusYears(1)
+            else -> date.plusMonths(1)
+        }
+        return nextDate.atStartOfDay(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
     }
 }
 

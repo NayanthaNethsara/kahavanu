@@ -4,6 +4,8 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import com.kahavanu.data.expenses.local.ExpenseLogEntity
 import com.kahavanu.data.expenses.local.ExpenseLogDao
+import com.kahavanu.data.expenses.local.SubscriptionEntity
+import com.kahavanu.data.expenses.local.SubscriptionDao
 import com.kahavanu.data.goals.local.GoalAdjustmentLogDao
 import com.kahavanu.data.goals.local.GoalAdjustmentLogEntity
 import com.kahavanu.data.goals.local.GoalLogDao
@@ -32,8 +34,9 @@ import com.kahavanu.data.sieve.local.SmsSuggestionEntity
         GoalAdjustmentLogEntity::class,
         SmsSenderEntity::class,
         SmsSuggestionEntity::class,
+        SubscriptionEntity::class,
     ],
-    version = 21,
+    version = 22,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -42,6 +45,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun userSettingsDao(): UserSettingsDao
     abstract fun scheduledIncomeDao(): ScheduledIncomeDao
     abstract fun expenseLogDao(): ExpenseLogDao
+    abstract fun subscriptionDao(): SubscriptionDao
     abstract fun goalLogDao(): GoalLogDao
     abstract fun goalAdjustmentLogDao(): GoalAdjustmentLogDao
     abstract fun smsSenderDao(): SmsSenderDao

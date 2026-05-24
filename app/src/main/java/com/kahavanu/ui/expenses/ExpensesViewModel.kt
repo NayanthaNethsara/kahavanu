@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.kahavanu.domain.model.ExpenseLogEntry
 import com.kahavanu.domain.model.SuggestionKind
 import com.kahavanu.domain.repository.ExpensesRepository
+import com.kahavanu.domain.repository.SubscriptionsRepository
 import com.kahavanu.domain.repository.SettingsRepository
 import com.kahavanu.domain.repository.SmsSuggestionRepository
 import com.kahavanu.ui.home.inferExpenseCategory
@@ -33,6 +34,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ExpensesViewModel @Inject constructor(
     private val expensesRepository: ExpensesRepository,
+    private val subscriptionsRepository: SubscriptionsRepository,
     private val settingsRepository: SettingsRepository,
     private val smsSuggestionRepository: SmsSuggestionRepository,
 ) : ViewModel() {
@@ -63,9 +65,22 @@ class ExpensesViewModel @Inject constructor(
         settingsRepository.observeCurrencySettings(),
         expensesRepository.observeExpenseLogs(),
         pendingExpenseMatches,
-    ) { period, (primaryCurrency, _), allExpenses, pendingMatches ->
+        subscriptionsRepository.observeSubscriptions(),
+    ) { period, (primaryCurrency, _), allExpenses, pendingMatches, subscriptions ->
         val filtered = allExpenses.filter { isWithinPeriod(it.spentAtEpochMillis, period) }
         val categorySummaries = buildCategorySummaries(filtered)
+
+        val activeCount = subscriptions.count { !it.isPaused }
+        val activeTotal = subscriptions
+            .filter { !it.isPaused }
+            .sumOf { sub ->
+                val cost = sub.cost
+                if (sub.frequency.lowercase() == "yearly") {
+                    cost / 12.0
+                } else {
+                    cost
+                }
+            }
 
         ExpensesUiState(
             selectedPeriod = period,
@@ -87,6 +102,8 @@ class ExpensesViewModel @Inject constructor(
                         category = normalizeCategory(it.category),
                     )
                 },
+            subscriptionCost = activeTotal,
+            subscriptionCount = activeCount,
         )
     }.stateIn(
         scope = viewModelScope,

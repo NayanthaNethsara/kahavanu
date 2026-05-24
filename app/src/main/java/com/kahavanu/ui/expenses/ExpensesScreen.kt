@@ -94,8 +94,9 @@ fun ExpensesScreen(
             ExpensesInsightsSection(
                 biggestSpendCategory = biggestSpendCategory,
                 biggestSpendSubtitle = biggestSpendSubtitle,
-                subscriptionCost = 4850.0,
-                subscriptionCount = 3
+                subscriptionCost = uiState.subscriptionCost,
+                subscriptionCount = uiState.subscriptionCount,
+                onSubscriptionLongClick = onViewSubscriptions
             )
         }
         screenSection {

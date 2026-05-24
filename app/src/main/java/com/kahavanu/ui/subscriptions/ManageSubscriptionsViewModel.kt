@@ -3,7 +3,7 @@ package com.kahavanu.ui.subscriptions
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kahavanu.domain.model.Subscription
-import com.kahavanu.domain.repository.ExpensesRepository
+import com.kahavanu.domain.repository.SubscriptionsRepository
 import com.kahavanu.domain.repository.SettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,7 +19,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ManageSubscriptionsViewModel @Inject constructor(
-    private val expensesRepository: ExpensesRepository,
+    private val subscriptionsRepository: SubscriptionsRepository,
     private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
 
@@ -28,7 +28,7 @@ class ManageSubscriptionsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            expensesRepository.observeSubscriptions().collect { list ->
+            subscriptionsRepository.observeSubscriptions().collect { list ->
                 _uiState.update { it.copy(subscriptions = list) }
             }
         }
@@ -113,7 +113,7 @@ class ManageSubscriptionsViewModel @Inject constructor(
         viewModelScope.launch {
             val sub = _uiState.value.subscriptions.firstOrNull { it.id == id } ?: return@launch
             val updatedSub = sub.copy(isPaused = !sub.isPaused)
-            expensesRepository.upsertSubscription(updatedSub)
+            subscriptionsRepository.upsertSubscription(updatedSub)
             _uiState.update {
                 it.copy(successMessage = "Subscription state toggled")
             }
@@ -122,7 +122,7 @@ class ManageSubscriptionsViewModel @Inject constructor(
 
     fun deleteSubscription(id: String) {
         viewModelScope.launch {
-            expensesRepository.deleteSubscription(id)
+            subscriptionsRepository.deleteSubscription(id)
             _uiState.update {
                 it.copy(successMessage = "Subscription removed")
             }
@@ -164,7 +164,7 @@ class ManageSubscriptionsViewModel @Inject constructor(
         )
 
         viewModelScope.launch {
-            val result = expensesRepository.upsertSubscription(newSub)
+            val result = subscriptionsRepository.upsertSubscription(newSub)
             if (result.isSuccess) {
                 _uiState.update { current ->
                     current.copy(

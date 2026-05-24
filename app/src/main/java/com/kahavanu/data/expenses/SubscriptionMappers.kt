@@ -18,8 +18,15 @@ fun SubscriptionEntity.toDomain(): Subscription {
     )
 }
 
-fun Subscription.toEntity(userId: String, defaultClientId: String? = null): SubscriptionEntity {
+fun Subscription.toEntity(
+    userId: String,
+    defaultClientId: String? = null,
+    localId: Long = 0L,
+    lastGeneratedEpochMillis: Long? = null,
+    occurrenceCount: Int = 0
+): SubscriptionEntity {
     return SubscriptionEntity(
+        localId = localId,
         userId = userId,
         title = name,
         amount = cost,
@@ -29,5 +36,7 @@ fun Subscription.toEntity(userId: String, defaultClientId: String? = null): Subs
         isPaused = isPaused,
         category = category,
         clientId = defaultClientId ?: id.ifBlank { java.util.UUID.randomUUID().toString() },
+        lastGeneratedEpochMillis = lastGeneratedEpochMillis,
+        occurrenceCount = occurrenceCount,
     )
 }

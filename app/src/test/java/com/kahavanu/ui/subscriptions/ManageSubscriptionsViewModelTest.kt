@@ -2,7 +2,7 @@ package com.kahavanu.ui.subscriptions
 
 import com.kahavanu.domain.model.CurrencyOption
 import com.kahavanu.domain.model.Subscription
-import com.kahavanu.domain.repository.ExpensesRepository
+import com.kahavanu.domain.repository.SubscriptionsRepository
 import com.kahavanu.domain.repository.SettingsRepository
 import com.kahavanu.testing.MainDispatcherRule
 import io.mockk.coEvery
@@ -29,7 +29,7 @@ class ManageSubscriptionsViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
-    private lateinit var expensesRepository: ExpensesRepository
+    private lateinit var subscriptionsRepository: SubscriptionsRepository
     private lateinit var settingsRepository: SettingsRepository
     private lateinit var subscriptionsFlow: MutableStateFlow<List<Subscription>>
     private lateinit var currencyFlow: MutableStateFlow<Pair<CurrencyOption, CurrencyOption>>
@@ -84,16 +84,16 @@ class ManageSubscriptionsViewModelTest {
 
     @Before
     fun setUp() {
-        expensesRepository = mockk(relaxed = true)
+        subscriptionsRepository = mockk(relaxed = true)
         settingsRepository = mockk(relaxed = true)
         subscriptionsFlow = MutableStateFlow(defaultSubscriptions)
         currencyFlow = MutableStateFlow(CurrencyOption.USD to CurrencyOption.LKR)
 
-        coEvery { expensesRepository.observeSubscriptions() } returns subscriptionsFlow
+        coEvery { subscriptionsRepository.observeSubscriptions() } returns subscriptionsFlow
         coEvery { settingsRepository.observeCurrencySettings() } returns currencyFlow
     }
 
-    private fun testScopeVm() = ManageSubscriptionsViewModel(expensesRepository, settingsRepository)
+    private fun testScopeVm() = ManageSubscriptionsViewModel(subscriptionsRepository, settingsRepository)
 
     @Test
     fun `initial state contains default subscriptions and correctly calculates total spend`() = runTest {
@@ -166,12 +166,12 @@ class ManageSubscriptionsViewModelTest {
         advanceUntilIdle()
 
         val captured = slot<Subscription>()
-        coEvery { expensesRepository.upsertSubscription(capture(captured)) } returns Result.success(Unit)
+        coEvery { subscriptionsRepository.upsertSubscription(capture(captured)) } returns Result.success(Unit)
 
         viewModel.toggleSubscriptionPause("netflix")
         advanceUntilIdle()
 
-        coVerify(exactly = 1) { expensesRepository.upsertSubscription(any()) }
+        coVerify(exactly = 1) { subscriptionsRepository.upsertSubscription(any()) }
         val updated = captured.captured
         assertEquals("netflix", updated.id)
         assertTrue(updated.isPaused)
@@ -182,12 +182,12 @@ class ManageSubscriptionsViewModelTest {
         val viewModel = testScopeVm()
         advanceUntilIdle()
 
-        coEvery { expensesRepository.deleteSubscription(any()) } returns Result.success(Unit)
+        coEvery { subscriptionsRepository.deleteSubscription(any()) } returns Result.success(Unit)
 
         viewModel.deleteSubscription("netflix")
         advanceUntilIdle()
 
-        coVerify(exactly = 1) { expensesRepository.deleteSubscription("netflix") }
+        coVerify(exactly = 1) { subscriptionsRepository.deleteSubscription("netflix") }
         assertEquals("Subscription removed", viewModel.uiState.value.successMessage)
     }
 
@@ -236,7 +236,7 @@ class ManageSubscriptionsViewModelTest {
         advanceUntilIdle()
 
         val captured = slot<Subscription>()
-        coEvery { expensesRepository.upsertSubscription(capture(captured)) } returns Result.success(Unit)
+        coEvery { subscriptionsRepository.upsertSubscription(capture(captured)) } returns Result.success(Unit)
 
         viewModel.openSheet()
         viewModel.onNameChange("Adobe Creative Cloud")
@@ -250,7 +250,7 @@ class ManageSubscriptionsViewModelTest {
         viewModel.addSubscription()
         advanceUntilIdle()
         
-        coVerify(exactly = 1) { expensesRepository.upsertSubscription(any()) }
+        coVerify(exactly = 1) { subscriptionsRepository.upsertSubscription(any()) }
         val added = captured.captured
         assertEquals("Adobe Creative Cloud", added.name)
         assertEquals(120.0, added.cost, 0.001)

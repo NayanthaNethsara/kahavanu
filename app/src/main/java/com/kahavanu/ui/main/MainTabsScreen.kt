@@ -151,7 +151,7 @@ fun MainTabsScreen(
                 ExpensesScreen(
                     onLogExpense = { navController.navigate(AppDestination.ExpenseLog.route) },
                     onViewBills = { navController.navigate(AppDestination.ExpenseHistory.route) },
-                    onViewBudgets = { navController.navigate(AppDestination.ExpenseGraph.route) },
+                    onViewSubscriptions = { navController.navigate(AppDestination.ManageSubscriptions.route) },
                     onViewHistory = { navController.navigate(AppDestination.ExpenseHistory.route) },
                 )
             }

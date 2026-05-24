@@ -41,4 +41,6 @@ data class ExpensesUiState(
     val categorySummaries: List<ExpenseCategorySummary> = emptyList(),
     val pendingMatches: List<PendingExpenseMatch> = emptyList(),
     val recentExpenses: List<RecentExpense> = emptyList(),
+    val subscriptionCost: Double = 0.0,
+    val subscriptionCount: Int = 0,
 )

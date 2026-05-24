@@ -36,6 +36,8 @@ import androidx.compose.material.icons.outlined.CreditCard
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.NotificationsActive
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -67,6 +69,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.kahavanu.domain.model.Subscription
 import com.kahavanu.ui.common.AppSegmentedToggle
+import com.kahavanu.ui.common.SelectableChip
+import androidx.compose.material.icons.outlined.CalendarMonth
 import com.kahavanu.ui.common.GlassCard
 import com.kahavanu.ui.common.GradientBlob
 import com.kahavanu.ui.common.PrimaryActionButton
@@ -79,6 +83,17 @@ import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
 import com.kahavanu.ui.theme.TextTertiary
 import com.kahavanu.ui.common.KahavanuSubScreen
+import androidx.compose.material.icons.outlined.Tv
+import androidx.compose.material.icons.outlined.MusicNote
+import androidx.compose.material.icons.outlined.Cloud
+import androidx.compose.material.icons.outlined.Pause
+import androidx.compose.material.icons.outlined.PlayArrow
+import androidx.compose.material3.AlertDialog
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Brush
+import java.util.Locale
+import com.kahavanu.domain.model.ExpenseCategory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -90,6 +105,7 @@ fun ManageSubscriptionsScreen(
     val scrollState = rememberScrollState()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val snackbarHostState = remember { SnackbarHostState() }
+    var subscriptionToDelete by remember { mutableStateOf<Subscription?>(null) }
 
     LaunchedEffect(uiState.errorMessage, uiState.successMessage) {
         uiState.errorMessage?.let {
@@ -102,9 +118,49 @@ fun ManageSubscriptionsScreen(
         }
     }
 
+    if (subscriptionToDelete != null) {
+        AlertDialog(
+            onDismissRequest = { subscriptionToDelete = null },
+            title = {
+                Text(
+                    text = "Delete Subscription",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary
+                )
+            },
+            text = {
+                Text(
+                    text = "Are you sure you want to delete '${subscriptionToDelete?.name}'? This will stop future automatic expense logging.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = TextSecondary
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        subscriptionToDelete?.let { sub ->
+                            viewModel.deleteSubscription(sub.id)
+                        }
+                        subscriptionToDelete = null
+                    }
+                ) {
+                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { subscriptionToDelete = null }) {
+                    Text("Cancel", color = TextSecondary)
+                }
+            },
+            containerColor = Color.White,
+            shape = KahavanuShapes.large
+        )
+    }
+
     KahavanuSubScreen(
-        label = "Recurring Leaks",
-        title = "Manage Subscriptions",
+        label = "SUBSCRIPTIONS",
+        title = "Recurring charges",
         onBack = onBack,
         trailing = {
             IconButton(
@@ -133,16 +189,53 @@ fun ManageSubscriptionsScreen(
         ) {
             SpendAnalysisCard(
                 totalSpend = uiState.totalMonthlySpend,
-                activeCount = uiState.subscriptions.count { !it.isPaused }
+                activeCount = uiState.subscriptions.count { !it.isPaused },
+                pausedCount = uiState.subscriptions.count { it.isPaused }
             )
 
             SubscriptionsList(
                 subscriptions = uiState.subscriptions,
                 onTogglePause = viewModel::toggleSubscriptionPause,
-                onDelete = viewModel::deleteSubscription
+                onDelete = { subscriptionToDelete = it }
             )
 
             Spacer(modifier = Modifier.height(Spacing.large))
+        }
+
+        if (uiState.isDatePickerOpen) {
+            val pickerState = androidx.compose.material3.rememberDatePickerState(
+                initialSelectedDateMillis = uiState.nextBillingDate
+                    .atStartOfDay(java.time.ZoneOffset.UTC)
+                    .toInstant()
+                    .toEpochMilli()
+            )
+            DatePickerDialog(
+                onDismissRequest = { viewModel.onDatePickerOpenChange(false) },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            val millis = pickerState.selectedDateMillis
+                            if (millis != null) {
+                                val selectedDate = java.time.Instant.ofEpochMilli(millis)
+                                    .atZone(java.time.ZoneOffset.UTC)
+                                    .toLocalDate()
+                                viewModel.onDateChange(selectedDate)
+                            } else {
+                                viewModel.onDatePickerOpenChange(false)
+                            }
+                        },
+                    ) {
+                        Text("OK")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { viewModel.onDatePickerOpenChange(false) }) {
+                        Text("Cancel")
+                    }
+                },
+            ) {
+                androidx.compose.material3.DatePicker(state = pickerState)
+            }
         }
 
         if (uiState.isSheetOpen) {
@@ -160,11 +253,13 @@ fun ManageSubscriptionsScreen(
                         currencyInput = uiState.currencyInput,
                         frequencyInput = uiState.frequencyInput,
                         nextBillingInput = uiState.nextBillingInput,
+                        categoryInput = uiState.categoryInput,
                         onNameChange = viewModel::onNameChange,
                         onCostChange = viewModel::onCostChange,
                         onCurrencyChange = viewModel::onCurrencyChange,
                         onFrequencyChange = viewModel::onFrequencyChange,
-                        onNextBillingChange = viewModel::onNextBillingChange,
+                        onCategoryChange = viewModel::onCategoryChange,
+                        onOpenDatePicker = { viewModel.onDatePickerOpenChange(true) },
                         onSave = viewModel::addSubscription,
                         onCancel = viewModel::closeSheet
                     )
@@ -189,76 +284,46 @@ fun ManageSubscriptionsScreen(
 @Composable
 private fun SpendAnalysisCard(
     totalSpend: Double,
-    activeCount: Int
+    activeCount: Int,
+    pausedCount: Int,
+    currency: String = "LKR"
 ) {
-    GlassCard(
-        modifier = Modifier.fillMaxWidth(),
-        backgroundColor = Color.White.copy(alpha = 0.9f),
-        borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
+    val gradientBrush = Brush.linearGradient(
+        colors = listOf(
+            Color(0xFFDC2626).copy(alpha = 0.1f),
+            Color(0xFFF97316).copy(alpha = 0.08f)
+        )
+    )
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(gradientBrush, RoundedCornerShape(16.dp))
+            .border(0.69.dp, Color(0xFFDC2626).copy(alpha = 0.2f), RoundedCornerShape(16.dp))
+            .padding(Spacing.large)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(Spacing.large)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column {
-                    Text(
-                        text = "TOTAL MONTHLY SPEND",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontSize = 10.sp,
-                        color = TextSecondary,
-            fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        text = String.format("$%.2f", totalSpend),
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.error,
-            letterSpacing = (-1).sp
-                    )
-                }
-                Box(
-                    modifier = Modifier
-                        .size(44.dp)
-                        .background(MaterialTheme.extendedColors.dangerWashed.copy(alpha = 0.8f), RoundedCornerShape(12.dp)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.CreditCard,
-                        contentDescription = null,
-                        tint = MaterialTheme.extendedColors.dangerAccent,
-                        modifier = Modifier.size(22.dp)
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.height(Spacing.medium))
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
-            Spacer(modifier = Modifier.height(Spacing.medium))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Active renewals",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = TextSecondary,
-                    fontSize = 13.sp
-                )
-                Text(
-                    text = "$activeCount active subscriptions",
-                    style = MaterialTheme.typography.titleSmall,
-                    color = TextPrimary,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 13.sp
-                )
-            }
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(
+                text = "Monthly leak",
+                style = MaterialTheme.typography.labelSmall,
+                color = Color(0xFFDC2626),
+                fontWeight = FontWeight.Medium,
+                fontSize = 11.sp,
+                letterSpacing = 0.5.sp
+            )
+            Text(
+                text = "$currency ${String.format("%,.0f", totalSpend)}",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF0F172A),
+                fontSize = 24.sp,
+                letterSpacing = (-0.4).sp
+            )
+            Text(
+                text = "$activeCount active · $pausedCount paused",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color(0xFF64748B),
+                fontSize = 11.sp
+            )
         }
     }
 }
@@ -267,10 +332,9 @@ private fun SpendAnalysisCard(
 private fun SubscriptionsList(
     subscriptions: List<Subscription>,
     onTogglePause: (String) -> Unit,
-    onDelete: (String) -> Unit
+    onDelete: (Subscription) -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.medium)) {
-        SectionLabel("Your active & paused subscriptions")
         if (subscriptions.isEmpty()) {
             GlassCard(
                 modifier = Modifier.fillMaxWidth(),
@@ -300,7 +364,7 @@ private fun SubscriptionsList(
                     SubscriptionRow(
                         subscription = sub,
                         onToggle = { onTogglePause(sub.id) },
-                        onDelete = { onDelete(sub.id) }
+                        onDelete = { onDelete(sub) }
                     )
                     if (index < subscriptions.lastIndex) {
                         HorizontalDivider(
@@ -314,12 +378,25 @@ private fun SubscriptionsList(
     }
 }
 
+fun getSubscriptionIconAndColor(name: String, category: String): Pair<androidx.compose.ui.graphics.vector.ImageVector, Color> {
+    val lowerName = name.lowercase()
+    return when {
+        lowerName.contains("netflix") -> Icons.Outlined.Tv to Color(0xFFEF4444)
+        lowerName.contains("spotify") -> Icons.Outlined.MusicNote to Color(0xFF10B981)
+        lowerName.contains("icloud") || lowerName.contains("apple") || lowerName.contains("cloud") || lowerName.contains("google one") -> Icons.Outlined.Cloud to Color(0xFF3B82F6)
+        category.lowercase() == "utilities" -> Icons.Outlined.Cloud to Color(0xFF3B82F6)
+        else -> Icons.Outlined.CreditCard to Color(0xFF64748B)
+    }
+}
+
 @Composable
 private fun SubscriptionRow(
     subscription: Subscription,
-    onToggle: (Boolean) -> Unit,
+    onToggle: () -> Unit,
     onDelete: () -> Unit
 ) {
+    val (icon, color) = getSubscriptionIconAndColor(subscription.name, subscription.category)
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -331,9 +408,9 @@ private fun SubscriptionRow(
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                imageVector = Icons.Outlined.NotificationsActive,
+                imageVector = icon,
                 contentDescription = null,
-                tint = if (subscription.isPaused) TextTertiary else MaterialTheme.extendedColors.infoAccent,
+                tint = if (subscription.isPaused) TextTertiary else color,
                 modifier = Modifier.size(22.dp)
             )
         }
@@ -347,24 +424,10 @@ private fun SubscriptionRow(
                     fontSize = 13.sp,
                     color = if (subscription.isPaused) TextSecondary else TextPrimary
                 )
-                Spacer(modifier = Modifier.width(Spacing.small))
-                Text(
-                    text = if (subscription.isPaused) "Paused" else "Active",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontSize = 9.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = if (subscription.isPaused) MaterialTheme.extendedColors.iconMuted else MaterialTheme.extendedColors.brandText,
-                    modifier = Modifier
-                        .background(
-                            if (subscription.isPaused) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.extendedColors.brandWashed,
-                            CircleShape
-                        )
-                        .padding(horizontal = 6.dp, vertical = 2.dp)
-                )
             }
             Spacer(modifier = Modifier.height(2.dp))
             Text(
-                text = "Next billing: ${subscription.nextBillingDate}",
+                text = "${subscription.frequency.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }} · next ${subscription.nextBillingDate}",
                 style = MaterialTheme.typography.bodySmall,
                 fontSize = 11.sp,
                 color = TextTertiary
@@ -375,56 +438,49 @@ private fun SubscriptionRow(
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = String.format("$%.2f", subscription.cost),
+                text = "${subscription.currency} ${String.format("%,.0f", subscription.cost)}",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 fontSize = 14.sp,
                 color = if (subscription.isPaused) TextSecondary else TextPrimary
             )
-            Text(
-                text = "/ ${subscription.frequency.lowercase()}",
-                style = MaterialTheme.typography.bodySmall,
-                fontSize = 9.sp,
-                color = TextTertiary
-            )
-        }
-        Spacer(modifier = Modifier.width(Spacing.medium))
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(Spacing.small)
-        ) {
-            Switch(
-                checked = !subscription.isPaused,
-                onCheckedChange = onToggle,
-                colors = SwitchDefaults.colors(
-                    checkedThumbColor = Color.White,
-                    checkedTrackColor = MaterialTheme.extendedColors.infoAccent,
-                    uncheckedThumbColor = Color.White,
-                    uncheckedTrackColor = MaterialTheme.colorScheme.outlineVariant,
-                    uncheckedBorderColor = Color.Transparent,
-                    checkedBorderColor = Color.Transparent,
-                ),
-                modifier = Modifier.scale(0.8f)
-            )
-            IconButton(
-                onClick = onDelete,
-                modifier = Modifier.size(32.dp)
+            Spacer(modifier = Modifier.height(4.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Outlined.DeleteOutline,
-                    contentDescription = "Delete",
-                    tint = MaterialTheme.extendedColors.dangerAccent,
-                    modifier = Modifier.size(18.dp)
-                )
+                Box(
+                    modifier = Modifier
+                        .size(28.dp)
+                        .background(Color(0x0F0F172A), CircleShape)
+                        .clickable(onClick = onToggle),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = if (subscription.isPaused) Icons.Outlined.PlayArrow else Icons.Outlined.Pause,
+                        contentDescription = "Toggle Pause",
+                        tint = Color(0xFF0F172A),
+                        modifier = Modifier.size(14.dp)
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .size(28.dp)
+                        .background(Color(0x14DC2626), CircleShape)
+                        .clickable(onClick = onDelete),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.DeleteOutline,
+                        contentDescription = "Delete",
+                        tint = Color(0xFFDC2626),
+                        modifier = Modifier.size(14.dp)
+                    )
+                }
             }
         }
     }
 }
-
-// Scale utility extension for compose Switch inside list
-private fun Modifier.scale(scale: Float): Modifier = this.then(
-    Modifier.size((48 * scale).dp)
-)
 
 @Composable
 private fun SubscriptionForm(
@@ -433,11 +489,13 @@ private fun SubscriptionForm(
     currencyInput: String,
     frequencyInput: String,
     nextBillingInput: String,
+    categoryInput: String,
     onNameChange: (String) -> Unit,
     onCostChange: (String) -> Unit,
     onCurrencyChange: (String) -> Unit,
     onFrequencyChange: (String) -> Unit,
-    onNextBillingChange: (String) -> Unit,
+    onCategoryChange: (String) -> Unit,
+    onOpenDatePicker: () -> Unit,
     onSave: () -> Unit,
     onCancel: () -> Unit
 ) {
@@ -475,6 +533,37 @@ private fun SubscriptionForm(
                 shape = KahavanuShapes.large,
                 colors = textFieldColors()
             )
+        }
+
+        Column(verticalArrangement = Arrangement.spacedBy(Spacing.small)) {
+            SectionLabel("Category")
+            val categories = ExpenseCategory.ALL
+            categories.chunked(3).forEach { rowCategories ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.small)
+                ) {
+                    rowCategories.forEach { cat ->
+                        val isCatSelected = categoryInput == cat
+                        SelectableChip(
+                            text = cat,
+                            selected = isCatSelected,
+                            onClick = { onCategoryChange(cat) },
+                            modifier = Modifier.weight(1f),
+                            height = 40.dp,
+                            shape = KahavanuShapes.medium,
+                            selectedBackgroundColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.12f),
+                            unselectedBackgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.04f),
+                            selectedBorderColor = MaterialTheme.colorScheme.tertiary,
+                            unselectedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                            selectedTextColor = MaterialTheme.colorScheme.tertiary,
+                            unselectedTextColor = TextSecondary,
+                            textStyle = MaterialTheme.typography.labelSmall,
+                            fontSize = 11.sp,
+                        )
+                    }
+                }
+            }
         }
 
         Row(
@@ -529,15 +618,33 @@ private fun SubscriptionForm(
 
         Column(verticalArrangement = Arrangement.spacedBy(Spacing.small)) {
             SectionLabel("Next billing date")
-            OutlinedTextField(
-                value = nextBillingInput,
-                onValueChange = onNextBillingChange,
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("e.g. June 15, 2026") },
-                singleLine = true,
-                shape = KahavanuShapes.large,
-                colors = textFieldColors()
-            )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .clip(KahavanuShapes.large)
+                    .clickable(onClick = onOpenDatePicker)
+            ) {
+                OutlinedTextField(
+                    value = nextBillingInput,
+                    onValueChange = {},
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text("Select next billing date") },
+                    singleLine = true,
+                    readOnly = true,
+                    enabled = false,
+                    shape = KahavanuShapes.large,
+                    trailingIcon = {
+                        Icon(
+                            imageVector = Icons.Outlined.CalendarMonth,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                        )
+                    },
+                    colors = textFieldColors(),
+                )
+                Box(modifier = Modifier.matchParentSize())
+            }
         }
 
         PrimaryActionButton(

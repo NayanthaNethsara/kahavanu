@@ -1,6 +1,8 @@
 package com.kahavanu.ui.expenses.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -45,6 +47,7 @@ fun ExpensesInsightsSection(
     biggestSpendSubtitle: String = "LKR 45K · 30%",
     subscriptionCost: Double = 4850.0,
     subscriptionCount: Int = 3,
+    onSubscriptionLongClick: (() -> Unit)? = null,
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -261,10 +264,22 @@ fun ExpensesInsightsSection(
             // Card 2: Subscriptions Card
             val subsColor = Color(0xFF8B5CF6) // Purple matching Figma
             
+            val subsClickModifier = if (onSubscriptionLongClick != null) {
+                @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+                Modifier.combinedClickable(
+                    onLongClick = onSubscriptionLongClick,
+                    onClick = {}
+                )
+            } else {
+                Modifier
+            }
+
             GlassCard(
                 modifier = Modifier
                     .weight(1f)
                     .height(134.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .then(subsClickModifier)
             ) {
                 Column(
                     modifier = Modifier

@@ -67,20 +67,21 @@ import com.kahavanu.ui.theme.SurfaceCard
 import com.kahavanu.ui.theme.SurfaceIconBorder
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
+import com.kahavanu.domain.model.ExpenseCategory
 import java.time.Instant
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 private val expenseCategories = listOf(
-    CategoryUi("Food", Icons.Outlined.LocalPizza),
-    CategoryUi("Transport", Icons.Outlined.LocalTaxi),
-    CategoryUi("Utilities", Icons.Outlined.Bolt),
-    CategoryUi("Shopping", Icons.Outlined.ShoppingCart),
-    CategoryUi("Health", Icons.Outlined.HealthAndSafety),
-    CategoryUi("Fun", Icons.Outlined.SportsEsports),
-    CategoryUi("Rent", Icons.Outlined.Home),
-    CategoryUi("Other", Icons.Outlined.Wallet),
+    CategoryUi(ExpenseCategory.FOOD, Icons.Outlined.LocalPizza),
+    CategoryUi(ExpenseCategory.TRANSPORT, Icons.Outlined.LocalTaxi),
+    CategoryUi(ExpenseCategory.UTILITIES, Icons.Outlined.Bolt),
+    CategoryUi(ExpenseCategory.SHOPPING, Icons.Outlined.ShoppingCart),
+    CategoryUi(ExpenseCategory.HEALTH, Icons.Outlined.HealthAndSafety),
+    CategoryUi(ExpenseCategory.FUN, Icons.Outlined.SportsEsports),
+    CategoryUi(ExpenseCategory.RENT, Icons.Outlined.Home),
+    CategoryUi(ExpenseCategory.OTHER, Icons.Outlined.Wallet),
 )
 
 private data class CategoryUi(

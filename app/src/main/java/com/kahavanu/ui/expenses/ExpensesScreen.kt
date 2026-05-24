@@ -10,9 +10,9 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.Category
 import androidx.compose.material.icons.outlined.History
+import androidx.compose.material.icons.outlined.NotificationsActive
 import com.kahavanu.ui.common.KahavanuScreen
 import com.kahavanu.ui.common.QuickAction
 import com.kahavanu.ui.common.QuickActionRow
@@ -28,7 +28,7 @@ import com.kahavanu.ui.theme.Spacing
 fun ExpensesScreen(
     onLogExpense: () -> Unit = {},
     onViewBills: () -> Unit = {},
-    onViewBudgets: () -> Unit = {},
+    onViewSubscriptions: () -> Unit = {},
     onViewHistory: () -> Unit = {},
     viewModel: ExpensesViewModel = hiltViewModel(),
 ) {
@@ -44,6 +44,7 @@ fun ExpensesScreen(
     val biggestSpendAmount = biggestSpend?.amount ?: 45000.0
     val biggestSpendPercent = if (totalSpent > 0.0) ((biggestSpendAmount / totalSpent) * 100).toInt() else 30
     val biggestSpendSubtitle = "LKR ${String.format("%,.0f", biggestSpendAmount / 1000)}K · $biggestSpendPercent%"
+    val biggestSpendSubtitleText = "LKR ${String.format("%,.0f", biggestSpendAmount / 1000)}K · $biggestSpendPercent%"
 
     KahavanuScreen(
         headerLabel = "Expenses",
@@ -80,9 +81,9 @@ fun ExpensesScreen(
                             iconTint = Color(0xFF8B5CF6)
                         ),
                         QuickAction(
-                            icon = Icons.Outlined.BarChart, 
-                            label = "Budget", 
-                            onClick = onViewBudgets,
+                            icon = Icons.Outlined.NotificationsActive, 
+                            label = "Subscriptions", 
+                            onClick = onViewSubscriptions,
                             iconTint = Color(0xFFEF4444)
                         ),
                     ),
@@ -93,8 +94,9 @@ fun ExpensesScreen(
             ExpensesInsightsSection(
                 biggestSpendCategory = biggestSpendCategory,
                 biggestSpendSubtitle = biggestSpendSubtitle,
-                subscriptionCost = 4850.0,
-                subscriptionCount = 3
+                subscriptionCost = uiState.subscriptionCost,
+                subscriptionCount = uiState.subscriptionCount,
+                onSubscriptionLongClick = onViewSubscriptions
             )
         }
         screenSection {

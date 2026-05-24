@@ -33,7 +33,26 @@ class ExpensesSyncScheduler @Inject constructor(
             .enqueueUniqueWork(WORK_NAME, ExistingWorkPolicy.KEEP, request)
     }
 
+    fun scheduleSubscriptionProcessing() {
+        val request = androidx.work.PeriodicWorkRequestBuilder<SubscriptionScheduleWorker>(
+            java.time.Duration.ofHours(24)
+        )
+            .setBackoffCriteria(
+                BackoffPolicy.EXPONENTIAL,
+                Duration.ofMinutes(15)
+            )
+            .build()
+
+        WorkManager.getInstance(context)
+            .enqueueUniquePeriodicWork(
+                SCHEDULE_WORK_NAME,
+                androidx.work.ExistingPeriodicWorkPolicy.KEEP,
+                request
+            )
+    }
+
     companion object {
         private const val WORK_NAME = "expenses-sync"
+        private const val SCHEDULE_WORK_NAME = "subscription-schedule"
     }
 }

@@ -196,6 +196,7 @@ class DefaultExpensesRepository @Inject constructor(
             expenseLogDao.deleteByLocalIds(duplicates)
         }
     }
+
 }
 
 private const val USERS_COLLECTION = "users"

@@ -371,6 +371,13 @@ object AppDatabaseMigrations {
         }
     }
 
+    val MIGRATION_22_23 = object : Migration(22, 23) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE goal_logs ADD COLUMN isActive INTEGER NOT NULL DEFAULT 0")
+            db.execSQL("ALTER TABLE goal_logs ADD COLUMN priority INTEGER NOT NULL DEFAULT 0")
+        }
+    }
+
     val MIGRATION_17_18 = object : Migration(17, 18) {
         override fun migrate(db: SupportSQLiteDatabase) {
             db.execSQL(

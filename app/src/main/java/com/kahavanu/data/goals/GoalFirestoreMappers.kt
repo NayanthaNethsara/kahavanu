@@ -23,6 +23,8 @@ fun DocumentSnapshot.toGoalLogEntity(
         isCompleted = getBoolean("isCompleted") ?: false,
         createdAtEpochMillis = createdAt,
         clientId = clientId,
+        isActive = getBoolean("isActive") ?: false,
+        priority = (getLong("priority") ?: 0L).toInt(),
         remoteId = remoteId,
         isSynced = true,
         isDeleted = false,

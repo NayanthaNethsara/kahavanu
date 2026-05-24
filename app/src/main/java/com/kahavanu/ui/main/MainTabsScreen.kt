@@ -97,6 +97,9 @@ fun MainTabsScreen(
                             restoreState = true
                         }
                     },
+                    onCreateGoalClick = {
+                        navController.navigate(AppDestination.GoalSetup.route)
+                    },
                     onIncomeClick = {
                         navController.navigate(AppDestination.Income.route) {
                             popUpTo(AppDestination.Home.route) { saveState = true }
@@ -175,6 +178,7 @@ fun MainTabsScreen(
                 GoalsScreen(
                     onAddGoal = { navController.navigate(AppDestination.GoalSetup.route) },
                     onViewStats = { navController.navigate(AppDestination.GoalStats.route) },
+                    onManageGoals = { navController.navigate(AppDestination.ManageGoals.route) },
                 )
             }
             composable(AppDestination.GoalSetup.route) {
@@ -186,6 +190,12 @@ fun MainTabsScreen(
             composable(AppDestination.GoalStats.route) {
                 GoalStatsScreen(
                     onBack = { navController.popBackStack() },
+                )
+            }
+            composable(AppDestination.ManageGoals.route) {
+                com.kahavanu.ui.goals.ManageGoalsScreen(
+                    onBack = { navController.popBackStack() },
+                    onAddGoal = { navController.navigate(AppDestination.GoalSetup.route) },
                 )
             }
             composable(AppDestination.Profile.route) {

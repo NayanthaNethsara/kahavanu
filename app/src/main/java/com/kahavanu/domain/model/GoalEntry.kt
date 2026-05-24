@@ -21,4 +21,6 @@ data class GoalEntry(
     val isCompleted: Boolean,
     val createdAtEpochMillis: Long,
     val lastUpdatedEpochMillis: Long = createdAtEpochMillis,
+    val isActive: Boolean = false,
+    val priority: Int = 0,
 )

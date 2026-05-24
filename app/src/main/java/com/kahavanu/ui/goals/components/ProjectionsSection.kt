@@ -14,10 +14,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ArrowDownward
-import androidx.compose.material.icons.outlined.ArrowUpward
-import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.automirrored.outlined.TrendingUp
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -31,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kahavanu.domain.model.CurrencyOption
 import com.kahavanu.ui.common.GlassCard
+import com.kahavanu.ui.goals.CapacityBreakdown
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
@@ -45,43 +44,43 @@ import kotlin.math.roundToInt
 @Composable
 fun ProjectionsSection(
     remainingAmount: Double,
-    rcsAmount: Double,
+    capacity: CapacityBreakdown,
     currency: CurrencyOption,
+    activeGoalTitle: String?,
     modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(Spacing.large)
+        verticalArrangement = Arrangement.spacedBy(Spacing.large),
     ) {
         EstimatedArrivalCard(
             remainingAmount = remainingAmount,
-            rcsAmount = rcsAmount,
-            currency = currency
+            rcsAmount = capacity.realCapacityToSave,
         )
-        
         RealCapacityToSaveCard(
-            rcsAmount = rcsAmount,
-            currency = currency
+            capacity = capacity,
+            currency = currency,
+            activeGoalTitle = activeGoalTitle,
         )
     }
 }
 
 @Composable
-fun EstimatedArrivalCard(
+private fun EstimatedArrivalCard(
     remainingAmount: Double,
     rcsAmount: Double,
-    currency: CurrencyOption,
 ) {
-    // If remaining is 0 or rcs is <= 0, fall back to MacBook Pro M4 mock projections
-    val months = if (rcsAmount > 0.0 && remainingAmount > 0.0) {
-        ceil(remainingAmount / rcsAmount).toInt().coerceIn(1, 120)
+    val canEstimate = rcsAmount > 0.0 && remainingAmount > 0.0
+    val months = if (canEstimate) {
+        ceil(remainingAmount / rcsAmount).toInt().coerceIn(1, 600)
     } else {
-        9
+        null
     }
-
-    val targetDate = LocalDate.now().plusMonths(months.toLong())
-    val formatter = DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault())
-    val targetDateText = "Around ${targetDate.format(formatter)}"
+    val targetDateText = months?.let {
+        val targetDate = LocalDate.now().plusMonths(it.toLong())
+        val formatter = DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault())
+        "Around ${targetDate.format(formatter)}"
+    } ?: "Add income & expenses to project"
 
     GlassCard(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(Spacing.large)) {
@@ -98,11 +97,11 @@ fun EstimatedArrivalCard(
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column {
                     Text(
-                        text = "$months mo",
+                        text = months?.let { "$it mo" } ?: "—",
                         style = MaterialTheme.typography.headlineLarge,
                         fontSize = 38.sp,
                         fontWeight = FontWeight.Bold,
@@ -120,96 +119,20 @@ fun EstimatedArrivalCard(
                     imageVector = Icons.AutoMirrored.Outlined.TrendingUp,
                     contentDescription = null,
                     tint = Color(0xFF00BC7D).copy(alpha = 0.8f),
-                    modifier = Modifier.size(44.dp)
+                    modifier = Modifier.size(44.dp),
                 )
-            }
-
-            Spacer(modifier = Modifier.height(Spacing.large))
-
-            // Boost & Drift Pills Row
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(Spacing.medium)
-            ) {
-                // Last Boost (Green)
-                Row(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(Color(0xFF00BC7D).copy(alpha = 0.06f))
-                        .border(1.dp, Color(0xFF00BC7D).copy(alpha = 0.12f), RoundedCornerShape(12.dp))
-                        .padding(Spacing.medium),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.ArrowDownward,
-                        contentDescription = null,
-                        tint = Color(0xFF00BC7D),
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(Spacing.small))
-                    Column {
-                        Text(
-                            text = "-12 days",
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF00BC7D),
-                        )
-                        Text(
-                            text = "Last boost (AdSense USD)",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = TextSecondary,
-                            fontSize = 9.sp,
-                        )
-                    }
-                }
-
-                // Last Drift (Red)
-                Row(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(Color(0xFFEF4444).copy(alpha = 0.06f))
-                        .border(1.dp, Color(0xFFEF4444).copy(alpha = 0.12f), RoundedCornerShape(12.dp))
-                        .padding(Spacing.medium),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.ArrowUpward,
-                        contentDescription = null,
-                        tint = Color(0xFFEF4444),
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(Spacing.small))
-                    Column {
-                        Text(
-                            text = "+5 days",
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFFEF4444),
-                        )
-                        Text(
-                            text = "Last drift (Dining overspend)",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = TextSecondary,
-                            fontSize = 9.sp,
-                        )
-                    }
-                }
             }
         }
     }
 }
 
 @Composable
-fun RealCapacityToSaveCard(
-    rcsAmount: Double,
+private fun RealCapacityToSaveCard(
+    capacity: CapacityBreakdown,
     currency: CurrencyOption,
+    activeGoalTitle: String?,
 ) {
-    val totalIncome = 165000.0
-    val committed = 34000.0
-    val discretionary = 78000.0
-    val formattedRcs = formatGoalAmount(rcsAmount, currency.code)
+    val formattedRcs = formatGoalAmount(capacity.realCapacityToSave, currency.code)
 
     GlassCard(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(Spacing.large)) {
@@ -232,7 +155,7 @@ fun RealCapacityToSaveCard(
             )
 
             Text(
-                text = "Income: ${formatGoalAmount(totalIncome, currency.code)} · Safe to allocate",
+                text = "Income: ${formatGoalAmount(capacity.monthlyIncome, currency.code)} this month",
                 style = MaterialTheme.typography.bodySmall,
                 color = TextSecondary,
                 fontWeight = FontWeight.Medium,
@@ -240,96 +163,14 @@ fun RealCapacityToSaveCard(
 
             Spacer(modifier = Modifier.height(Spacing.large))
 
-            // Capacity Segmented Bar
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(10.dp)
-                    .clip(RoundedCornerShape(99.dp)),
-                horizontalArrangement = Arrangement.spacedBy(2.dp)
-            ) {
-                // Committed Bar (Gray/Slate)
-                Box(
-                    modifier = Modifier
-                        .weight(committed.toFloat())
-                        .height(10.dp)
-                        .background(Color(0xFF475569))
-                )
-                // Discretionary Bar (Dark Emerald/Green soft)
-                Box(
-                    modifier = Modifier
-                        .weight(discretionary.toFloat())
-                        .height(10.dp)
-                        .background(Color(0xFF189065).copy(alpha = 0.55f))
-                )
-                // RCS Bar (Bright Emerald/Green)
-                Box(
-                    modifier = Modifier
-                        .weight(rcsAmount.toFloat().coerceAtLeast(1f))
-                        .height(10.dp)
-                        .background(Color(0xFF00BC7D))
-                )
-            }
+            CapacitySegmentedBar(capacity = capacity)
 
             Spacer(modifier = Modifier.height(Spacing.small))
 
-            // Legend labels
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .clip(RoundedCornerShape(2.dp))
-                            .background(Color(0xFF475569))
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "Committed 34K",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = TextSecondary,
-                        fontSize = 9.sp,
-                    )
-                }
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .clip(RoundedCornerShape(2.dp))
-                            .background(Color(0xFF189065).copy(alpha = 0.55f))
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "Discretionary 78K",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = TextSecondary,
-                        fontSize = 9.sp,
-                    )
-                }
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .clip(RoundedCornerShape(2.dp))
-                            .background(Color(0xFF00BC7D))
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "RCS ${rcsAmount.roundToInt() / 1000}K",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = TextSecondary,
-                        fontSize = 9.sp,
-                    )
-                }
-            }
+            CapacityLegend(capacity = capacity)
 
             Spacer(modifier = Modifier.height(Spacing.large))
 
-            // Info Banner
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -337,17 +178,21 @@ fun RealCapacityToSaveCard(
                     .background(Color(0xFF00BC7D).copy(alpha = 0.06f))
                     .border(1.dp, Color(0xFF00BC7D).copy(alpha = 0.12f), RoundedCornerShape(12.dp))
                     .padding(horizontal = Spacing.medium, vertical = Spacing.small),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(
                     imageVector = Icons.Outlined.Info,
                     contentDescription = null,
                     tint = Color(0xFF00BC7D),
-                    modifier = Modifier.size(16.dp)
+                    modifier = Modifier.size(16.dp),
                 )
                 Spacer(modifier = Modifier.width(Spacing.small))
                 Text(
-                    text = "You can safely move $formattedRcs toward the MacBook fund this month.",
+                    text = if (activeGoalTitle != null) {
+                        "You can safely move $formattedRcs toward $activeGoalTitle this month."
+                    } else {
+                        "Set an active goal to allocate $formattedRcs this month."
+                    },
                     style = MaterialTheme.typography.labelSmall,
                     color = Color(0xFF00BC7D),
                     fontSize = 11.sp,
@@ -355,6 +200,100 @@ fun RealCapacityToSaveCard(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun CapacitySegmentedBar(capacity: CapacityBreakdown) {
+    val committedWeight = capacity.committed.toFloat().coerceAtLeast(0f)
+    val discretionaryWeight = capacity.discretionary.toFloat().coerceAtLeast(0f)
+    val rcsWeight = capacity.realCapacityToSave.toFloat().coerceAtLeast(0f)
+    val totalWeight = committedWeight + discretionaryWeight + rcsWeight
+    val emptyState = totalWeight <= 0f
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(10.dp)
+            .clip(RoundedCornerShape(99.dp)),
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
+    ) {
+        if (emptyState) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(10.dp)
+                    .background(Color(0xFF475569).copy(alpha = 0.25f)),
+            )
+        } else {
+            if (committedWeight > 0f) {
+                Box(
+                    modifier = Modifier
+                        .weight(committedWeight)
+                        .height(10.dp)
+                        .background(Color(0xFF475569)),
+                )
+            }
+            if (discretionaryWeight > 0f) {
+                Box(
+                    modifier = Modifier
+                        .weight(discretionaryWeight)
+                        .height(10.dp)
+                        .background(Color(0xFF189065).copy(alpha = 0.55f)),
+                )
+            }
+            if (rcsWeight > 0f) {
+                Box(
+                    modifier = Modifier
+                        .weight(rcsWeight)
+                        .height(10.dp)
+                        .background(Color(0xFF00BC7D)),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun CapacityLegend(capacity: CapacityBreakdown) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        LegendDot(color = Color(0xFF475569), label = "Committed ${shortAmount(capacity.committed)}")
+        LegendDot(
+            color = Color(0xFF189065).copy(alpha = 0.55f),
+            label = "Discretionary ${shortAmount(capacity.discretionary)}",
+        )
+        LegendDot(color = Color(0xFF00BC7D), label = "RCS ${shortAmount(capacity.realCapacityToSave)}")
+    }
+}
+
+@Composable
+private fun LegendDot(color: Color, label: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Box(
+            modifier = Modifier
+                .size(8.dp)
+                .clip(RoundedCornerShape(2.dp))
+                .background(color),
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = TextSecondary,
+            fontSize = 9.sp,
+        )
+    }
+}
+
+private fun shortAmount(value: Double): String {
+    val rounded = value.roundToInt()
+    return when {
+        rounded >= 1_000_000 -> "${rounded / 1_000_000}M"
+        rounded >= 1_000 -> "${rounded / 1_000}K"
+        else -> rounded.toString()
     }
 }
 

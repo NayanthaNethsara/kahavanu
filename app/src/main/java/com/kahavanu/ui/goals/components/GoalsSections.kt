@@ -1,20 +1,8 @@
 package com.kahavanu.ui.goals.components
 
-import com.kahavanu.ui.util.goalCategoryIcon
-import com.kahavanu.ui.util.goalCategoryColor
-import com.kahavanu.ui.util.formatAmount
-import com.kahavanu.ui.theme.BrandAccent
-import com.kahavanu.ui.theme.IconMuted
-import com.kahavanu.ui.theme.Romance
-import com.kahavanu.ui.theme.UtilityAccent
-import com.kahavanu.ui.theme.Warning
-import com.kahavanu.ui.theme.Info
-import com.kahavanu.ui.theme.Primary
-import com.kahavanu.ui.theme.extendedColors
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,16 +13,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.DragHandle
 import androidx.compose.material.icons.outlined.Flag
 import androidx.compose.material.icons.outlined.MoreVert
-import androidx.compose.material.icons.outlined.Remove
+import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -42,23 +29,26 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kahavanu.domain.model.CurrencyOption
-import com.kahavanu.domain.model.GoalCategory
 import com.kahavanu.domain.model.GoalEntry
 import com.kahavanu.ui.common.EmptyState
 import com.kahavanu.ui.common.GlassCard
@@ -67,13 +57,17 @@ import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
 import com.kahavanu.ui.theme.TextSize
+import com.kahavanu.ui.theme.extendedColors
+import com.kahavanu.ui.util.formatAmount
+import com.kahavanu.ui.util.goalCategoryColor
+import com.kahavanu.ui.util.goalCategoryIcon
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlin.math.roundToInt
 
-private const val QUICK_STEP_AMOUNT = 1_000.0
+private val ROW_HEIGHT_DP = 72.dp
 
 @Composable
 fun BacklogSection(
@@ -81,37 +75,117 @@ fun BacklogSection(
     currency: CurrencyOption,
     onAdjustSaved: (goalId: String, delta: Double) -> Unit,
     onAddGoal: () -> Unit,
+    onMakeActive: (goalId: String) -> Unit,
+    onReorder: (orderedIds: List<String>) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier) {
         SectionHeader(
             title = "Backlog Targets",
-            subtitle = if (goals.isEmpty()) "No other targets" else "${goals.size} target${if (goals.size > 1) "s" else ""} in backlog",
+            subtitle = when {
+                goals.isEmpty() -> "No other targets"
+                goals.size == 1 -> "1 target waiting in line"
+                else -> "${goals.size} targets — drag to reprioritize"
+            },
             actionText = if (goals.isEmpty()) "Add Goal" else null,
             onActionClick = if (goals.isEmpty()) onAddGoal else null,
         )
-        
+
         Spacer(modifier = Modifier.height(Spacing.small))
 
         if (goals.isEmpty()) {
             EmptyGoalsPlaceholder()
         } else {
             GlassCard(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(Spacing.medium)) {
-                    goals.forEachIndexed { index, goal ->
-                        BacklogItemRow(
-                            goal = goal,
-                            currency = currency,
-                            onAdjustSaved = { delta -> onAdjustSaved(goal.id, delta) }
-                        )
-                        if (index < goals.lastIndex) {
-                            HorizontalDivider(
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
-                                modifier = Modifier.padding(vertical = Spacing.small)
-                            )
-                        }
-                    }
-                }
+                ReorderableBacklogList(
+                    goals = goals,
+                    currency = currency,
+                    onAdjustSaved = onAdjustSaved,
+                    onMakeActive = onMakeActive,
+                    onReorder = onReorder,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ReorderableBacklogList(
+    goals: List<GoalEntry>,
+    currency: CurrencyOption,
+    onAdjustSaved: (goalId: String, delta: Double) -> Unit,
+    onMakeActive: (goalId: String) -> Unit,
+    onReorder: (List<String>) -> Unit,
+) {
+    val order: SnapshotStateList<GoalEntry> = remember { mutableStateListOf<GoalEntry>().apply { addAll(goals) } }
+    LaunchedEffect(goals) {
+        val incomingIds = goals.map { it.id }
+        val currentIds = order.map { it.id }
+        if (incomingIds != currentIds) {
+            order.clear()
+            order.addAll(goals)
+        }
+    }
+
+    var draggingIndex by remember { mutableStateOf<Int?>(null) }
+    var dragOffsetY by remember { mutableStateOf(0f) }
+    val rowHeightPx = with(LocalDensity.current) { ROW_HEIGHT_DP.toPx() }
+
+    Column(modifier = Modifier.padding(vertical = Spacing.small)) {
+        order.forEachIndexed { index, goal ->
+            val isDragging = draggingIndex == index
+            BacklogItemRow(
+                goal = goal,
+                currency = currency,
+                onAdjustSaved = { delta -> onAdjustSaved(goal.id, delta) },
+                onMakeActive = { onMakeActive(goal.id) },
+                isDragging = isDragging,
+                modifier = Modifier
+                    .graphicsLayer {
+                        translationY = if (isDragging) dragOffsetY else 0f
+                        alpha = if (isDragging) 0.95f else 1f
+                    },
+                dragHandleModifier = Modifier.pointerInput(goal.id) {
+                    detectDragGesturesAfterLongPress(
+                        onDragStart = {
+                            draggingIndex = order.indexOfFirst { it.id == goal.id }
+                            dragOffsetY = 0f
+                        },
+                        onDragEnd = {
+                            draggingIndex = null
+                            dragOffsetY = 0f
+                            onReorder(order.map { it.id })
+                        },
+                        onDragCancel = {
+                            draggingIndex = null
+                            dragOffsetY = 0f
+                        },
+                        onDrag = { change, drag ->
+                            change.consume()
+                            val current = draggingIndex ?: return@detectDragGesturesAfterLongPress
+                            dragOffsetY += drag.y
+                            val moveDown = dragOffsetY > rowHeightPx / 2f && current < order.lastIndex
+                            val moveUp = dragOffsetY < -rowHeightPx / 2f && current > 0
+                            if (moveDown) {
+                                val swapped = order.removeAt(current)
+                                order.add(current + 1, swapped)
+                                draggingIndex = current + 1
+                                dragOffsetY -= rowHeightPx
+                            } else if (moveUp) {
+                                val swapped = order.removeAt(current)
+                                order.add(current - 1, swapped)
+                                draggingIndex = current - 1
+                                dragOffsetY += rowHeightPx
+                            }
+                        },
+                    )
+                },
+            )
+            if (index < order.lastIndex) {
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                    modifier = Modifier.padding(horizontal = Spacing.medium),
+                )
             }
         }
     }
@@ -122,53 +196,60 @@ private fun BacklogItemRow(
     goal: GoalEntry,
     currency: CurrencyOption,
     onAdjustSaved: (Double) -> Unit,
+    onMakeActive: () -> Unit,
+    isDragging: Boolean,
+    modifier: Modifier = Modifier,
+    dragHandleModifier: Modifier = Modifier,
 ) {
     val progressPercent = if (goal.targetAmount > 0.0) {
         ((goal.currentAmount / goal.targetAmount) * 100).roundToInt().coerceIn(0, 100)
-    } else {
-        0
-    }
+    } else 0
     val color = goalCategoryColor(goal.category)
 
-    var dialogMode by remember { mutableStateOf<AdjustDialogMode?>(null) }
+    var showAdjust by remember { mutableStateOf(false) }
+    var showMenu by remember { mutableStateOf(false) }
+
+    val background = if (isDragging) {
+        MaterialTheme.extendedColors.brandWashed.copy(alpha = 0.6f)
+    } else {
+        androidx.compose.ui.graphics.Color.Transparent
+    }
 
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .clickable { dialogMode = AdjustDialogMode.Add }
-            .padding(vertical = 8.dp),
+            .background(background)
+            .clickable { showAdjust = true }
+            .padding(horizontal = Spacing.medium, vertical = Spacing.small),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Spacing.medium)
+        horizontalArrangement = Arrangement.spacedBy(Spacing.medium),
     ) {
-        // Drag handle (Grab handle)
         Icon(
             imageVector = Icons.Outlined.DragHandle,
-            contentDescription = "Reorder handle",
-            tint = TextSecondary.copy(alpha = 0.5f),
-            modifier = Modifier.size(20.dp)
+            contentDescription = "Drag to reorder",
+            tint = TextSecondary.copy(alpha = 0.6f),
+            modifier = dragHandleModifier.size(22.dp),
         )
 
-        // Raw Category Icon (no background box, size 22.dp)
         Icon(
             imageVector = goalCategoryIcon(goal.category),
             contentDescription = null,
             tint = color,
-            modifier = Modifier.size(22.dp)
+            modifier = Modifier.size(22.dp),
         )
 
-        // Center: Title, elegant thin progress bar, saved vs target metrics
         Column(modifier = Modifier.weight(1f)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
                     text = goal.title,
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.SemiBold,
                     color = TextPrimary,
-                    maxLines = 1
+                    maxLines = 1,
                 )
                 Text(
                     text = "$progressPercent%",
@@ -180,7 +261,6 @@ private fun BacklogItemRow(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            // Thin progress bar
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -199,7 +279,6 @@ private fun BacklogItemRow(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            // Details info
             Text(
                 text = "${formatAmount(goal.currentAmount, currency.code)} of ${formatAmount(goal.targetAmount, currency.code)}",
                 style = MaterialTheme.typography.labelSmall,
@@ -208,26 +287,48 @@ private fun BacklogItemRow(
             )
         }
 
-        // Reorder options icon
-        Icon(
-            imageVector = Icons.Outlined.MoreVert,
-            contentDescription = "Options",
-            tint = TextSecondary,
-            modifier = Modifier
-                .size(20.dp)
-                .clickable { dialogMode = AdjustDialogMode.Add }
-        )
+        Box {
+            Icon(
+                imageVector = Icons.Outlined.MoreVert,
+                contentDescription = "Options",
+                tint = TextSecondary,
+                modifier = Modifier
+                    .size(22.dp)
+                    .clickable { showMenu = true },
+            )
+            DropdownMenu(
+                expanded = showMenu,
+                onDismissRequest = { showMenu = false },
+            ) {
+                DropdownMenuItem(
+                    text = { Text("Make active") },
+                    leadingIcon = {
+                        Icon(Icons.Outlined.StarOutline, contentDescription = null)
+                    },
+                    onClick = {
+                        showMenu = false
+                        onMakeActive()
+                    },
+                )
+                DropdownMenuItem(
+                    text = { Text("Allocate savings") },
+                    onClick = {
+                        showMenu = false
+                        showAdjust = true
+                    },
+                )
+            }
+        }
     }
 
-    dialogMode?.let { mode ->
+    if (showAdjust) {
         AdjustAmountDialog(
-            mode = mode,
             currencyCode = currency.code,
-            onDismiss = { dialogMode = null },
+            onDismiss = { showAdjust = false },
             onConfirm = { amount ->
                 onAdjustSaved(amount)
-                dialogMode = null
-            }
+                showAdjust = false
+            },
         )
     }
 }
@@ -252,23 +353,17 @@ fun CompletedGoalsSection(
     }
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun GoalCard(
     goal: GoalEntry,
     currency: CurrencyOption,
     isCompleted: Boolean = false,
-    onAdjustSaved: ((Double) -> Unit)? = null,
 ) {
     val progressPercent = if (goal.targetAmount > 0.0) {
         ((goal.currentAmount / goal.targetAmount) * 100).roundToInt().coerceIn(0, 100)
-    } else {
-        0
-    }
+    } else 0
     val remaining = (goal.targetAmount - goal.currentAmount).coerceAtLeast(0.0)
     val color = goalCategoryColor(goal.category)
-
-    var dialogState by remember { mutableStateOf<AdjustDialogMode?>(null) }
 
     GlassCard(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(Spacing.large)) {
@@ -392,21 +487,17 @@ private fun GoalCard(
     }
 }
 
-private enum class AdjustDialogMode { Add, Subtract }
-
 @Composable
 private fun AdjustAmountDialog(
-    mode: AdjustDialogMode,
     currencyCode: String,
     onDismiss: () -> Unit,
     onConfirm: (Double) -> Unit,
 ) {
     var input by remember { mutableStateOf("") }
-    val title = "Quick Adjust Target Fund"
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(title) },
+        title = { Text("Allocate to this goal") },
         text = {
             Column {
                 Text(
@@ -420,7 +511,7 @@ private fun AdjustAmountDialog(
                     onValueChange = { new -> input = new.filter { it.isDigit() || it == '.' } },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    placeholder = { Text("e.g. 5000") }
+                    placeholder = { Text("e.g. 5000") },
                 )
             }
         },

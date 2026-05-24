@@ -57,14 +57,15 @@ fun GoalStatsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    val allGoals = uiState.activeGoals + uiState.completedGoals
+    val activeAndBacklog = listOfNotNull(uiState.activeGoal) + uiState.backlogGoals
+    val allGoals = activeAndBacklog + uiState.completedGoals
     val totalGoals = allGoals.size
     val completedCount = uiState.completedGoals.size
     val completionRate = if (totalGoals > 0) (completedCount * 100f / totalGoals).roundToInt() else 0
     val totalSavedAllTime = allGoals.sumOf { it.currentAmount }
     val totalTargetAllTime = allGoals.sumOf { it.targetAmount }
-    val avgActiveProgress = if (uiState.activeGoals.isNotEmpty()) {
-        uiState.activeGoals.map { g ->
+    val avgActiveProgress = if (activeAndBacklog.isNotEmpty()) {
+        activeAndBacklog.map { g ->
             if (g.targetAmount > 0) (g.currentAmount / g.targetAmount * 100).roundToInt() else 0
         }.average().roundToInt()
     } else 0
@@ -214,7 +215,7 @@ fun GoalStatsScreen(
                     }
                 }
 
-                if (uiState.activeGoals.isNotEmpty()) {
+                if (activeAndBacklog.isNotEmpty()) {
                     item {
                         Text(
                             text = "Active Goals Progress",
@@ -224,8 +225,8 @@ fun GoalStatsScreen(
                             modifier = Modifier.padding(top = Spacing.small),
                         )
                     }
-                    items(uiState.activeGoals.size) { index ->
-                        val goal = uiState.activeGoals[index]
+                    items(activeAndBacklog.size) { index ->
+                        val goal = activeAndBacklog[index]
                         val pct = if (goal.targetAmount > 0)
                             (goal.currentAmount / goal.targetAmount * 100f).roundToInt().coerceIn(0, 100)
                         else 0

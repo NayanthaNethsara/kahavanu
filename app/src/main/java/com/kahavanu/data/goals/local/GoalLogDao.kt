@@ -17,6 +17,9 @@ interface GoalLogDao {
     @Query("SELECT * FROM goal_logs WHERE userId = :userId")
     suspend fun getGoalsForUser(userId: String): List<GoalLogEntity>
 
+    @Query("SELECT * FROM goal_logs WHERE userId = :userId AND isDeleted = 0 AND isCompleted = 0")
+    suspend fun getActiveGoalsForUser(userId: String): List<GoalLogEntity>
+
     @Query("SELECT * FROM goal_logs WHERE remoteId = :remoteId LIMIT 1")
     suspend fun getByRemoteId(remoteId: String): GoalLogEntity?
 
@@ -28,6 +31,9 @@ interface GoalLogDao {
 
     @Upsert
     suspend fun upsert(entity: GoalLogEntity): Long
+
+    @Upsert
+    suspend fun upsertAll(entities: List<GoalLogEntity>)
 
     @Query("UPDATE goal_logs SET remoteId = :remoteId, isSynced = 1 WHERE localId = :localId")
     suspend fun markSynced(localId: Long, remoteId: String)

@@ -6,20 +6,30 @@ import com.kahavanu.domain.model.GoalEntry
 import java.time.LocalDate
 
 enum class GoalSortMode(val label: String) {
+    BY_PRIORITY("Priority"),
     BY_PROGRESS("Progress"),
     BY_REMAINING("Remaining"),
     BY_DATE("Target Date"),
 }
 
+data class CapacityBreakdown(
+    val monthlyIncome: Double = 0.0,
+    val committed: Double = 0.0,
+    val discretionary: Double = 0.0,
+    val realCapacityToSave: Double = 0.0,
+)
+
 data class GoalsUiState(
-    val activeGoals: List<GoalEntry> = emptyList(),
+    val activeGoal: GoalEntry? = null,
+    val backlogGoals: List<GoalEntry> = emptyList(),
     val completedGoals: List<GoalEntry> = emptyList(),
     val totalTargetAmount: Double = 0.0,
     val totalSavedAmount: Double = 0.0,
     val currency: CurrencyOption = CurrencyOption.LKR,
     val activeGoalSoftLimit: Int = 5,
     val isAtActiveGoalLimit: Boolean = false,
-    val sortMode: GoalSortMode = GoalSortMode.BY_PROGRESS,
+    val sortMode: GoalSortMode = GoalSortMode.BY_PRIORITY,
+    val capacity: CapacityBreakdown = CapacityBreakdown(),
 )
 
 data class GoalSetupUiState(

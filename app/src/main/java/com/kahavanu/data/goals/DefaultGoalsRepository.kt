@@ -13,6 +13,7 @@ import com.kahavanu.data.common.awaitResult
 import com.kahavanu.data.goals.local.GoalAdjustmentLogDao
 import com.kahavanu.data.goals.local.GoalAdjustmentLogEntity
 import com.kahavanu.data.goals.local.GoalLogDao
+import com.kahavanu.data.goals.local.GoalLogEntity
 import com.kahavanu.data.goals.sync.GoalsSyncScheduler
 import com.kahavanu.domain.model.GoalAdjustmentLog
 import com.kahavanu.domain.model.GoalEntry
@@ -74,7 +75,18 @@ class DefaultGoalsRepository @Inject constructor(
         val uid = auth.currentUser?.uid
             ?: return Result.failure(IllegalStateException("User not authenticated"))
 
-        val entity = goal.toEntity(uid)
+        // First non-completed goal becomes the active one automatically; the rest go
+        // to the bottom of the backlog. This keeps the "exactly one active" invariant
+        // without forcing the user to pick an active goal during setup.
+        val existing = goalLogDao.getActiveGoalsForUser(uid)
+        val hasActive = existing.any { it.isActive }
+        val maxBacklogPriority = existing.filter { !it.isActive }.maxOfOrNull { it.priority } ?: -1
+        val prepared = goal.copy(
+            isActive = if (!goal.isCompleted) !hasActive else false,
+            priority = if (!goal.isCompleted && hasActive) maxBacklogPriority + 1 else 0,
+        )
+
+        val entity = prepared.toEntity(uid)
         val localId = goalLogDao.insert(entity)
 
         if (!isOnline()) {
@@ -158,6 +170,16 @@ class DefaultGoalsRepository @Inject constructor(
         val existing = goalLogDao.getByClientId(id) ?: goalLogDao.getByRemoteId(id)
         existing?.let { entity ->
             goalLogDao.deleteByLocalIds(listOf(entity.localId))
+            // If the deleted goal was active, promote the highest-priority backlog goal
+            // so the user is never left without an active goal while backlog still has items.
+            if (entity.isActive) {
+                val remaining = goalLogDao.getActiveGoalsForUser(uid)
+                    .filter { it.clientId != entity.clientId }
+                val next = remaining.minByOrNull { it.priority }
+                if (next != null) {
+                    promoteToActive(uid, next, others = remaining.filter { it.clientId != next.clientId })
+                }
+            }
             val remoteId = entity.remoteId ?: return Result.success(Unit)
             if (isOnline()) {
                 firestore
@@ -172,6 +194,82 @@ class DefaultGoalsRepository @Inject constructor(
             }
         }
         return Result.success(Unit)
+    }
+
+    override suspend fun setActiveGoal(goalId: String): Result<Unit> {
+        val uid = auth.currentUser?.uid
+            ?: return Result.failure(IllegalStateException("User not authenticated"))
+        val target = goalLogDao.getByClientId(goalId) ?: goalLogDao.getByRemoteId(goalId)
+            ?: return Result.failure(IllegalArgumentException("Goal not found: $goalId"))
+        if (target.isCompleted) {
+            return Result.failure(IllegalStateException("Completed goals cannot be made active"))
+        }
+        val others = goalLogDao.getActiveGoalsForUser(uid).filter { it.clientId != target.clientId }
+        promoteToActive(uid, target, others)
+        return Result.success(Unit)
+    }
+
+    override suspend fun reorderBacklog(orderedGoalIds: List<String>): Result<Unit> {
+        val uid = auth.currentUser?.uid
+            ?: return Result.failure(IllegalStateException("User not authenticated"))
+        val now = System.currentTimeMillis()
+        val updated = mutableListOf<GoalLogEntity>()
+        orderedGoalIds.forEachIndexed { index, id ->
+            val entity = goalLogDao.getByClientId(id) ?: goalLogDao.getByRemoteId(id)
+            if (entity != null && !entity.isActive && entity.priority != index) {
+                updated += entity.copy(
+                    priority = index,
+                    isSynced = false,
+                    updatedAtEpochMillis = now,
+                )
+            }
+        }
+        if (updated.isEmpty()) return Result.success(Unit)
+        goalLogDao.upsertAll(updated)
+        pushUpdatesToFirestore(uid, updated)
+        return Result.success(Unit)
+    }
+
+    private suspend fun promoteToActive(
+        uid: String,
+        target: GoalLogEntity,
+        others: List<GoalLogEntity>,
+    ) {
+        val now = System.currentTimeMillis()
+        val demoted = others.mapIndexed { index, entity ->
+            entity.copy(
+                isActive = false,
+                priority = index,
+                isSynced = false,
+                updatedAtEpochMillis = now,
+            )
+        }
+        val promoted = target.copy(
+            isActive = true,
+            priority = 0,
+            isSynced = false,
+            updatedAtEpochMillis = now,
+        )
+        val batch = demoted + promoted
+        goalLogDao.upsertAll(batch)
+        pushUpdatesToFirestore(uid, batch)
+    }
+
+    private suspend fun pushUpdatesToFirestore(uid: String, entities: List<GoalLogEntity>) {
+        if (!isOnline()) {
+            syncScheduler.enqueue()
+            return
+        }
+        entities.forEach { entity ->
+            val remoteId = entity.remoteId ?: entity.clientId
+            firestore
+                .collection(USERS_COLLECTION)
+                .document(uid)
+                .collection(GOAL_LOGS_COLLECTION)
+                .document(remoteId)
+                .set(entity.toFirestoreMap(), SetOptions.merge())
+                .awaitResult()
+        }
     }
 
     private fun startRealtimeListeners(uid: String) {

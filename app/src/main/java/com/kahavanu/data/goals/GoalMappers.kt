@@ -19,6 +19,8 @@ fun GoalLogEntity.toDomain(): GoalEntry = GoalEntry(
     isCompleted = isCompleted,
     createdAtEpochMillis = createdAtEpochMillis,
     lastUpdatedEpochMillis = updatedAtEpochMillis,
+    isActive = isActive,
+    priority = priority,
 )
 
 fun GoalEntry.toEntity(userId: String): GoalLogEntity = GoalLogEntity(
@@ -32,6 +34,8 @@ fun GoalEntry.toEntity(userId: String): GoalLogEntity = GoalLogEntity(
     isCompleted = isCompleted,
     createdAtEpochMillis = createdAtEpochMillis,
     clientId = id.ifBlank { UUID.randomUUID().toString() },
+    isActive = isActive,
+    priority = priority,
 )
 
 fun generateGoalClientId(): String = UUID.randomUUID().toString()

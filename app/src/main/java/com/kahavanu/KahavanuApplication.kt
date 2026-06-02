@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import androidx.work.WorkManager
+import com.kahavanu.notifications.NotificationChannels
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 
@@ -20,5 +21,6 @@ class KahavanuApplication : Application(), Configuration.Provider {
 	override fun onCreate() {
 		super.onCreate()
 		WorkManager.initialize(this, workManagerConfiguration)
+		NotificationChannels.ensureChannels(this)
 	}
 }

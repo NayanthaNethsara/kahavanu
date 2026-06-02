@@ -12,4 +12,6 @@ interface SettingsRepository {
     suspend fun updateAutoMatchDeposits(enabled: Boolean): Result<Unit>
     fun observePushAlerts(): Flow<Boolean>
     suspend fun updatePushAlerts(enabled: Boolean): Result<Unit>
+    fun observeMonthlyBudget(): Flow<Double>
+    suspend fun updateMonthlyBudget(amount: Double): Result<Unit>
 }

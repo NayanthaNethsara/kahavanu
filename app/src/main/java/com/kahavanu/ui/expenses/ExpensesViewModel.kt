@@ -60,13 +60,18 @@ class ExpensesViewModel @Inject constructor(
                 initialValue = emptyList(),
             )
 
-    val uiState: StateFlow<ExpensesUiState> = combine(
+    private val periodWithBudget = combine(
         selectedPeriod,
+        settingsRepository.observeMonthlyBudget(),
+    ) { period, monthlyBudget -> period to monthlyBudget }
+
+    val uiState: StateFlow<ExpensesUiState> = combine(
+        periodWithBudget,
         settingsRepository.observeCurrencySettings(),
         expensesRepository.observeExpenseLogs(),
         pendingExpenseMatches,
         subscriptionsRepository.observeSubscriptions(),
-    ) { period, (primaryCurrency, _), allExpenses, pendingMatches, subscriptions ->
+    ) { (period, monthlyBudget), (primaryCurrency, _), allExpenses, pendingMatches, subscriptions ->
         val filtered = allExpenses.filter { isWithinPeriod(it.spentAtEpochMillis, period) }
         val categorySummaries = buildCategorySummaries(filtered)
 
@@ -86,7 +91,8 @@ class ExpensesViewModel @Inject constructor(
             selectedPeriod = period,
             currency = primaryCurrency,
             totalSpent = filtered.sumOf { it.amount },
-            budgetLimit = budgetFor(period),
+            budgetLimit = budgetFor(period, monthlyBudget),
+            monthlyBudget = monthlyBudget,
             allExpensesCount = filtered.size,
             categorySummaries = categorySummaries,
             pendingMatches = pendingMatches,
@@ -109,13 +115,19 @@ class ExpensesViewModel @Inject constructor(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = ExpensesUiState(
-            budgetLimit = budgetFor(ExpensePeriod.Month),
+            budgetLimit = 0.0,
             categorySummaries = defaultCategorySummaries(),
         ),
     )
 
     fun onPeriodChange(period: ExpensePeriod) {
         selectedPeriod.update { period }
+    }
+
+    fun setMonthlyBudget(amount: Double) {
+        viewModelScope.launch {
+            settingsRepository.updateMonthlyBudget(amount)
+        }
     }
 
     fun confirmExpenseSuggestion(id: String) {
@@ -175,11 +187,14 @@ class ExpensesViewModel @Inject constructor(
         }
     }
 
-    private fun budgetFor(period: ExpensePeriod): Double {
+    // Derives the budget for the selected period from the user's saved monthly budget.
+    // Returns 0.0 ("not set") when the user has not configured a budget.
+    private fun budgetFor(period: ExpensePeriod, monthlyBudget: Double): Double {
+        if (monthlyBudget <= 0.0) return 0.0
         return when (period) {
-            ExpensePeriod.Week -> 55_000.0
-            ExpensePeriod.Month -> 180_000.0
-            ExpensePeriod.Year -> 2_400_000.0
+            ExpensePeriod.Week -> monthlyBudget * 12.0 / 52.0
+            ExpensePeriod.Month -> monthlyBudget
+            ExpensePeriod.Year -> monthlyBudget * 12.0
         }
     }
 

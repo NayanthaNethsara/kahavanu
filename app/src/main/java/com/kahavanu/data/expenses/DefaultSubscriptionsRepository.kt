@@ -12,6 +12,7 @@ import com.kahavanu.domain.model.ExpenseLogEntry
 import com.kahavanu.domain.model.Subscription
 import com.kahavanu.domain.repository.ExpensesRepository
 import com.kahavanu.domain.repository.SubscriptionsRepository
+import com.kahavanu.notifications.AppNotifier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -28,6 +29,7 @@ class DefaultSubscriptionsRepository @Inject constructor(
     private val subscriptionDao: SubscriptionDao,
     private val expensesRepository: ExpensesRepository,
     private val syncScheduler: ExpensesSyncScheduler,
+    private val appNotifier: AppNotifier,
 ) : SubscriptionsRepository {
     private val repositoryScope = CoroutineScope(Dispatchers.IO)
 
@@ -138,6 +140,7 @@ class DefaultSubscriptionsRepository @Inject constructor(
                     isSynced = false
                 )
                 subscriptionDao.upsert(updated)
+                appNotifier.notifySubscriptionCharged(item.title, item.amount, item.currency)
             }
         }
     }

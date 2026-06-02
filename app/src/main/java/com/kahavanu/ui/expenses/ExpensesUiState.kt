@@ -37,6 +37,7 @@ data class ExpensesUiState(
     val currency: CurrencyOption = CurrencyOption.LKR,
     val totalSpent: Double = 0.0,
     val budgetLimit: Double = 0.0,
+    val monthlyBudget: Double = 0.0,
     val allExpensesCount: Int = 0,
     val categorySummaries: List<ExpenseCategorySummary> = emptyList(),
     val pendingMatches: List<PendingExpenseMatch> = emptyList(),

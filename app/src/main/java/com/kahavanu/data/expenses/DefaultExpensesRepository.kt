@@ -18,13 +18,19 @@ import com.kahavanu.data.expenses.sync.ExpensesSyncScheduler
 import com.kahavanu.domain.model.ExpenseLogEntry
 import com.kahavanu.domain.model.ExpenseLogResult
 import com.kahavanu.domain.repository.ExpensesRepository
+import com.kahavanu.domain.repository.SettingsRepository
+import com.kahavanu.notifications.AppNotifier
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import java.time.Instant
+import java.time.YearMonth
+import java.time.ZoneId
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -34,6 +40,8 @@ class DefaultExpensesRepository @Inject constructor(
     private val auth: FirebaseAuth,
     private val expenseLogDao: ExpenseLogDao,
     private val syncScheduler: ExpensesSyncScheduler,
+    private val settingsRepository: SettingsRepository,
+    private val appNotifier: AppNotifier,
     @ApplicationContext private val appContext: Context,
 ) : ExpensesRepository {
     private val repositoryScope = CoroutineScope(Dispatchers.IO)
@@ -74,6 +82,8 @@ class DefaultExpensesRepository @Inject constructor(
         val localEntity = entry.toEntity(uid, createdAt)
         val localId = expenseLogDao.insert(localEntity)
 
+        notifyIfBudgetExceeded(uid, entry)
+
         if (!isOnline()) {
             syncScheduler.enqueue()
             return Result.success(ExpenseLogResult.LOCAL_ONLY)
@@ -94,6 +104,30 @@ class DefaultExpensesRepository @Inject constructor(
         } else {
             syncScheduler.enqueue()
             Result.success(ExpenseLogResult.LOCAL_ONLY)
+        }
+    }
+
+    /**
+     * Fires a single "over budget" notification at the moment the running total for the
+     * current month crosses the user's configured monthly budget. Only the live month is
+     * considered, and a zero/unset budget disables the check entirely.
+     */
+    private suspend fun notifyIfBudgetExceeded(uid: String, entry: ExpenseLogEntry) {
+        val budget = settingsRepository.observeMonthlyBudget().first()
+        if (budget <= 0.0) return
+
+        val zone = ZoneId.systemDefault()
+        val currentMonth = YearMonth.now(zone)
+        val entryMonth = YearMonth.from(Instant.ofEpochMilli(entry.spentAtEpochMillis).atZone(zone))
+        if (entryMonth != currentMonth) return
+
+        val monthTotal = expenseLogDao.getLogsForUser(uid)
+            .filter { YearMonth.from(Instant.ofEpochMilli(it.spentAtEpochMillis).atZone(zone)) == currentMonth }
+            .sumOf { it.amount }
+        val previousTotal = monthTotal - entry.amount
+
+        if (previousTotal <= budget && monthTotal > budget) {
+            appNotifier.notifyBudgetExceeded(monthTotal, budget, entry.currency)
         }
     }
 

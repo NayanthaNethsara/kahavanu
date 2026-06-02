@@ -28,4 +28,7 @@ interface UserSettingsDao {
 
     @Query("UPDATE user_settings SET isPushAlertsEnabled = :enabled WHERE userId = :userId")
     suspend fun updatePushAlerts(userId: String, enabled: Boolean)
+
+    @Query("UPDATE user_settings SET monthlyBudget = :budget, updatedAtEpochMillis = :updatedAt WHERE userId = :userId")
+    suspend fun updateMonthlyBudget(userId: String, budget: Double, updatedAt: Long)
 }

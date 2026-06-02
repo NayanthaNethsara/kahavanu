@@ -18,6 +18,7 @@ import com.kahavanu.data.goals.sync.GoalsSyncScheduler
 import com.kahavanu.domain.model.GoalAdjustmentLog
 import com.kahavanu.domain.model.GoalEntry
 import com.kahavanu.domain.repository.GoalsRepository
+import com.kahavanu.notifications.AppNotifier
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -39,6 +40,7 @@ class DefaultGoalsRepository @Inject constructor(
     private val goalLogDao: GoalLogDao,
     private val goalAdjustmentLogDao: GoalAdjustmentLogDao,
     private val syncScheduler: GoalsSyncScheduler,
+    private val appNotifier: AppNotifier,
     @ApplicationContext private val appContext: Context,
 ) : GoalsRepository {
 
@@ -148,9 +150,13 @@ class DefaultGoalsRepository @Inject constructor(
         val existing = goalLogDao.getByClientId(goalId) ?: goalLogDao.getByRemoteId(goalId)
             ?: return Result.failure(IllegalArgumentException("Goal not found: $goalId"))
         val newAmount = (existing.currentAmount + delta).coerceAtLeast(0.0)
+        val justCompleted = !existing.isCompleted &&
+            existing.targetAmount > 0.0 && newAmount >= existing.targetAmount
         val updated = existing.toDomain().copy(
             currentAmount = newAmount,
-            isCompleted = existing.targetAmount > 0.0 && newAmount >= existing.targetAmount,
+            isCompleted = existing.isCompleted || justCompleted,
+            // A completed goal releases the single active slot so the next goal can take over.
+            isActive = if (justCompleted) false else existing.isActive,
         )
         goalAdjustmentLogDao.insert(
             GoalAdjustmentLogEntity(
@@ -160,7 +166,24 @@ class DefaultGoalsRepository @Inject constructor(
                 newAmount = newAmount,
             )
         )
-        return updateGoal(updated)
+        val result = updateGoal(updated)
+
+        if (justCompleted) {
+            // If the finished goal was the active one, promote the top backlog goal so the
+            // user is never left without an active goal while the backlog still has items.
+            if (existing.isActive) {
+                // getActiveGoalsForUser excludes completed goals, so the just-finished goal
+                // is already out of this list.
+                val candidates = goalLogDao.getActiveGoalsForUser(uid)
+                    .filter { it.clientId != existing.clientId }
+                val next = candidates.minByOrNull { it.priority }
+                if (next != null) {
+                    promoteToActive(uid, next, others = candidates.filter { it.clientId != next.clientId })
+                }
+            }
+            appNotifier.notifyGoalCompleted(existing.title)
+        }
+        return result
     }
 
     override suspend fun deleteGoal(id: String): Result<Unit> {

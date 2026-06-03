@@ -405,6 +405,12 @@ object AppDatabaseMigrations {
         }
     }
 
+    val MIGRATION_25_26 = object : Migration(25, 26) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE notifications ADD COLUMN readAtEpochMillis INTEGER")
+        }
+    }
+
     val MIGRATION_17_18 = object : Migration(17, 18) {
         override fun migrate(db: SupportSQLiteDatabase) {
             db.execSQL(

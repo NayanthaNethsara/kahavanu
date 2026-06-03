@@ -43,12 +43,23 @@ class DefaultNotificationsRepository @Inject constructor(
 
     override suspend fun markAllRead() {
         val uid = auth.currentUser?.uid ?: return
-        notificationDao.markAllRead(uid)
+        notificationDao.markAllRead(uid, System.currentTimeMillis())
     }
 
     override suspend fun clearAll() {
         val uid = auth.currentUser?.uid ?: return
         notificationDao.deleteAll(uid)
+    }
+
+    override suspend fun purgeExpired() {
+        val uid = auth.currentUser?.uid ?: return
+        val cutoff = System.currentTimeMillis() - READ_RETENTION_MILLIS
+        notificationDao.deleteExpiredRead(uid, cutoff)
+    }
+
+    private companion object {
+        // Read notifications are kept for this long after being read, then auto-removed.
+        const val READ_RETENTION_MILLIS = 24L * 60 * 60 * 1000
     }
 }
 

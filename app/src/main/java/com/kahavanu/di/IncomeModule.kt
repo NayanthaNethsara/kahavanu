@@ -66,6 +66,7 @@ abstract class IncomeModule {
                 AppDatabaseMigrations.MIGRATION_22_23,
                 AppDatabaseMigrations.MIGRATION_23_24,
                 AppDatabaseMigrations.MIGRATION_24_25,
+                AppDatabaseMigrations.MIGRATION_25_26,
             )
             .fallbackToDestructiveMigration(dropAllTables = true)
             .build()

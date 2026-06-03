@@ -10,4 +10,6 @@ interface NotificationsRepository {
     suspend fun record(type: NotificationType, title: String, message: String)
     suspend fun markAllRead()
     suspend fun clearAll()
+    /** Removes read notifications whose retention window has elapsed. */
+    suspend fun purgeExpired()
 }

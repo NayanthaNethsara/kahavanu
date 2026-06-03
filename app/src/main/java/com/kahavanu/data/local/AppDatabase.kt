@@ -39,7 +39,7 @@ import com.kahavanu.data.sieve.local.SmsSuggestionEntity
         SubscriptionEntity::class,
         NotificationEntity::class,
     ],
-    version = 25,
+    version = 26,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {

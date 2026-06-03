@@ -16,4 +16,6 @@ data class NotificationEntity(
     val message: String,
     val createdAtEpochMillis: Long,
     val isRead: Boolean = false,
+    // When the notification was marked read; used to auto-purge read items after a window.
+    val readAtEpochMillis: Long? = null,
 )

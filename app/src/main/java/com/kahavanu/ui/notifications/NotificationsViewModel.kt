@@ -22,6 +22,11 @@ class NotificationsViewModel @Inject constructor(
     val unreadCount: StateFlow<Int> = repository.observeUnreadCount()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
 
+    init {
+        // Drop read notifications past their retention window on each app session.
+        viewModelScope.launch { repository.purgeExpired() }
+    }
+
     fun markAllRead() {
         viewModelScope.launch { repository.markAllRead() }
     }

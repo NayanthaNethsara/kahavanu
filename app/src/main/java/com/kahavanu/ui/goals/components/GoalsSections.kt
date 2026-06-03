@@ -24,8 +24,6 @@ import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -46,6 +44,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
@@ -293,38 +292,30 @@ private fun BacklogItemRow(
             )
         }
 
-        Box {
-            Icon(
-                imageVector = Icons.Outlined.MoreVert,
-                contentDescription = "Options",
-                tint = TextSecondary,
-                modifier = Modifier
-                    .size(22.dp)
-                    .clickable { showMenu = true },
-            )
-            DropdownMenu(
-                expanded = showMenu,
-                onDismissRequest = { showMenu = false },
-            ) {
-                DropdownMenuItem(
-                    text = { Text("Make active") },
-                    leadingIcon = {
-                        Icon(Icons.Outlined.StarOutline, contentDescription = null)
-                    },
-                    onClick = {
-                        showMenu = false
-                        onMakeActive()
-                    },
-                )
-                DropdownMenuItem(
-                    text = { Text("Allocate savings") },
-                    onClick = {
-                        showMenu = false
-                        showAdjust = true
-                    },
-                )
-            }
-        }
+        Icon(
+            imageVector = Icons.Outlined.MoreVert,
+            contentDescription = "Options",
+            tint = TextSecondary,
+            modifier = Modifier
+                .size(22.dp)
+                .clickable { showMenu = true },
+        )
+    }
+
+    if (showMenu) {
+        GoalActionsSheet(
+            goal = goal,
+            currency = currency,
+            onDismiss = { showMenu = false },
+            onMakeActive = {
+                showMenu = false
+                onMakeActive()
+            },
+            onAddSavings = {
+                showMenu = false
+                showAdjust = true
+            },
+        )
     }
 
     if (showAdjust) {
@@ -490,6 +481,132 @@ private fun GoalCard(
                     )
                 }
             }
+        }
+    }
+}
+
+/**
+ * Bottom-sheet menu of actions for a backlog goal, replacing the small dropdown menu.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun GoalActionsSheet(
+    goal: GoalEntry,
+    currency: CurrencyOption,
+    onDismiss: () -> Unit,
+    onMakeActive: () -> Unit,
+    onAddSavings: () -> Unit,
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val categoryColor = goalCategoryColor(goal.category)
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+    ) {
+        Column(modifier = Modifier.fillMaxWidth().padding(bottom = Spacing.large)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = Spacing.large, vertical = Spacing.small),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Spacing.medium),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(RoundedCornerShape(99.dp))
+                        .background(categoryColor.copy(alpha = 0.14f)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = goalCategoryIcon(goal.category),
+                        contentDescription = null,
+                        tint = categoryColor,
+                        modifier = Modifier.size(24.dp),
+                    )
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = goal.title,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary,
+                        maxLines = 1,
+                    )
+                    Text(
+                        text = "${formatAmount(goal.currentAmount, currency.code)} of ${formatAmount(goal.targetAmount, currency.code)}",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = TextSecondary,
+                    )
+                }
+            }
+
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                modifier = Modifier.padding(horizontal = Spacing.large, vertical = Spacing.small),
+            )
+
+            GoalActionRow(
+                icon = Icons.Outlined.StarOutline,
+                tint = MaterialTheme.colorScheme.primary,
+                title = "Make active",
+                subtitle = "Feature this goal on your dashboard",
+                onClick = onMakeActive,
+            )
+            GoalActionRow(
+                icon = Icons.Outlined.Add,
+                tint = MaterialTheme.extendedColors.brandAccent,
+                title = "Add savings",
+                subtitle = "Allocate an amount toward this goal",
+                onClick = onAddSavings,
+            )
+        }
+    }
+}
+
+@Composable
+private fun GoalActionRow(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    tint: Color,
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(horizontal = Spacing.large, vertical = Spacing.medium),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Spacing.medium),
+    ) {
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(RoundedCornerShape(99.dp))
+                .background(tint.copy(alpha = 0.12f)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = tint,
+                modifier = Modifier.size(20.dp),
+            )
+        }
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = TextPrimary,
+            )
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.labelSmall,
+                color = TextSecondary,
+            )
         }
     }
 }

@@ -14,6 +14,9 @@ import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -23,6 +26,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kahavanu.ui.common.QuickAction
 import com.kahavanu.ui.common.QuickActionRow
 import com.kahavanu.ui.common.ScreenHeader
+import com.kahavanu.ui.goals.components.AddSavingsSheet
 import com.kahavanu.ui.goals.components.BacklogSection
 import com.kahavanu.ui.goals.components.CompletedGoalsSection
 import com.kahavanu.ui.goals.components.GoalsSummaryCard
@@ -42,6 +46,7 @@ fun GoalsScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val activeGoal = uiState.activeGoal
     val remaining = activeGoal?.let { (it.targetAmount - it.currentAmount).coerceAtLeast(0.0) } ?: 0.0
+    var showAddSavings by remember { mutableStateOf(false) }
 
     LazyColumn(
         modifier = Modifier
@@ -75,6 +80,7 @@ fun GoalsScreen(
                     featuredGoal = activeGoal,
                     currency = uiState.currency,
                     onAddGoal = onAddGoal,
+                    onAddSavings = { showAddSavings = true },
                 )
 
                 QuickActionRow(
@@ -144,5 +150,17 @@ fun GoalsScreen(
                 currency = uiState.currency,
             )
         }
+    }
+
+    if (showAddSavings && activeGoal != null) {
+        AddSavingsSheet(
+            goalTitle = activeGoal.title,
+            currencyCode = uiState.currency.code,
+            onDismiss = { showAddSavings = false },
+            onConfirm = { amount ->
+                viewModel.adjustSavedAmount(activeGoal.id, amount)
+                showAddSavings = false
+            },
+        )
     }
 }

@@ -19,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Flag
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -51,6 +52,7 @@ fun GoalsSummaryCard(
     featuredGoal: GoalEntry?,
     currency: CurrencyOption,
     onAddGoal: () -> Unit = {},
+    onAddSavings: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     if (featuredGoal == null) {
@@ -63,6 +65,7 @@ fun GoalsSummaryCard(
         ActiveGoalSummary(
             featuredGoal = featuredGoal,
             currency = currency,
+            onAddSavings = onAddSavings,
             modifier = modifier,
         )
     }
@@ -72,6 +75,7 @@ fun GoalsSummaryCard(
 private fun ActiveGoalSummary(
     featuredGoal: GoalEntry,
     currency: CurrencyOption,
+    onAddSavings: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val savedAmount = featuredGoal.currentAmount
@@ -212,6 +216,21 @@ private fun ActiveGoalSummary(
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Medium,
                 )
+            }
+
+            Spacer(modifier = Modifier.height(Spacing.medium))
+
+            Button(
+                onClick = onAddSavings,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Add,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                )
+                Spacer(modifier = Modifier.width(Spacing.small))
+                Text("Add savings")
             }
         }
     }

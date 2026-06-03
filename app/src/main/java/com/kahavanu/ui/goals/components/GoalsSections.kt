@@ -3,6 +3,8 @@ package com.kahavanu.ui.goals.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,19 +17,23 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.DragHandle
 import androidx.compose.material.icons.outlined.Flag
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.StarOutline
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -322,7 +328,8 @@ private fun BacklogItemRow(
     }
 
     if (showAdjust) {
-        AdjustAmountDialog(
+        AddSavingsSheet(
+            goalTitle = goal.title,
             currencyCode = currency.code,
             onDismiss = { showAdjust = false },
             onConfirm = { amount ->
@@ -487,46 +494,88 @@ private fun GoalCard(
     }
 }
 
+/**
+ * Bottom-sheet drawer for adding savings to a goal. Reused by the active goal card and
+ * every backlog row so the "increment savings" experience is consistent.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun AdjustAmountDialog(
+fun AddSavingsSheet(
+    goalTitle: String,
     currencyCode: String,
     onDismiss: () -> Unit,
     onConfirm: (Double) -> Unit,
 ) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var input by remember { mutableStateOf("") }
+    val amount by remember(input) { derivedStateOf { input.toDoubleOrNull() } }
+    val quickAmounts = listOf(1_000L, 5_000L, 10_000L, 25_000L)
 
-    AlertDialog(
+    ModalBottomSheet(
         onDismissRequest = onDismiss,
-        title = { Text("Allocate to this goal") },
-        text = {
-            Column {
-                Text(
-                    text = "Specify the savings amount to allocate in $currencyCode",
-                    fontSize = TextSize.sm,
-                    color = TextSecondary,
-                )
-                Spacer(modifier = Modifier.height(Spacing.small))
-                OutlinedTextField(
-                    value = input,
-                    onValueChange = { new -> input = new.filter { it.isDigit() || it == '.' } },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    placeholder = { Text("e.g. 5000") },
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(
-                enabled = input.toDoubleOrNull()?.let { it > 0 } == true,
-                onClick = { input.toDoubleOrNull()?.let { onConfirm(it) } },
+        sheetState = sheetState,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = Spacing.large)
+                .padding(bottom = Spacing.extraLarge),
+            verticalArrangement = Arrangement.spacedBy(Spacing.medium),
+        ) {
+            Text(
+                text = "Add to savings",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = TextPrimary,
+            )
+            Text(
+                text = "Allocate an amount toward “$goalTitle” in $currencyCode.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = TextSecondary,
+            )
+
+            OutlinedTextField(
+                value = input,
+                onValueChange = { new -> input = new.filter { it.isDigit() || it == '.' } },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                label = { Text("Amount ($currencyCode)") },
+                placeholder = { Text("e.g. 5000") },
+                modifier = Modifier.fillMaxWidth(),
+            )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(Spacing.small),
             ) {
-                Text("Confirm")
+                quickAmounts.forEach { quick ->
+                    AssistChip(
+                        onClick = {
+                            val current = input.toDoubleOrNull() ?: 0.0
+                            input = (current + quick).toLong().toString()
+                        },
+                        label = { Text("+${formatAmount(quick.toDouble(), currencyCode)}") },
+                    )
+                }
             }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
-        },
-    )
+
+            Button(
+                onClick = { amount?.let { onConfirm(it) } },
+                enabled = amount?.let { it > 0.0 } == true,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Add,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                )
+                Spacer(modifier = Modifier.width(Spacing.small))
+                Text("Add to savings")
+            }
+        }
+    }
 }
 
 @Composable

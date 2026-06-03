@@ -77,6 +77,14 @@ class ExpensesViewModel @Inject constructor(
         val categorySummaries = buildCategorySummaries(filtered)
         val spendTrend = dailyTotals(allExpenses.map { it.spentAtEpochMillis to it.amount })
         val dailyBudget = if (monthlyBudget > 0.0) (monthlyBudget / 30.0).toFloat() else null
+        val nowMillis = System.currentTimeMillis()
+        val dayMillis = 24L * 60 * 60 * 1000
+        val thisWeekSpend = allExpenses
+            .filter { it.spentAtEpochMillis >= nowMillis - 7 * dayMillis }
+            .sumOf { it.amount }
+        val weeklyAverageSpend = allExpenses
+            .filter { it.spentAtEpochMillis >= nowMillis - 28 * dayMillis }
+            .sumOf { it.amount } / 4.0
 
         val activeCount = subscriptions.count { !it.isPaused }
         val activeTotal = subscriptions
@@ -115,6 +123,8 @@ class ExpensesViewModel @Inject constructor(
             subscriptionCount = activeCount,
             spendTrend = spendTrend,
             dailyBudget = dailyBudget,
+            thisWeekSpend = thisWeekSpend,
+            weeklyAverageSpend = weeklyAverageSpend,
         )
     }.stateIn(
         scope = viewModelScope,

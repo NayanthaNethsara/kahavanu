@@ -29,8 +29,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.kahavanu.ui.common.CellDivider
 import com.kahavanu.ui.common.GlassCard
 import com.kahavanu.ui.common.SectionHeader
+import com.kahavanu.ui.common.StatCell
 import com.kahavanu.ui.common.compactAmount
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
@@ -260,40 +262,3 @@ fun InsightsSection(
     }
 }
 
-@Composable
-private fun StatCell(
-    label: String,
-    value: String,
-    valueColor: Color,
-    modifier: Modifier = Modifier,
-) {
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
-        Text(
-            text = value,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = valueColor,
-            fontSize = 17.sp,
-        )
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = TextSecondary,
-            fontSize = 10.sp,
-        )
-    }
-}
-
-@Composable
-private fun CellDivider() {
-    Box(
-        modifier = Modifier
-            .width(1.dp)
-            .height(32.dp)
-            .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
-    )
-}

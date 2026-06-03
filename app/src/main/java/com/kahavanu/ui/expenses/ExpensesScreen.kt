@@ -109,6 +109,8 @@ fun ExpensesScreen(
                 subscriptionCount = uiState.subscriptionCount,
                 spendTrend = uiState.spendTrend,
                 dailyBudget = uiState.dailyBudget,
+                thisWeekSpend = uiState.thisWeekSpend,
+                weeklyAverageSpend = uiState.weeklyAverageSpend,
                 currencyCode = uiState.currency.code,
                 onSubscriptionLongClick = onViewSubscriptions
             )

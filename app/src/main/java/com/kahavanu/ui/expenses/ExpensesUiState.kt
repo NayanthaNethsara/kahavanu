@@ -46,4 +46,6 @@ data class ExpensesUiState(
     val subscriptionCount: Int = 0,
     val spendTrend: List<Float> = emptyList(),
     val dailyBudget: Float? = null,
+    val thisWeekSpend: Double = 0.0,
+    val weeklyAverageSpend: Double = 0.0,
 )

@@ -1,7 +1,8 @@
 package com.kahavanu.ui.expenses.components
 
+import com.kahavanu.ui.common.CellDivider
+import com.kahavanu.ui.common.StatCell
 import com.kahavanu.ui.common.compactAmount
-import com.kahavanu.ui.common.trendPercent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.ui.draw.clip
@@ -19,7 +20,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.TrendingDown
 import androidx.compose.material.icons.outlined.CreditCard
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -37,8 +37,8 @@ import com.kahavanu.ui.common.SectionHeader
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
-import com.kahavanu.ui.theme.AccentIncomeSoft
 import com.kahavanu.ui.theme.AccentIncome
+import kotlin.math.roundToInt
 import com.kahavanu.ui.util.categoryColor
 import com.kahavanu.ui.util.categoryIcon
 
@@ -51,11 +51,14 @@ fun ExpensesInsightsSection(
     subscriptionCount: Int = 3,
     spendTrend: List<Float> = emptyList(),
     dailyBudget: Float? = null,
+    thisWeekSpend: Double = 0.0,
+    weeklyAverageSpend: Double = 0.0,
     currencyCode: String = "LKR",
     onSubscriptionLongClick: (() -> Unit)? = null,
 ) {
-    val trendPercent = trendPercent(spendTrend)
-    val spendingDown = trendPercent <= 0
+    val vsAverage: Int = if (weeklyAverageSpend > 0.0) {
+        (((thisWeekSpend - weeklyAverageSpend) / weeklyAverageSpend) * 100).roundToInt()
+    } else 0
 
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -73,137 +76,66 @@ fun ExpensesInsightsSection(
                     .fillMaxWidth()
                     .padding(Spacing.large)
             ) {
-                // Header with Progress & Saved Pill
+                Text(
+                    text = "THIS WEEK vs WEEKLY AVERAGE",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = TextSecondary,
+                    fontSize = 11.sp,
+                    letterSpacing = 0.5.sp
+                )
+
+                Spacer(modifier = Modifier.height(Spacing.medium))
+
+                // 3-column grid: this week, weekly average, and the difference.
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Top
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column {
-                        Text(
-                            text = "LAST 7 DAYS",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = TextSecondary,
-                            fontSize = 11.sp,
-                            letterSpacing = 0.5.sp
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "${if (trendPercent > 0) "+" else ""}$trendPercent%",
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = TextPrimary,
-                            fontSize = 24.sp,
-                            letterSpacing = (-0.4).sp
-                        )
-                    }
-
-                    // "Saved" pill only when spending trended down this week
-                    if (spendingDown && spendTrend.isNotEmpty()) {
-                        Box(
-                            modifier = Modifier
-                                .background(AccentIncomeSoft, CircleShape)
-                                .padding(horizontal = 10.dp, vertical = 4.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Outlined.TrendingDown,
-                                    contentDescription = null,
-                                    tint = AccentIncome,
-                                    modifier = Modifier.size(12.dp)
-                                )
-                                Text(
-                                    text = "Saved",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = AccentIncome,
-                                    fontSize = 11.sp
-                                )
-                            }
-                        }
-                    }
+                    StatCell(
+                        modifier = Modifier.weight(1f),
+                        label = "This Week",
+                        value = compactAmount(currencyCode, thisWeekSpend.toFloat()),
+                        valueColor = TextPrimary,
+                    )
+                    CellDivider()
+                    StatCell(
+                        modifier = Modifier.weight(1f),
+                        label = "Weekly Avg",
+                        value = compactAmount(currencyCode, weeklyAverageSpend.toFloat()),
+                        valueColor = TextPrimary,
+                    )
+                    CellDivider()
+                    StatCell(
+                        modifier = Modifier.weight(1f),
+                        label = "vs Avg",
+                        // For spending, below average is good (green), above is red.
+                        value = "${if (vsAverage > 0) "+" else ""}$vsAverage%",
+                        valueColor = if (vsAverage <= 0) AccentIncome else Color(0xFFDC2626),
+                    )
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(Spacing.medium))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+                Spacer(modifier = Modifier.height(Spacing.medium))
 
-                // Real spending trend (last 7 days)
+                Text(
+                    text = "LAST 7 DAYS",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = TextSecondary,
+                    fontSize = 11.sp,
+                    letterSpacing = 0.5.sp
+                )
+
+                Spacer(modifier = Modifier.height(Spacing.small))
+
+                // Real spending trend line chart (last 7 days) with budget reference line
                 ExpensesPerformanceChart(
                     points = spendTrend,
                     dailyBudget = dailyBudget,
                     endLabel = spendTrend.lastOrNull()?.let { compactAmount(currencyCode, it) },
                 )
-
-                Spacer(modifier = Modifier.height(12.dp))
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Chart Legend Row
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // Current Legend
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(Spacing.small),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .width(12.dp)
-                                .height(2.5.dp)
-                                .background(Color(0xFF00BC7D), CircleShape)
-                        )
-                        Text(
-                            text = "Current",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = TextPrimary,
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
-
-                    // Last Month Legend
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(Spacing.small),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .width(12.dp)
-                                .height(2.5.dp)
-                                .background(Color(0xFFCBD5E1), CircleShape)
-                        )
-                        Text(
-                            text = "Last month",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = TextSecondary,
-                            fontSize = 10.sp
-                        )
-                    }
-
-                    // Budget Legend
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(Spacing.small),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                            Box(modifier = Modifier.width(4.dp).height(2.dp).background(Color(0xFFDC2626).copy(alpha = 0.6f)))
-                            Box(modifier = Modifier.width(4.dp).height(2.dp).background(Color(0xFFDC2626).copy(alpha = 0.6f)))
-                        }
-                        Text(
-                            text = "Budget",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = TextSecondary,
-                            fontSize = 10.sp
-                        )
-                    }
-                }
             }
         }
 

@@ -7,6 +7,9 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.kahavanu.MainActivity
 import com.kahavanu.R
+import com.kahavanu.domain.model.NotificationType
+import com.kahavanu.domain.model.SuggestionKind
+import com.kahavanu.domain.repository.NotificationsRepository
 import com.kahavanu.domain.repository.SettingsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
@@ -25,10 +28,12 @@ import kotlin.math.absoluteValue
 class AppNotifier @Inject constructor(
     @ApplicationContext private val context: Context,
     private val settingsRepository: SettingsRepository,
+    private val notificationsRepository: NotificationsRepository,
 ) {
     private val manager = NotificationManagerCompat.from(context)
 
     suspend fun notifyGoalCompleted(goalTitle: String) = post(
+        type = NotificationType.GOAL,
         channelId = NotificationChannels.GOALS,
         notificationId = stableId("goal", goalTitle),
         title = "Goal reached 🎉",
@@ -36,6 +41,7 @@ class AppNotifier @Inject constructor(
     )
 
     suspend fun notifySubscriptionCharged(name: String, amount: Double, currency: String) = post(
+        type = NotificationType.SUBSCRIPTION,
         channelId = NotificationChannels.SUBSCRIPTIONS,
         notificationId = stableId("subscription", name),
         title = "Subscription charged",
@@ -43,13 +49,26 @@ class AppNotifier @Inject constructor(
     )
 
     suspend fun notifyIncomeArrived(title: String, amount: Double, currency: String) = post(
+        type = NotificationType.INCOME,
         channelId = NotificationChannels.INCOME,
         notificationId = stableId("income", title),
         title = "Income recorded",
         text = "$title · ${formatAmount(amount, currency)} has arrived.",
     )
 
+    suspend fun notifySmsDetected(kind: SuggestionKind, title: String, amount: Double, currency: String) {
+        val label = if (kind == SuggestionKind.EXPENSE) "expense" else "income"
+        post(
+            type = NotificationType.SIEVE,
+            channelId = NotificationChannels.SMS,
+            notificationId = stableId("sieve", title + amount.toString()),
+            title = "New $label detected",
+            text = "$title · ${formatAmount(amount, currency)} — review it in your pending list.",
+        )
+    }
+
     suspend fun notifyBudgetExceeded(spent: Double, budget: Double, currency: String) = post(
+        type = NotificationType.BUDGET,
         channelId = NotificationChannels.BUDGET,
         notificationId = BUDGET_NOTIFICATION_ID,
         title = "Over budget",
@@ -57,11 +76,16 @@ class AppNotifier @Inject constructor(
     )
 
     private suspend fun post(
+        type: NotificationType,
         channelId: String,
         notificationId: Int,
         title: String,
         text: String,
     ) {
+        // Always record to the in-app inbox so the bell shows history, then post an OS
+        // notification only if the user has push alerts enabled and granted permission.
+        notificationsRepository.record(type, title, text)
+
         if (!settingsRepository.observePushAlerts().first()) return
         if (!manager.areNotificationsEnabled()) return
 

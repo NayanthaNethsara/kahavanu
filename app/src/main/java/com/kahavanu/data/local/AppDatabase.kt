@@ -16,6 +16,8 @@ import com.kahavanu.data.income.local.IncomeSourceEntity
 import com.kahavanu.data.income.local.IncomeSourceDao
 import com.kahavanu.data.income.local.ScheduledIncomeEntity
 import com.kahavanu.data.income.local.ScheduledIncomeDao
+import com.kahavanu.data.notifications.local.NotificationDao
+import com.kahavanu.data.notifications.local.NotificationEntity
 import com.kahavanu.data.settings.local.UserSettingsDao
 import com.kahavanu.data.settings.local.UserSettingsEntity
 import com.kahavanu.data.sieve.local.SmsSenderDao
@@ -35,8 +37,9 @@ import com.kahavanu.data.sieve.local.SmsSuggestionEntity
         SmsSenderEntity::class,
         SmsSuggestionEntity::class,
         SubscriptionEntity::class,
+        NotificationEntity::class,
     ],
-    version = 24,
+    version = 25,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -50,6 +53,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun goalAdjustmentLogDao(): GoalAdjustmentLogDao
     abstract fun smsSenderDao(): SmsSenderDao
     abstract fun smsSuggestionDao(): SmsSuggestionDao
+    abstract fun notificationDao(): NotificationDao
 
     companion object {
         const val DB_NAME = "kahavanu.db"

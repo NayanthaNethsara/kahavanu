@@ -11,6 +11,7 @@ import com.kahavanu.domain.model.SuggestionKind
 import com.kahavanu.domain.model.SuggestionStatus
 import com.kahavanu.domain.repository.SmsSenderRepository
 import com.kahavanu.domain.repository.SettingsRepository
+import com.kahavanu.notifications.AppNotifier
 import com.kahavanu.sieve.engine.PendingMatch
 import com.kahavanu.sieve.engine.PendingMatcher
 import com.kahavanu.sieve.engine.RawSms
@@ -31,6 +32,7 @@ class SmsScanWorker @AssistedInject constructor(
     private val smsSuggestionDao: SmsSuggestionDao,
     private val smsSenderRepository: SmsSenderRepository,
     private val settingsRepository: SettingsRepository,
+    private val appNotifier: AppNotifier,
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
@@ -99,5 +101,9 @@ class SmsScanWorker @AssistedInject constructor(
                 updatedAtEpochMillis = now,
             )
         )
+
+        // The duplicate guard (existsByHash) above means we only reach here for a newly
+        // detected transaction, so it is safe to notify the user about it.
+        appNotifier.notifySmsDetected(parsed.kind, parsed.title, parsed.amount, parsed.currency)
     }
 }

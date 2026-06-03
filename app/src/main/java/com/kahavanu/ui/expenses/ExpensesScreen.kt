@@ -107,6 +107,9 @@ fun ExpensesScreen(
                 biggestSpendSubtitle = biggestSpendSubtitle,
                 subscriptionCost = uiState.subscriptionCost,
                 subscriptionCount = uiState.subscriptionCount,
+                spendTrend = uiState.spendTrend,
+                dailyBudget = uiState.dailyBudget,
+                currencyCode = uiState.currency.code,
                 onSubscriptionLongClick = onViewSubscriptions
             )
         }

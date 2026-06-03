@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.TrendingUp
 import androidx.compose.material.icons.outlined.CalendarToday
 import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.material3.HorizontalDivider
@@ -32,11 +31,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kahavanu.ui.common.GlassCard
 import com.kahavanu.ui.common.SectionHeader
+import com.kahavanu.ui.common.compactAmount
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
 import com.kahavanu.ui.theme.AccentIncome
-import com.kahavanu.ui.theme.AccentIncomeSoft
+import kotlin.math.roundToInt
 
 @Composable
 fun InsightsSection(
@@ -45,7 +45,15 @@ fun InsightsSection(
     topSourceSubtitle: String = "LKR 120K · 43%",
     nextPaymentsTotal: Double = 58500.0,
     nextPaymentsCount: Int = 2,
+    thisWeekIncome: Double = 0.0,
+    weeklyAverageIncome: Double = 0.0,
+    incomeTrend: List<Float> = emptyList(),
+    currencyCode: String = "LKR",
 ) {
+    val vsAverage: Int = if (weeklyAverageIncome > 0.0) {
+        (((thisWeekIncome - weeklyAverageIncome) / weeklyAverageIncome) * 100).roundToInt()
+    } else 0
+
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(Spacing.large)
@@ -62,132 +70,64 @@ fun InsightsSection(
                     .fillMaxWidth()
                     .padding(Spacing.large)
             ) {
-                // Header with Progress & Gain Pill
+                Text(
+                    text = "THIS WEEK vs WEEKLY AVERAGE",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = TextSecondary,
+                    fontSize = 11.sp,
+                    letterSpacing = 0.5.sp
+                )
+
+                Spacer(modifier = Modifier.height(Spacing.medium))
+
+                // 3-column grid: this week, weekly average, and the difference.
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Top
-                ) {
-                    Column {
-                        Text(
-                            text = "WEEK 2 PROGRESS",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = TextSecondary,
-                            fontSize = 11.sp,
-                            letterSpacing = 0.5.sp
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "+32%",
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = TextPrimary,
-                            fontSize = 24.sp,
-                            letterSpacing = (-0.4).sp
-                        )
-                    }
-
-                    // Green Gain Pill
-                    Box(
-                        modifier = Modifier
-                            .background(AccentIncomeSoft, CircleShape)
-                            .padding(horizontal = 10.dp, vertical = 4.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Outlined.TrendingUp,
-                                contentDescription = null,
-                                tint = AccentIncome,
-                                modifier = Modifier.size(12.dp)
-                            )
-                            Text(
-                                text = "Gain",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = AccentIncome,
-                                fontSize = 11.sp
-                            )
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Our highly polished custom Canvas Bezier chart
-                PerformanceChart()
-
-                Spacer(modifier = Modifier.height(12.dp))
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Chart Legend Row
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Current Legend
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(Spacing.small),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .width(12.dp)
-                                .height(2.5.dp)
-                                .background(AccentIncome, CircleShape)
-                        )
-                        Text(
-                            text = "Current",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = TextPrimary,
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
-
-                    // Last Month Legend
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(Spacing.small),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .width(12.dp)
-                                .height(2.5.dp)
-                                .background(Color(0xFFCBD5E1), CircleShape)
-                        )
-                        Text(
-                            text = "Last month",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = TextSecondary,
-                            fontSize = 10.sp
-                        )
-                    }
-
-                    // Expected Target Legend
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(Spacing.small),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        // Mimic dashed line with two small segments
-                        Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                            Box(modifier = Modifier.width(4.dp).height(2.dp).background(Color(0xFF94A3B8).copy(alpha = 0.6f)))
-                            Box(modifier = Modifier.width(4.dp).height(2.dp).background(Color(0xFF94A3B8).copy(alpha = 0.6f)))
-                        }
-                        Text(
-                            text = "Expected",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = TextSecondary,
-                            fontSize = 10.sp
-                        )
-                    }
+                    StatCell(
+                        modifier = Modifier.weight(1f),
+                        label = "This Week",
+                        value = compactAmount(currencyCode, thisWeekIncome.toFloat()),
+                        valueColor = TextPrimary,
+                    )
+                    CellDivider()
+                    StatCell(
+                        modifier = Modifier.weight(1f),
+                        label = "Weekly Avg",
+                        value = compactAmount(currencyCode, weeklyAverageIncome.toFloat()),
+                        valueColor = TextPrimary,
+                    )
+                    CellDivider()
+                    StatCell(
+                        modifier = Modifier.weight(1f),
+                        label = "vs Avg",
+                        value = "${if (vsAverage > 0) "+" else ""}$vsAverage%",
+                        valueColor = if (vsAverage >= 0) AccentIncome else Color(0xFFDC2626),
+                    )
                 }
+
+                Spacer(modifier = Modifier.height(Spacing.medium))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+                Spacer(modifier = Modifier.height(Spacing.medium))
+
+                Text(
+                    text = "LAST 7 DAYS",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = TextSecondary,
+                    fontSize = 11.sp,
+                    letterSpacing = 0.5.sp
+                )
+
+                Spacer(modifier = Modifier.height(Spacing.small))
+
+                // Real income trend line chart (last 7 days)
+                PerformanceChart(
+                    points = incomeTrend,
+                    endLabel = incomeTrend.lastOrNull()?.let { compactAmount(currencyCode, it) },
+                )
             }
         }
 
@@ -318,4 +258,42 @@ fun InsightsSection(
             }
         }
     }
+}
+
+@Composable
+private fun StatCell(
+    label: String,
+    value: String,
+    valueColor: Color,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = valueColor,
+            fontSize = 17.sp,
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = TextSecondary,
+            fontSize = 10.sp,
+        )
+    }
+}
+
+@Composable
+private fun CellDivider() {
+    Box(
+        modifier = Modifier
+            .width(1.dp)
+            .height(32.dp)
+            .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+    )
 }

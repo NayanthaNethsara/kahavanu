@@ -9,6 +9,7 @@ import com.kahavanu.domain.repository.SubscriptionsRepository
 import com.kahavanu.domain.repository.SettingsRepository
 import com.kahavanu.domain.repository.SmsSuggestionRepository
 import com.kahavanu.ui.home.inferExpenseCategory
+import com.kahavanu.ui.util.dailyTotals
 import com.kahavanu.ui.theme.CategoryFun
 import com.kahavanu.ui.theme.CategoryHealth
 import com.kahavanu.ui.theme.CategoryShopping
@@ -74,6 +75,8 @@ class ExpensesViewModel @Inject constructor(
     ) { (period, monthlyBudget), (primaryCurrency, _), allExpenses, pendingMatches, subscriptions ->
         val filtered = allExpenses.filter { isWithinPeriod(it.spentAtEpochMillis, period) }
         val categorySummaries = buildCategorySummaries(filtered)
+        val spendTrend = dailyTotals(allExpenses.map { it.spentAtEpochMillis to it.amount })
+        val dailyBudget = if (monthlyBudget > 0.0) (monthlyBudget / 30.0).toFloat() else null
 
         val activeCount = subscriptions.count { !it.isPaused }
         val activeTotal = subscriptions
@@ -110,6 +113,8 @@ class ExpensesViewModel @Inject constructor(
                 },
             subscriptionCost = activeTotal,
             subscriptionCount = activeCount,
+            spendTrend = spendTrend,
+            dailyBudget = dailyBudget,
         )
     }.stateIn(
         scope = viewModelScope,

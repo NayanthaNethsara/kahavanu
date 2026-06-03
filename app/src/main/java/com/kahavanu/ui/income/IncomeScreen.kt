@@ -49,6 +49,9 @@ fun IncomeScreen(
     val totalReceivedByCurrency by viewModel.totalReceivedByCurrency.collectAsStateWithLifecycle()
     val breakdownsByCurrency by viewModel.breakdownsByCurrency.collectAsStateWithLifecycle()
     val primaryCurrency by viewModel.primaryCurrency.collectAsStateWithLifecycle()
+    val thisWeekIncome by viewModel.thisWeekIncome.collectAsStateWithLifecycle()
+    val weeklyAverageIncome by viewModel.weeklyAverageIncome.collectAsStateWithLifecycle()
+    val incomeTrend by viewModel.incomeTrend.collectAsStateWithLifecycle()
     val monthLabel = currentMonthLabel()
 
     val pendingScheduled = scheduledIncomes.filter { scheduled ->
@@ -125,7 +128,12 @@ fun IncomeScreen(
             }
         }
         item {
-            InsightsSection()
+            InsightsSection(
+                thisWeekIncome = thisWeekIncome,
+                weeklyAverageIncome = weeklyAverageIncome,
+                incomeTrend = incomeTrend,
+                currencyCode = primaryCurrency,
+            )
         }
         item {
             MatchAndCatchSection(

@@ -1,5 +1,7 @@
 package com.kahavanu.ui.expenses.components
 
+import com.kahavanu.ui.common.compactAmount
+import com.kahavanu.ui.common.trendPercent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.ui.draw.clip
@@ -47,8 +49,14 @@ fun ExpensesInsightsSection(
     biggestSpendSubtitle: String = "LKR 45K · 30%",
     subscriptionCost: Double = 4850.0,
     subscriptionCount: Int = 3,
+    spendTrend: List<Float> = emptyList(),
+    dailyBudget: Float? = null,
+    currencyCode: String = "LKR",
     onSubscriptionLongClick: (() -> Unit)? = null,
 ) {
+    val trendPercent = trendPercent(spendTrend)
+    val spendingDown = trendPercent <= 0
+
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(Spacing.large)
@@ -73,7 +81,7 @@ fun ExpensesInsightsSection(
                 ) {
                     Column {
                         Text(
-                            text = "WEEK 2 SPENDING",
+                            text = "LAST 7 DAYS",
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
                             color = TextSecondary,
@@ -82,7 +90,7 @@ fun ExpensesInsightsSection(
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "-18%",
+                            text = "${if (trendPercent > 0) "+" else ""}$trendPercent%",
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Bold,
                             color = TextPrimary,
@@ -91,38 +99,44 @@ fun ExpensesInsightsSection(
                         )
                     }
 
-                    // Green Saved Pill
-                    Box(
-                        modifier = Modifier
-                            .background(AccentIncomeSoft, CircleShape)
-                            .padding(horizontal = 10.dp, vertical = 4.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                    // "Saved" pill only when spending trended down this week
+                    if (spendingDown && spendTrend.isNotEmpty()) {
+                        Box(
+                            modifier = Modifier
+                                .background(AccentIncomeSoft, CircleShape)
+                                .padding(horizontal = 10.dp, vertical = 4.dp),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Outlined.TrendingDown,
-                                contentDescription = null,
-                                tint = AccentIncome,
-                                modifier = Modifier.size(12.dp)
-                            )
-                            Text(
-                                text = "Saved",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = AccentIncome,
-                                fontSize = 11.sp
-                            )
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Outlined.TrendingDown,
+                                    contentDescription = null,
+                                    tint = AccentIncome,
+                                    modifier = Modifier.size(12.dp)
+                                )
+                                Text(
+                                    text = "Saved",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = AccentIncome,
+                                    fontSize = 11.sp
+                                )
+                            }
                         }
                     }
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Custom Canvas Bezier chart for Expenses
-                ExpensesPerformanceChart()
+                // Real spending trend (last 7 days)
+                ExpensesPerformanceChart(
+                    points = spendTrend,
+                    dailyBudget = dailyBudget,
+                    endLabel = spendTrend.lastOrNull()?.let { compactAmount(currencyCode, it) },
+                )
 
                 Spacer(modifier = Modifier.height(12.dp))
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))

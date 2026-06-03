@@ -12,6 +12,7 @@ import com.kahavanu.domain.repository.SmsSuggestionRepository
 import com.kahavanu.ui.common.MatchItemState
 import com.kahavanu.ui.home.inferExpenseCategory
 import com.kahavanu.ui.theme.OnSurfaceVariant
+import com.kahavanu.ui.util.dailyTotals
 import com.kahavanu.ui.theme.Primary
 import dagger.hilt.android.lifecycle.HiltViewModel
 import com.kahavanu.ui.income.components.isPending
@@ -46,6 +47,45 @@ class IncomeOverviewViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = emptyList(),
         )
+
+    // Daily received-income totals for the last 7 days (oldest first) for the line chart.
+    val incomeTrend: StateFlow<List<Float>> = incomeRepository.observeIncomeLogs()
+        .map { logs ->
+            dailyTotals(
+                logs.filter { !isPending(it.sourceType) }
+                    .map { it.receivedAtEpochMillis to it.amount }
+            )
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = emptyList(),
+        )
+
+    // Income received within the last 7 days ("this week").
+    val thisWeekIncome: StateFlow<Double> = incomeRepository.observeIncomeLogs()
+        .map { logs -> receivedWithinDays(logs, 7) }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = 0.0,
+        )
+
+    // Average weekly income over the trailing 4 weeks.
+    val weeklyAverageIncome: StateFlow<Double> = incomeRepository.observeIncomeLogs()
+        .map { logs -> receivedWithinDays(logs, 28) / 4.0 }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = 0.0,
+        )
+
+    private fun receivedWithinDays(logs: List<IncomeLogEntry>, days: Int): Double {
+        val cutoff = System.currentTimeMillis() - days.toLong() * 24 * 60 * 60 * 1000
+        return logs
+            .filter { !isPending(it.sourceType) && it.receivedAtEpochMillis >= cutoff }
+            .sumOf { it.amount }
+    }
 
     val scheduledIncomes: StateFlow<List<com.kahavanu.domain.model.ScheduledIncome>> = incomeRepository.observeScheduledIncomes()
         .stateIn(

@@ -51,6 +51,7 @@ data class HomeUiState(
     val currentUserName: String = "User",
     val totalIncomeThisMonth: Double = 0.0,
     val totalExpensesThisMonth: Double = 0.0,
+    val currencyCode: String = "LKR",
     val isScanning: Boolean = false,
     val isSieveEnabled: Boolean = false,
 )
@@ -77,9 +78,13 @@ class HomeViewModel @Inject constructor(
         smsSuggestionRepository.observePendingSuggestions(),
         smsScanRepository.isScanningFlow,
         smsSenderRepository.observeAuthorizedSenders(),
-    ) { triple, suggestions, isScanning, senders ->
+        settingsRepository.observeCurrencySettings(),
+    ) { triple, suggestions, isScanning, senders, currencies ->
         val (goals, incomeLogs, expenseLogs) = triple
-        val featured = goals.firstOrNull { !it.isCompleted }
+        val primaryCode = currencies.first.code
+        // Prefer the goal the user pinned as active; fall back to the latest open goal.
+        val featured = goals.firstOrNull { it.isActive && !it.isCompleted }
+            ?: goals.firstOrNull { !it.isCompleted }
         val hasEnabledSenders = senders.any { it.isEnabled }
         val sieveItems = if (hasEnabledSenders) suggestions.map { it.toSieveItem() } else emptyList()
 
@@ -101,11 +106,11 @@ class HomeViewModel @Inject constructor(
         }
 
         val totalIncomeThisMonth = incomeLogs
-            .filter { it.currency == "LKR" && it.sourceType != "pending" && isCurrentMonth(it.receivedAtEpochMillis) }
+            .filter { it.currency == primaryCode && it.sourceType != "pending" && isCurrentMonth(it.receivedAtEpochMillis) }
             .sumOf { it.amount }
 
         val totalExpensesThisMonth = expenseLogs
-            .filter { it.currency == "LKR" && isCurrentMonth(it.spentAtEpochMillis) }
+            .filter { it.currency == primaryCode && isCurrentMonth(it.spentAtEpochMillis) }
             .sumOf { it.amount }
 
         HomeUiState(
@@ -139,6 +144,7 @@ class HomeViewModel @Inject constructor(
             ),
             totalIncomeThisMonth = totalIncomeThisMonth,
             totalExpensesThisMonth = totalExpensesThisMonth,
+            currencyCode = primaryCode,
             isScanning = isScanning,
             isSieveEnabled = hasEnabledSenders,
         )

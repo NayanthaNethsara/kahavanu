@@ -78,6 +78,7 @@ fun HomeScreen(
             OverviewSection(
                 totalIncomeThisMonth = uiState.totalIncomeThisMonth,
                 totalExpensesThisMonth = uiState.totalExpensesThisMonth,
+                currencyCode = uiState.currencyCode,
             )
         }
         screenSection {
@@ -98,7 +99,6 @@ fun HomeScreen(
                     icon = Icons.Outlined.HourglassEmpty,
                     label = "Pending",
                     onClick = onPendingClick,
-                    badgeCount = uiState.sieveItems.size,
                     iconTint = InfoAccent
                 ),
                 QuickAction(

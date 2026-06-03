@@ -37,11 +37,9 @@ import com.kahavanu.ui.theme.AccentExpense
 fun OverviewSection(
     totalIncomeThisMonth: Double,
     totalExpensesThisMonth: Double,
+    currencyCode: String,
     modifier: Modifier = Modifier,
 ) {
-    val finalIncomeDisplayValue = if (totalIncomeThisMonth > 0.0) totalIncomeThisMonth else 142880.0
-    val finalExpensesDisplayValue = if (totalExpensesThisMonth > 0.0) totalExpensesThisMonth else 131680.0
-
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(Spacing.medium),
@@ -78,7 +76,7 @@ fun OverviewSection(
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Text(
-                    text = "LKR ${String.format("%,.0f", finalIncomeDisplayValue)}",
+                    text = "$currencyCode ${String.format("%,.0f", totalIncomeThisMonth)}",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = TextPrimary,
@@ -138,7 +136,7 @@ fun OverviewSection(
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Text(
-                    text = "LKR ${String.format("%,.0f", finalExpensesDisplayValue)}",
+                    text = "$currencyCode ${String.format("%,.0f", totalExpensesThisMonth)}",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = TextPrimary,

@@ -44,10 +44,18 @@ data class IncomeStreamItem(
     val iconIndex: Int,
 )
 
+/** One month's income vs. expense totals (primary currency) for the home cash-flow chart. */
+data class MonthlyFlowPoint(
+    val label: String,
+    val income: Double,
+    val expense: Double,
+)
+
 data class HomeUiState(
     val featuredGoal: GoalEntry? = null,
     val sieveItems: List<SieveItem> = emptyList(),
     val incomeStreams: List<IncomeStreamItem> = emptyList(),
+    val monthlyFlow: List<MonthlyFlowPoint> = emptyList(),
     val currentUserName: String = "User",
     val totalIncomeThisMonth: Double = 0.0,
     val totalExpensesThisMonth: Double = 0.0,
@@ -113,9 +121,12 @@ class HomeViewModel @Inject constructor(
             .filter { it.currency == primaryCode && isCurrentMonth(it.spentAtEpochMillis) }
             .sumOf { it.amount }
 
+        val monthlyFlow = buildMonthlyFlow(incomeLogs, expenseLogs, primaryCode, months = 6)
+
         HomeUiState(
             featuredGoal = featured,
             sieveItems = sieveItems,
+            monthlyFlow = monthlyFlow,
             incomeStreams = listOf(
                 IncomeStreamItem(
                     title = "Local · LKR",
@@ -218,6 +229,37 @@ class HomeViewModel @Inject constructor(
                 }
             }
         }
+    }
+}
+
+/**
+ * Income vs. expense totals (primary [currency]) for the last [months] calendar months,
+ * oldest first and ending with the current month. Pending income is excluded.
+ */
+private fun buildMonthlyFlow(
+    incomeLogs: List<IncomeLogEntry>,
+    expenseLogs: List<ExpenseLogEntry>,
+    currency: String,
+    months: Int,
+): List<MonthlyFlowPoint> {
+    val zone = java.time.ZoneId.systemDefault()
+    val thisMonth = java.time.YearMonth.now(zone)
+    fun monthOf(epochMillis: Long): java.time.YearMonth =
+        java.time.YearMonth.from(java.time.Instant.ofEpochMilli(epochMillis).atZone(zone))
+
+    return (months - 1 downTo 0).map { ago ->
+        val ym = thisMonth.minusMonths(ago.toLong())
+        val income = incomeLogs
+            .filter { it.currency == currency && it.sourceType != "pending" && monthOf(it.receivedAtEpochMillis) == ym }
+            .sumOf { it.amount }
+        val expense = expenseLogs
+            .filter { it.currency == currency && monthOf(it.spentAtEpochMillis) == ym }
+            .sumOf { it.amount }
+        MonthlyFlowPoint(
+            label = ym.month.getDisplayName(java.time.format.TextStyle.SHORT, java.util.Locale.getDefault()),
+            income = income,
+            expense = expense,
+        )
     }
 }
 

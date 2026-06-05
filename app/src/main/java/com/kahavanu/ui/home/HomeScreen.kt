@@ -24,6 +24,7 @@ import com.kahavanu.ui.theme.AccentIncome
 import com.kahavanu.ui.theme.AccentExpense
 import com.kahavanu.ui.theme.InfoAccent
 import com.kahavanu.ui.theme.Warning
+import com.kahavanu.ui.home.components.MonthlyFlowCard
 import com.kahavanu.ui.home.components.OverviewSection
 import com.kahavanu.ui.home.components.SieveSection
 import com.kahavanu.ui.home.components.StreamsCard
@@ -109,6 +110,12 @@ fun HomeScreen(
                 )
             )
             QuickActionRow(actions = quickActions)
+        }
+        screenSection {
+            MonthlyFlowCard(
+                points = uiState.monthlyFlow,
+                currencyCode = uiState.currencyCode,
+            )
         }
         if (uiState.isSieveEnabled) {
             item {

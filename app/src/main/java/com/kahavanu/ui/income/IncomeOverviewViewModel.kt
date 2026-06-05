@@ -4,26 +4,32 @@ import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kahavanu.domain.model.IncomeLogEntry
+import com.kahavanu.domain.model.IncomeSourceType
 import com.kahavanu.domain.model.SmsSuggestion
 import com.kahavanu.domain.model.SuggestionKind
 import com.kahavanu.domain.repository.IncomeRepository
 import com.kahavanu.domain.repository.SettingsRepository
 import com.kahavanu.domain.repository.SmsSuggestionRepository
+import com.kahavanu.ui.common.HistoryDateRange
 import com.kahavanu.ui.common.MatchItemState
+import com.kahavanu.ui.common.contains
 import com.kahavanu.ui.home.inferExpenseCategory
 import com.kahavanu.ui.theme.OnSurfaceVariant
 import com.kahavanu.ui.util.dailyTotals
 import com.kahavanu.ui.theme.Primary
 import dagger.hilt.android.lifecycle.HiltViewModel
+import com.kahavanu.ui.income.components.isOverdue
 import com.kahavanu.ui.income.components.isPending
 import com.kahavanu.ui.income.components.isPersistent
 import com.kahavanu.ui.income.components.isRecurrent
 import java.time.Instant
 import java.time.YearMonth
 import java.time.ZoneId
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.combine
@@ -34,6 +40,19 @@ data class IncomeBreakdownItem(
     val amount: Double,
     val color: Color
 )
+
+data class IncomeFilters(
+    val status: HistoryFilter = HistoryFilter.ALL,
+    val dateRange: HistoryDateRange = HistoryDateRange.ALL,
+    val minAmount: String = "",
+    val maxAmount: String = "",
+) {
+    val isActive: Boolean
+        get() = status != HistoryFilter.ALL ||
+            dateRange != HistoryDateRange.ALL ||
+            minAmount.isNotBlank() ||
+            maxAmount.isNotBlank()
+}
 
 @HiltViewModel
 class IncomeOverviewViewModel @Inject constructor(
@@ -93,6 +112,64 @@ class IncomeOverviewViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = emptyList(),
         )
+
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+
+    private val _filters = MutableStateFlow(IncomeFilters())
+    val filters: StateFlow<IncomeFilters> = _filters.asStateFlow()
+
+    // Search/filter results for the income history screen, sorted newest-first.
+    val historyItems: StateFlow<List<HistoryItem>> =
+        combine(incomeLogs, scheduledIncomes, _filters, _searchQuery) { logs, scheduled, filters, query ->
+            val logItems = logs.map { HistoryItem.Log(it) }
+            val scheduledItems = scheduled
+                .filter { it.type == IncomeSourceType.PENDING && it.lastGeneratedEpochMillis == null }
+                .map { HistoryItem.Scheduled(it) }
+
+            val minAmt = filters.minAmount.toDoubleOrNull()
+            val maxAmt = filters.maxAmount.toDoubleOrNull()
+
+            (logItems + scheduledItems).filter { item ->
+                val matchesSearch = item.title.contains(query, ignoreCase = true) ||
+                    item.amount.toString().contains(query)
+
+                val matchesStatus = when (filters.status) {
+                    HistoryFilter.ALL -> true
+                    HistoryFilter.PENDING -> item is HistoryItem.Scheduled && item.scheduled.type == IncomeSourceType.PENDING
+                    HistoryFilter.OVERDUE -> item is HistoryItem.Scheduled && isOverdue(item.scheduled.scheduledDateEpochMillis)
+                    HistoryFilter.PAID -> item is HistoryItem.Log
+                    HistoryFilter.RECURRENT -> item is HistoryItem.Scheduled && item.scheduled.type == IncomeSourceType.RECURRENT
+                }
+
+                val matchesDate = filters.dateRange.contains(item.timestamp)
+                val matchesMin = minAmt == null || item.amount >= minAmt
+                val matchesMax = maxAmt == null || item.amount <= maxAmt
+
+                matchesSearch && matchesStatus && matchesDate && matchesMin && matchesMax
+            }.sortedByDescending { it.timestamp }
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = emptyList(),
+        )
+
+    private var hasAppliedInitialFilter = false
+
+    // Seeds the status filter from a navigation argument once, so later user edits aren't overwritten on recomposition.
+    fun applyInitialStatusFilter(status: HistoryFilter) {
+        if (hasAppliedInitialFilter) return
+        hasAppliedInitialFilter = true
+        _filters.value = _filters.value.copy(status = status)
+    }
+
+    fun onSearchQueryChange(query: String) {
+        _searchQuery.value = query
+    }
+
+    fun updateFilters(filters: IncomeFilters) {
+        _filters.value = filters
+    }
 
     val currencySettings: StateFlow<Pair<String, String>> = settingsRepository.observeCurrencySettings()
         .map { it.first.code to it.second.code }

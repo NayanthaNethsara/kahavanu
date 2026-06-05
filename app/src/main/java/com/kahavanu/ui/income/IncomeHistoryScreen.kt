@@ -23,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,26 +50,11 @@ import com.kahavanu.ui.common.GlassCard
 import com.kahavanu.ui.common.HistoryDateRange
 import com.kahavanu.ui.common.KahavanuSubScreen
 import com.kahavanu.ui.common.SearchWithFiltersBar
-import com.kahavanu.ui.common.contains
 import com.kahavanu.ui.income.components.HistoryListItem
-import com.kahavanu.ui.income.components.isOverdue
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
 import kotlinx.coroutines.launch
-
-private data class IncomeFilters(
-    val status: HistoryFilter = HistoryFilter.ALL,
-    val dateRange: HistoryDateRange = HistoryDateRange.ALL,
-    val minAmount: String = "",
-    val maxAmount: String = "",
-) {
-    val isActive: Boolean
-        get() = status != HistoryFilter.ALL ||
-            dateRange != HistoryDateRange.ALL ||
-            minAmount.isNotBlank() ||
-            maxAmount.isNotBlank()
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -79,51 +65,25 @@ fun IncomeHistoryScreen(
 ) {
     val allLogs by viewModel.incomeLogs.collectAsStateWithLifecycle()
     val allScheduled by viewModel.scheduledIncomes.collectAsStateWithLifecycle()
+    val historyItems by viewModel.historyItems.collectAsStateWithLifecycle()
+    val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
+    val filters by viewModel.filters.collectAsStateWithLifecycle()
 
-    var searchQuery by remember { mutableStateOf("") }
-    var filters by remember { mutableStateOf(IncomeFilters(status = initialFilter)) }
     var isFilterSheetOpen by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
 
-    val historyItems = remember(allLogs, allScheduled, filters, searchQuery) {
-        val logs = allLogs.map { HistoryItem.Log(it) }
-        val scheduled = allScheduled
-            .filter { it.type == IncomeSourceType.PENDING && it.lastGeneratedEpochMillis == null }
-            .map { HistoryItem.Scheduled(it) }
-
-        val minAmt = filters.minAmount.toDoubleOrNull()
-        val maxAmt = filters.maxAmount.toDoubleOrNull()
-
-        (logs + scheduled).filter { item ->
-            val matchesSearch = item.title.contains(searchQuery, ignoreCase = true) ||
-                item.amount.toString().contains(searchQuery)
-
-            val matchesStatus = when (filters.status) {
-                HistoryFilter.ALL -> true
-                HistoryFilter.PENDING -> item is HistoryItem.Scheduled && item.scheduled.type == IncomeSourceType.PENDING
-                HistoryFilter.OVERDUE -> item is HistoryItem.Scheduled && isOverdue(item.scheduled.scheduledDateEpochMillis)
-                HistoryFilter.PAID -> item is HistoryItem.Log
-                HistoryFilter.RECURRENT -> item is HistoryItem.Scheduled && item.scheduled.type == IncomeSourceType.RECURRENT
-            }
-
-            val matchesDate = filters.dateRange.contains(item.timestamp)
-            val matchesMin = minAmt == null || item.amount >= minAmt
-            val matchesMax = maxAmt == null || item.amount <= maxAmt
-
-            matchesSearch && matchesStatus && matchesDate && matchesMin && matchesMax
-        }.sortedByDescending { it.timestamp }
-    }
+    LaunchedEffect(Unit) { viewModel.applyInitialStatusFilter(initialFilter) }
 
     val activeChips = buildList {
         if (filters.status != HistoryFilter.ALL)
-            add(ActiveFilterChip(filters.status.label) { filters = filters.copy(status = HistoryFilter.ALL) })
+            add(ActiveFilterChip(filters.status.label) { viewModel.updateFilters(filters.copy(status = HistoryFilter.ALL)) })
         if (filters.dateRange != HistoryDateRange.ALL)
-            add(ActiveFilterChip(filters.dateRange.label) { filters = filters.copy(dateRange = HistoryDateRange.ALL) })
+            add(ActiveFilterChip(filters.dateRange.label) { viewModel.updateFilters(filters.copy(dateRange = HistoryDateRange.ALL)) })
         if (filters.minAmount.isNotBlank())
-            add(ActiveFilterChip("Min ${filters.minAmount}") { filters = filters.copy(minAmount = "") })
+            add(ActiveFilterChip("Min ${filters.minAmount}") { viewModel.updateFilters(filters.copy(minAmount = "")) })
         if (filters.maxAmount.isNotBlank())
-            add(ActiveFilterChip("Max ${filters.maxAmount}") { filters = filters.copy(maxAmount = "") })
+            add(ActiveFilterChip("Max ${filters.maxAmount}") { viewModel.updateFilters(filters.copy(maxAmount = "")) })
     }
 
     KahavanuSubScreen(
@@ -138,7 +98,7 @@ fun IncomeHistoryScreen(
         ) {
             SearchWithFiltersBar(
                 query = searchQuery,
-                onQueryChange = { searchQuery = it },
+                onQueryChange = viewModel::onSearchQueryChange,
                 onFilterClick = { isFilterSheetOpen = true },
                 filterActive = filters.isActive,
                 activeChips = activeChips,
@@ -236,7 +196,7 @@ fun IncomeHistoryScreen(
             sheetState = sheetState,
             onDismiss = { isFilterSheetOpen = false },
             onClear = {
-                filters = IncomeFilters()
+                viewModel.updateFilters(IncomeFilters())
                 scope.launch { sheetState.hide() }.invokeOnCompletion {
                     if (!sheetState.isVisible) isFilterSheetOpen = false
                 }
@@ -251,7 +211,7 @@ fun IncomeHistoryScreen(
                 FilterChips(
                     options = HistoryFilter.entries.toList(),
                     selected = filters.status,
-                    onSelect = { filters = filters.copy(status = it) },
+                    onSelect = { viewModel.updateFilters(filters.copy(status = it)) },
                     labelFor = { it.label },
                 )
             }
@@ -259,7 +219,7 @@ fun IncomeHistoryScreen(
                 FilterChips(
                     options = HistoryDateRange.entries.toList(),
                     selected = filters.dateRange,
-                    onSelect = { filters = filters.copy(dateRange = it) },
+                    onSelect = { viewModel.updateFilters(filters.copy(dateRange = it)) },
                     labelFor = { it.label },
                 )
             }
@@ -270,8 +230,8 @@ fun IncomeHistoryScreen(
                 AmountRangeSection(
                     minValue = filters.minAmount,
                     maxValue = filters.maxAmount,
-                    onMinChange = { filters = filters.copy(minAmount = it.filterAmount()) },
-                    onMaxChange = { filters = filters.copy(maxAmount = it.filterAmount()) },
+                    onMinChange = { viewModel.updateFilters(filters.copy(minAmount = it.filterAmount())) },
+                    onMaxChange = { viewModel.updateFilters(filters.copy(maxAmount = it.filterAmount())) },
                     currencyCode = firstCurrency,
                 )
             }

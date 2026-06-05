@@ -7,6 +7,7 @@ import com.kahavanu.domain.model.IncomeLogEntry
 import com.kahavanu.domain.model.IncomeSourceType
 import com.kahavanu.domain.model.SmsSuggestion
 import com.kahavanu.domain.model.SuggestionKind
+import com.kahavanu.domain.repository.ExpensesRepository
 import com.kahavanu.domain.repository.IncomeRepository
 import com.kahavanu.domain.repository.SettingsRepository
 import com.kahavanu.domain.repository.SmsSuggestionRepository
@@ -33,12 +34,20 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.combine
+import kotlin.math.roundToInt
 import javax.inject.Inject
 
 data class IncomeBreakdownItem(
     val label: String,
     val amount: Double,
     val color: Color
+)
+
+/** Highest-earning income source across all received logs, with its share of total income. */
+data class TopIncomeSource(
+    val name: String,
+    val amount: Double,
+    val percent: Int,
 )
 
 data class IncomeFilters(
@@ -59,6 +68,7 @@ class IncomeOverviewViewModel @Inject constructor(
     private val incomeRepository: IncomeRepository,
     private val settingsRepository: SettingsRepository,
     private val smsSuggestionRepository: SmsSuggestionRepository,
+    private val expensesRepository: ExpensesRepository,
 ) : ViewModel() {
     val incomeLogs: StateFlow<List<IncomeLogEntry>> = incomeRepository.observeIncomeLogs()
         .stateIn(
@@ -105,6 +115,38 @@ class IncomeOverviewViewModel @Inject constructor(
             .filter { !isPending(it.sourceType) && it.receivedAtEpochMillis >= cutoff }
             .sumOf { it.amount }
     }
+
+    // Highest-earning income source across all received logs (pending/scheduled excluded).
+    val topIncomeSource: StateFlow<TopIncomeSource?> = incomeRepository.observeIncomeLogs()
+        .map { logs ->
+            val received = logs.filter { !isPending(it.sourceType) }
+            val total = received.sumOf { it.amount }
+            val top = received
+                .groupBy { it.sourceName?.takeIf(String::isNotBlank) ?: it.title }
+                .mapValues { (_, items) -> items.sumOf { it.amount } }
+                .maxByOrNull { it.value } ?: return@map null
+            val percent = if (total > 0.0) ((top.value / total) * 100).roundToInt() else 0
+            TopIncomeSource(name = top.key, amount = top.value, percent = percent)
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = null,
+        )
+
+    // All-time net savings: received income (logs only, no scheduled/pending) minus logged expenses.
+    val currentSavings: StateFlow<Double> = combine(
+        incomeRepository.observeIncomeLogs(),
+        expensesRepository.observeExpenseLogs(),
+    ) { incomeLogs, expenseLogs ->
+        val totalIncome = incomeLogs.filter { !isPending(it.sourceType) }.sumOf { it.amount }
+        val totalExpenses = expenseLogs.sumOf { it.amount }
+        totalIncome - totalExpenses
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = 0.0,
+    )
 
     val scheduledIncomes: StateFlow<List<com.kahavanu.domain.model.ScheduledIncome>> = incomeRepository.observeScheduledIncomes()
         .stateIn(

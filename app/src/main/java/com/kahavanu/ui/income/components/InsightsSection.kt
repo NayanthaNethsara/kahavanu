@@ -16,7 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.CalendarToday
+import androidx.compose.material.icons.outlined.Savings
 import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -38,15 +38,15 @@ import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
 import com.kahavanu.ui.theme.AccentIncome
+import kotlin.math.abs
 import kotlin.math.roundToInt
 
 @Composable
 fun InsightsSection(
     modifier: Modifier = Modifier,
-    topSourceTitle: String = "Salary",
-    topSourceSubtitle: String = "LKR 120K · 43%",
-    nextPaymentsTotal: Double = 58500.0,
-    nextPaymentsCount: Int = 2,
+    topSourceTitle: String = "—",
+    topSourceSubtitle: String = "No income yet",
+    currentSavings: Double = 0.0,
     thisWeekIncome: Double = 0.0,
     weeklyAverageIncome: Double = 0.0,
     incomeTrend: List<Float> = emptyList(),
@@ -55,6 +55,11 @@ fun InsightsSection(
     val vsAverage: Int = if (weeklyAverageIncome > 0.0) {
         (((thisWeekIncome - weeklyAverageIncome) / weeklyAverageIncome) * 100).roundToInt()
     } else 0
+
+    val savingsPositive = currentSavings >= 0.0
+    val savingsColor = if (savingsPositive) AccentIncome else Color(0xFFDC2626)
+    val savingsLabel = (if (savingsPositive) "" else "−") +
+        compactAmount(currencyCode, abs(currentSavings).toFloat())
 
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -199,7 +204,7 @@ fun InsightsSection(
                 }
             }
 
-            // Card 2: Next 7 Days Card
+            // Card 2: Current Savings Card (all-time received income minus logged expenses)
             GlassCard(
                 modifier = Modifier
                     .weight(1f)
@@ -211,16 +216,16 @@ fun InsightsSection(
                         .padding(Spacing.large)
                 ) {
                     Icon(
-                        imageVector = Icons.Outlined.CalendarToday,
+                        imageVector = Icons.Outlined.Savings,
                         contentDescription = null,
-                        tint = Color(0xFF3B82F6), // Premium Blue
+                        tint = savingsColor,
                         modifier = Modifier.size(20.dp)
                     )
 
                     Spacer(modifier = Modifier.height(12.dp))
 
                     Text(
-                        text = "NEXT 7 DAYS",
+                        text = "CURRENT SAVINGS",
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
                         color = TextSecondary,
@@ -231,10 +236,10 @@ fun InsightsSection(
                     Spacer(modifier = Modifier.height(2.dp))
 
                     Text(
-                        text = "LKR ${String.format("%,.0f", nextPaymentsTotal)}",
+                        text = savingsLabel,
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold,
-                        color = TextPrimary,
+                        color = savingsColor,
                         fontSize = 16.sp
                     )
 
@@ -247,10 +252,10 @@ fun InsightsSection(
                         Box(
                             modifier = Modifier
                                 .size(6.dp)
-                                .background(Color(0xFF3B82F6), CircleShape) // Matching blue
+                                .background(savingsColor, CircleShape)
                         )
                         Text(
-                            text = "$nextPaymentsCount payment" + if (nextPaymentsCount != 1) "s" else "",
+                            text = "Income − Expenses",
                             style = MaterialTheme.typography.bodySmall,
                             color = TextSecondary,
                             fontSize = 11.sp

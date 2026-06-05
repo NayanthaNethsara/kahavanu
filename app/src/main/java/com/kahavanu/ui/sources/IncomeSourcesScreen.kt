@@ -42,7 +42,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import com.kahavanu.ui.common.AppTextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.SnackbarHostState
@@ -341,9 +341,7 @@ private fun IncomeSourceForm(
                 fontWeight = FontWeight.Bold,
                 color = TextPrimary
             )
-            TextButton(onClick = onCancel) {
-                Text("Cancel", color = TextSecondary)
-            }
+            AppTextButton(text = "Cancel", onClick = onCancel, muted = true)
         }
 
         Column(verticalArrangement = Arrangement.spacedBy(Spacing.small)) {
@@ -397,14 +395,10 @@ private fun DeleteConfirmationDialog(
         title = { Text("Delete Source?") },
         text = { Text("Are you sure you want to delete '$sourceName'? This action cannot be undone.") },
         confirmButton = {
-            TextButton(onClick = onConfirm) {
-                Text("Delete", color = MaterialTheme.extendedColors.dangerAccent)
-            }
+            AppTextButton(text = "Delete", destructive = true, onClick = onConfirm)
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel", color = TextSecondary)
-            }
+            AppTextButton(text = "Cancel", onClick = onDismiss, muted = true)
         },
         containerColor = Color.White,
         shape = KahavanuShapes.large

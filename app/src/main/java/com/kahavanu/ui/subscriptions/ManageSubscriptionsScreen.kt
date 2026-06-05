@@ -48,7 +48,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -57,6 +56,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.material3.SnackbarHostState
 import com.kahavanu.ui.common.AppSnackbarHost
+import com.kahavanu.ui.common.AppTextButton
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -137,21 +137,19 @@ fun ManageSubscriptionsScreen(
                 )
             },
             confirmButton = {
-                TextButton(
+                AppTextButton(
+                    text = "Delete",
+                    destructive = true,
                     onClick = {
                         subscriptionToDelete?.let { sub ->
                             viewModel.deleteSubscription(sub.id)
                         }
                         subscriptionToDelete = null
-                    }
-                ) {
-                    Text("Delete", color = MaterialTheme.colorScheme.error)
-                }
+                    },
+                )
             },
             dismissButton = {
-                TextButton(onClick = { subscriptionToDelete = null }) {
-                    Text("Cancel", color = TextSecondary)
-                }
+                AppTextButton(text = "Cancel", onClick = { subscriptionToDelete = null }, muted = true)
             },
             containerColor = Color.White,
             shape = KahavanuShapes.large
@@ -212,7 +210,8 @@ fun ManageSubscriptionsScreen(
             DatePickerDialog(
                 onDismissRequest = { viewModel.onDatePickerOpenChange(false) },
                 confirmButton = {
-                    TextButton(
+                    AppTextButton(
+                        text = "OK",
                         onClick = {
                             val millis = pickerState.selectedDateMillis
                             if (millis != null) {
@@ -224,14 +223,10 @@ fun ManageSubscriptionsScreen(
                                 viewModel.onDatePickerOpenChange(false)
                             }
                         },
-                    ) {
-                        Text("OK")
-                    }
+                    )
                 },
                 dismissButton = {
-                    TextButton(onClick = { viewModel.onDatePickerOpenChange(false) }) {
-                        Text("Cancel")
-                    }
+                    AppTextButton(text = "Cancel", onClick = { viewModel.onDatePickerOpenChange(false) })
                 },
             ) {
                 androidx.compose.material3.DatePicker(state = pickerState)
@@ -517,9 +512,7 @@ private fun SubscriptionForm(
                 fontWeight = FontWeight.Bold,
                 color = TextPrimary
             )
-            TextButton(onClick = onCancel) {
-                Text("Cancel", color = TextSecondary)
-            }
+            AppTextButton(text = "Cancel", onClick = onCancel, muted = true)
         }
 
         Column(verticalArrangement = Arrangement.spacedBy(Spacing.small)) {

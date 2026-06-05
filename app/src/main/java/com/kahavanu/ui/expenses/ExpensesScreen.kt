@@ -7,7 +7,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import com.kahavanu.ui.common.AppTextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -178,14 +178,10 @@ private fun MonthlyBudgetDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = { onConfirm(input.toDoubleOrNull() ?: 0.0) }) {
-                Text(text = "Save")
-            }
+            AppTextButton(text = "Save", onClick = { onConfirm(input.toDoubleOrNull() ?: 0.0) })
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(text = "Cancel")
-            }
+            AppTextButton(text = "Cancel", onClick = onDismiss)
         },
     )
 }

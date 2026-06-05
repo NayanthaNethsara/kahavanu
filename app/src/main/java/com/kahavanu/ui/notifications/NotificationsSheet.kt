@@ -29,8 +29,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
+import com.kahavanu.ui.common.AppTextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -76,9 +76,7 @@ fun NotificationsSheet(
                     color = TextPrimary,
                 )
                 if (notifications.isNotEmpty()) {
-                    TextButton(onClick = onClearAll) {
-                        Text("Clear all")
-                    }
+                    AppTextButton(text = "Clear all", onClick = onClearAll, destructive = true)
                 }
             }
 

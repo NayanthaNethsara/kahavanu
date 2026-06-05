@@ -19,7 +19,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Flag
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -37,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import com.kahavanu.domain.model.CurrencyOption
 import com.kahavanu.domain.model.GoalEntry
 import com.kahavanu.ui.common.GlassCard
+import com.kahavanu.ui.common.PrimaryActionButton
 import com.kahavanu.ui.theme.CornerRadius
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
@@ -220,18 +220,12 @@ private fun ActiveGoalSummary(
 
             Spacer(modifier = Modifier.height(Spacing.medium))
 
-            Button(
+            PrimaryActionButton(
+                text = "Add savings",
+                enabled = true,
                 onClick = onAddSavings,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Add,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp),
-                )
-                Spacer(modifier = Modifier.width(Spacing.small))
-                Text("Add savings")
-            }
+                leadingIcon = Icons.Outlined.Add,
+            )
         }
     }
 }

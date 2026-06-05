@@ -18,7 +18,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import com.kahavanu.ui.common.AppTextButton
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -110,7 +110,8 @@ fun LoginScreen(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.End,
         ) {
-            TextButton(
+            AppTextButton(
+                text = "Forgot password?",
                 onClick = {
                     if (uiState.email.isBlank()) {
                         viewModel.setError("Enter your email first")
@@ -118,13 +119,7 @@ fun LoginScreen(
                         viewModel.sendPasswordReset(email = uiState.email)
                     }
                 },
-            ) {
-                Text(
-                    text = "Forgot password?",
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Medium,
-                )
-            }
+            )
         }
 
         Spacer(modifier = Modifier.height(Spacing.medium))

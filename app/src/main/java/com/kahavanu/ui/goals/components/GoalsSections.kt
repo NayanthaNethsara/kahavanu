@@ -23,7 +23,6 @@ import androidx.compose.material.icons.outlined.Flag
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.material3.AssistChip
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -57,6 +56,7 @@ import com.kahavanu.domain.model.CurrencyOption
 import com.kahavanu.domain.model.GoalEntry
 import com.kahavanu.ui.common.EmptyState
 import com.kahavanu.ui.common.GlassCard
+import com.kahavanu.ui.common.PrimaryActionButton
 import com.kahavanu.ui.common.SectionHeader
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
@@ -678,19 +678,12 @@ fun AddSavingsSheet(
                 }
             }
 
-            Button(
-                onClick = { amount?.let { onConfirm(it) } },
+            PrimaryActionButton(
+                text = "Add to savings",
                 enabled = amount?.let { it > 0.0 } == true,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Add,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp),
-                )
-                Spacer(modifier = Modifier.width(Spacing.small))
-                Text("Add to savings")
-            }
+                onClick = { amount?.let { onConfirm(it) } },
+                leadingIcon = Icons.Outlined.Add,
+            )
         }
     }
 }

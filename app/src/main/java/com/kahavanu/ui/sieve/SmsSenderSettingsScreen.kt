@@ -37,7 +37,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import com.kahavanu.ui.common.AppTextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -279,9 +279,7 @@ private fun SmsSenderForm(
                 fontWeight = FontWeight.Bold,
                 color = TextPrimary
             )
-            TextButton(onClick = onCancel) {
-                Text("Cancel", color = TextSecondary)
-            }
+            AppTextButton(text = "Cancel", onClick = onCancel, muted = true)
         }
 
         Column(verticalArrangement = Arrangement.spacedBy(Spacing.large)) {

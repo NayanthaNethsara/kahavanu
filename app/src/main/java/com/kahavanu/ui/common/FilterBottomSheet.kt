@@ -31,7 +31,6 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -109,12 +108,11 @@ fun FilterBottomSheet(
                     horizontalArrangement = Arrangement.spacedBy(Spacing.medium),
                 ) {
                     if (onClear != null) {
-                        TextButton(
+                        AppTextButton(
+                            text = "Clear",
                             onClick = onClear,
                             modifier = Modifier.weight(1f),
-                        ) {
-                            Text("Clear")
-                        }
+                        )
                     }
                     if (onApply != null) {
                         Button(

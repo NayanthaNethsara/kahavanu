@@ -8,11 +8,21 @@ import com.kahavanu.domain.model.SuggestionKind
  */
 object SmsRules {
 
-    // Matches LKR 1,500.00 / Rs. 1,500 / Rs 1500.50 / LKR1,200
-    private val AMOUNT_RE = Regex(
-        """(?:LKR|Rs\.?)\s*([\d,]+(?:\.\d{1,2})?)""",
+    /** A money amount parsed from an SMS body, together with the currency it was written in. */
+    data class MoneyMatch(val amount: Double, val currency: String)
+
+    // Currency tokens we recognize, either as a symbol ($ € £) or an ISO code (LKR/USD/EUR/GBP),
+    // and either before the number ("LKR 1,500.00") or after it ("1,500.00 LKR" / "25.00 USD").
+    private const val CURRENCY_TOKENS = """LKR|Rs\.?|USD|US\$|\$|EUR|€|GBP|£"""
+
+    private val MONEY_RE = Regex(
+        """(?:($CURRENCY_TOKENS)\s*([\d,]+(?:\.\d{1,2})?))""" +
+            """|(?:([\d,]+(?:\.\d{1,2})?)\s*($CURRENCY_TOKENS))""",
         RegexOption.IGNORE_CASE,
     )
+
+    // A loose "there is money mentioned" gate for body patterns (either token order).
+    private val MONEY_GATE = """(?:$CURRENCY_TOKENS)\s*[\d,]+|[\d,]+\s*(?:$CURRENCY_TOKENS)"""
 
     // Matches "at MERCHANT NAME on" or "at MERCHANT NAME." or "POS: MERCHANT"
     private val MERCHANT_RE = Regex(
@@ -20,10 +30,33 @@ object SmsRules {
         RegexOption.IGNORE_CASE,
     )
 
-    fun extractAmount(body: String): Double? =
-        AMOUNT_RE.find(body)?.groupValues?.getOrNull(1)
-            ?.replace(",", "")
-            ?.toDoubleOrNull()
+    private fun normalizeCurrency(token: String): String =
+        when (token.trim().uppercase().removeSuffix(".")) {
+            "RS", "LKR" -> "LKR"
+            "USD", "US$", "$" -> "USD"
+            "EUR", "€" -> "EUR"
+            "GBP", "£" -> "GBP"
+            else -> "LKR"
+        }
+
+    /**
+     * Extracts the first money amount and its currency. Handles the currency token on either side
+     * of the number; when only a bare "Rs"/number is present it falls back to LKR.
+     */
+    fun extractMoney(body: String): MoneyMatch? {
+        val groups = MONEY_RE.find(body)?.groupValues ?: return null
+        // Groups 1-2 = "<currency> <number>"; groups 3-4 = "<number> <currency>".
+        val (numberText, token) = when {
+            groups[2].isNotBlank() -> groups[2] to groups[1]
+            groups[3].isNotBlank() -> groups[3] to groups[4]
+            else -> return null
+        }
+        val amount = numberText.replace(",", "").toDoubleOrNull()?.takeIf { it > 0.0 } ?: return null
+        return MoneyMatch(amount, normalizeCurrency(token))
+    }
+
+    /** Numeric value only. Kept for callers that don't care about the currency. */
+    fun extractAmount(body: String): Double? = extractMoney(body)?.amount
 
     fun extractMerchant(body: String): String? =
         MERCHANT_RE.find(body)?.groupValues?.getOrNull(1)?.trim()?.takeIf { it.isNotBlank() }
@@ -37,11 +70,12 @@ object SmsRules {
             senderPattern = Regex("commercial|combank", RegexOption.IGNORE_CASE),
             bodyPattern = Regex("""credit(?:ed)?|deposit|received""", RegexOption.IGNORE_CASE),
             parse = { _, body, receivedAt ->
-                val amount = extractAmount(body) ?: return@SmsRule null
+                val money = extractMoney(body) ?: return@SmsRule null
+                val amount = money.amount
                 ParsedSms(
                     kind = SuggestionKind.INCOME,
                     amount = amount,
-                    currency = "LKR",
+                    currency = money.currency,
                     title = "Bank Credit",
                     merchant = null,
                     txnAtEpochMillis = receivedAt,
@@ -55,12 +89,13 @@ object SmsRules {
             senderPattern = Regex("commercial|combank", RegexOption.IGNORE_CASE),
             bodyPattern = Regex("""debit(?:ed)?|withdrawal|purchase|payment""", RegexOption.IGNORE_CASE),
             parse = { _, body, receivedAt ->
-                val amount = extractAmount(body) ?: return@SmsRule null
+                val money = extractMoney(body) ?: return@SmsRule null
+                val amount = money.amount
                 val merchant = extractMerchant(body)
                 ParsedSms(
                     kind = SuggestionKind.EXPENSE,
                     amount = amount,
-                    currency = "LKR",
+                    currency = money.currency,
                     title = if (merchant != null) "Payment at $merchant" else "Bank Debit",
                     merchant = merchant,
                     txnAtEpochMillis = receivedAt,
@@ -76,11 +111,12 @@ object SmsRules {
             senderPattern = Regex("sampath", RegexOption.IGNORE_CASE),
             bodyPattern = Regex("""credit(?:ed)?|deposit|received""", RegexOption.IGNORE_CASE),
             parse = { _, body, receivedAt ->
-                val amount = extractAmount(body) ?: return@SmsRule null
+                val money = extractMoney(body) ?: return@SmsRule null
+                val amount = money.amount
                 ParsedSms(
                     kind = SuggestionKind.INCOME,
                     amount = amount,
-                    currency = "LKR",
+                    currency = money.currency,
                     title = "Bank Credit",
                     merchant = null,
                     txnAtEpochMillis = receivedAt,
@@ -94,12 +130,13 @@ object SmsRules {
             senderPattern = Regex("sampath", RegexOption.IGNORE_CASE),
             bodyPattern = Regex("""debit(?:ed)?|withdrawal|purchase|payment""", RegexOption.IGNORE_CASE),
             parse = { _, body, receivedAt ->
-                val amount = extractAmount(body) ?: return@SmsRule null
+                val money = extractMoney(body) ?: return@SmsRule null
+                val amount = money.amount
                 val merchant = extractMerchant(body)
                 ParsedSms(
                     kind = SuggestionKind.EXPENSE,
                     amount = amount,
-                    currency = "LKR",
+                    currency = money.currency,
                     title = if (merchant != null) "Payment at $merchant" else "Bank Debit",
                     merchant = merchant,
                     txnAtEpochMillis = receivedAt,
@@ -115,11 +152,12 @@ object SmsRules {
             senderPattern = Regex("\\bhnb\\b|hatton", RegexOption.IGNORE_CASE),
             bodyPattern = Regex("""credit(?:ed)?|deposit|received""", RegexOption.IGNORE_CASE),
             parse = { _, body, receivedAt ->
-                val amount = extractAmount(body) ?: return@SmsRule null
+                val money = extractMoney(body) ?: return@SmsRule null
+                val amount = money.amount
                 ParsedSms(
                     kind = SuggestionKind.INCOME,
                     amount = amount,
-                    currency = "LKR",
+                    currency = money.currency,
                     title = "Bank Credit",
                     merchant = null,
                     txnAtEpochMillis = receivedAt,
@@ -133,12 +171,13 @@ object SmsRules {
             senderPattern = Regex("\\bhnb\\b|hatton", RegexOption.IGNORE_CASE),
             bodyPattern = Regex("""debit(?:ed)?|withdrawal|purchase|payment""", RegexOption.IGNORE_CASE),
             parse = { _, body, receivedAt ->
-                val amount = extractAmount(body) ?: return@SmsRule null
+                val money = extractMoney(body) ?: return@SmsRule null
+                val amount = money.amount
                 val merchant = extractMerchant(body)
                 ParsedSms(
                     kind = SuggestionKind.EXPENSE,
                     amount = amount,
-                    currency = "LKR",
+                    currency = money.currency,
                     title = if (merchant != null) "Payment at $merchant" else "Bank Debit",
                     merchant = merchant,
                     txnAtEpochMillis = receivedAt,
@@ -154,11 +193,12 @@ object SmsRules {
             senderPattern = Regex("\\bboc\\b|bank of ceylon|\\bnsb\\b|national savings", RegexOption.IGNORE_CASE),
             bodyPattern = Regex("""credit(?:ed)?|deposit|received""", RegexOption.IGNORE_CASE),
             parse = { _, body, receivedAt ->
-                val amount = extractAmount(body) ?: return@SmsRule null
+                val money = extractMoney(body) ?: return@SmsRule null
+                val amount = money.amount
                 ParsedSms(
                     kind = SuggestionKind.INCOME,
                     amount = amount,
-                    currency = "LKR",
+                    currency = money.currency,
                     title = "Bank Credit",
                     merchant = null,
                     txnAtEpochMillis = receivedAt,
@@ -172,12 +212,13 @@ object SmsRules {
             senderPattern = Regex("\\bboc\\b|bank of ceylon|\\bnsb\\b|national savings", RegexOption.IGNORE_CASE),
             bodyPattern = Regex("""debit(?:ed)?|withdrawal|purchase|payment""", RegexOption.IGNORE_CASE),
             parse = { _, body, receivedAt ->
-                val amount = extractAmount(body) ?: return@SmsRule null
+                val money = extractMoney(body) ?: return@SmsRule null
+                val amount = money.amount
                 val merchant = extractMerchant(body)
                 ParsedSms(
                     kind = SuggestionKind.EXPENSE,
                     amount = amount,
-                    currency = "LKR",
+                    currency = money.currency,
                     title = if (merchant != null) "Payment at $merchant" else "Bank Debit",
                     merchant = merchant,
                     txnAtEpochMillis = receivedAt,
@@ -191,13 +232,14 @@ object SmsRules {
         SmsRule(
             name = "PickMe-Ride",
             senderPattern = Regex("pickme", RegexOption.IGNORE_CASE),
-            bodyPattern = Regex("""(?:Rs\.?|LKR)\s*[\d,]+""", RegexOption.IGNORE_CASE),
+            bodyPattern = Regex(MONEY_GATE, RegexOption.IGNORE_CASE),
             parse = { _, body, receivedAt ->
-                val amount = extractAmount(body) ?: return@SmsRule null
+                val money = extractMoney(body) ?: return@SmsRule null
+                val amount = money.amount
                 ParsedSms(
                     kind = SuggestionKind.EXPENSE,
                     amount = amount,
-                    currency = "LKR",
+                    currency = money.currency,
                     title = "PickMe Ride",
                     merchant = "PickMe",
                     txnAtEpochMillis = receivedAt,
@@ -211,13 +253,14 @@ object SmsRules {
         SmsRule(
             name = "Keells-Purchase",
             senderPattern = Regex("keells", RegexOption.IGNORE_CASE),
-            bodyPattern = Regex("""(?:Rs\.?|LKR)\s*[\d,]+""", RegexOption.IGNORE_CASE),
+            bodyPattern = Regex(MONEY_GATE, RegexOption.IGNORE_CASE),
             parse = { _, body, receivedAt ->
-                val amount = extractAmount(body) ?: return@SmsRule null
+                val money = extractMoney(body) ?: return@SmsRule null
+                val amount = money.amount
                 ParsedSms(
                     kind = SuggestionKind.EXPENSE,
                     amount = amount,
-                    currency = "LKR",
+                    currency = money.currency,
                     title = "Keells Purchase",
                     merchant = "Keells",
                     txnAtEpochMillis = receivedAt,
@@ -231,13 +274,14 @@ object SmsRules {
         SmsRule(
             name = "Generic-Credit",
             senderPattern = Regex(".+"),
-            bodyPattern = Regex("""(?:credit(?:ed)?|deposit|received).*(?:LKR|Rs\.?)\s*[\d,]+""", RegexOption.IGNORE_CASE),
+            bodyPattern = Regex("""(?:credit(?:ed)?|deposit|received).*(?:$MONEY_GATE)""", RegexOption.IGNORE_CASE),
             parse = { _, body, receivedAt ->
-                val amount = extractAmount(body) ?: return@SmsRule null
+                val money = extractMoney(body) ?: return@SmsRule null
+                val amount = money.amount
                 ParsedSms(
                     kind = SuggestionKind.INCOME,
                     amount = amount,
-                    currency = "LKR",
+                    currency = money.currency,
                     title = "Income",
                     merchant = null,
                     txnAtEpochMillis = receivedAt,
@@ -249,14 +293,15 @@ object SmsRules {
         SmsRule(
             name = "Generic-Debit",
             senderPattern = Regex(".+"),
-            bodyPattern = Regex("""(?:debit(?:ed)?|paid|payment|purchase|charged).*(?:LKR|Rs\.?)\s*[\d,]+""", RegexOption.IGNORE_CASE),
+            bodyPattern = Regex("""(?:debit(?:ed)?|paid|payment|purchase|charged).*(?:$MONEY_GATE)""", RegexOption.IGNORE_CASE),
             parse = { _, body, receivedAt ->
-                val amount = extractAmount(body) ?: return@SmsRule null
+                val money = extractMoney(body) ?: return@SmsRule null
+                val amount = money.amount
                 val merchant = extractMerchant(body)
                 ParsedSms(
                     kind = SuggestionKind.EXPENSE,
                     amount = amount,
-                    currency = "LKR",
+                    currency = money.currency,
                     title = if (merchant != null) "Payment at $merchant" else "Expense",
                     merchant = merchant,
                     txnAtEpochMillis = receivedAt,

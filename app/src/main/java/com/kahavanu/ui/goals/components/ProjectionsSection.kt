@@ -35,11 +35,19 @@ import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
 import com.kahavanu.ui.theme.TextSize
 import java.text.NumberFormat
+import java.time.Instant
 import java.time.LocalDate
+import java.time.YearMonth
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import java.util.Locale
 import kotlin.math.ceil
 import kotlin.math.roundToInt
+
+private val AccentGreen = Color(0xFF00BC7D)
+private val AccentAmber = Color(0xFFF59E0B)
+private val AccentRed = Color(0xFFEF4444)
 
 @Composable
 fun ProjectionsSection(
@@ -47,6 +55,7 @@ fun ProjectionsSection(
     capacity: CapacityBreakdown,
     currency: CurrencyOption,
     activeGoalTitle: String?,
+    targetDateEpochMillis: Long? = null,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -56,6 +65,8 @@ fun ProjectionsSection(
         EstimatedArrivalCard(
             remainingAmount = remainingAmount,
             rcsAmount = capacity.realCapacityToSave,
+            targetDateEpochMillis = targetDateEpochMillis,
+            currency = currency,
         )
         RealCapacityToSaveCard(
             capacity = capacity,
@@ -65,10 +76,18 @@ fun ProjectionsSection(
     }
 }
 
+/**
+ * Projects the goal's arrival from the Real Capacity to Save (treated as a sustainable monthly
+ * saving rate): months = ceil(remaining / RCS). When the goal carries a target date we also
+ * compute the pace it demands (remaining / months-until-deadline) and flag whether the current
+ * RCS keeps that pace, so the user sees "on track" vs. how much more per month they'd need.
+ */
 @Composable
 private fun EstimatedArrivalCard(
     remainingAmount: Double,
     rcsAmount: Double,
+    targetDateEpochMillis: Long?,
+    currency: CurrencyOption,
 ) {
     val canEstimate = rcsAmount > 0.0 && remainingAmount > 0.0
     val months = if (canEstimate) {
@@ -76,11 +95,38 @@ private fun EstimatedArrivalCard(
     } else {
         null
     }
+    val monthFormatter = DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault())
     val targetDateText = months?.let {
-        val targetDate = LocalDate.now().plusMonths(it.toLong())
-        val formatter = DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault())
-        "Around ${targetDate.format(formatter)}"
+        "Around ${LocalDate.now().plusMonths(it.toLong()).format(monthFormatter)}"
     } ?: "Add income & expenses to project"
+
+    // Compare the deadline the user set against the pace the current RCS can sustain.
+    val zone = ZoneId.systemDefault()
+    val deadline = targetDateEpochMillis?.let {
+        Instant.ofEpochMilli(it).atZone(zone).toLocalDate()
+    }
+    val monthsToDeadline = deadline?.let {
+        ChronoUnit.MONTHS.between(YearMonth.now(zone), YearMonth.from(it))
+    }
+    val status: DeadlineStatus? = when {
+        deadline == null || remainingAmount <= 0.0 -> null
+        monthsToDeadline == null || monthsToDeadline <= 0L ->
+            DeadlineStatus("Target date has passed", AccentRed)
+        else -> {
+            val requiredMonthly = remainingAmount / monthsToDeadline
+            if (rcsAmount >= requiredMonthly) {
+                DeadlineStatus(
+                    "On track for ${deadline.format(monthFormatter)}",
+                    AccentGreen,
+                )
+            } else {
+                DeadlineStatus(
+                    "Behind · save ${formatGoalAmount(requiredMonthly, currency.code)}/mo to make it",
+                    AccentAmber,
+                )
+            }
+        }
+    }
 
     GlassCard(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(Spacing.large)) {
@@ -105,7 +151,7 @@ private fun EstimatedArrivalCard(
                         style = MaterialTheme.typography.headlineLarge,
                         fontSize = 38.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF00BC7D),
+                        color = AccentGreen,
                     )
                     Text(
                         text = targetDateText,
@@ -118,13 +164,43 @@ private fun EstimatedArrivalCard(
                 Icon(
                     imageVector = Icons.AutoMirrored.Outlined.TrendingUp,
                     contentDescription = null,
-                    tint = Color(0xFF00BC7D).copy(alpha = 0.8f),
+                    tint = AccentGreen.copy(alpha = 0.8f),
                     modifier = Modifier.size(44.dp),
                 )
+            }
+
+            if (status != null) {
+                Spacer(modifier = Modifier.height(Spacing.medium))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(status.color.copy(alpha = 0.08f))
+                        .border(1.dp, status.color.copy(alpha = 0.18f), RoundedCornerShape(12.dp))
+                        .padding(horizontal = Spacing.medium, vertical = Spacing.small),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Info,
+                        contentDescription = null,
+                        tint = status.color,
+                        modifier = Modifier.size(16.dp),
+                    )
+                    Spacer(modifier = Modifier.width(Spacing.small))
+                    Text(
+                        text = status.message,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = status.color,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Medium,
+                    )
+                }
             }
         }
     }
 }
+
+private data class DeadlineStatus(val message: String, val color: Color)
 
 @Composable
 private fun RealCapacityToSaveCard(

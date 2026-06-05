@@ -121,6 +121,7 @@ fun GoalsScreen(
                     capacity = uiState.capacity,
                     currency = uiState.currency,
                     activeGoalTitle = activeGoal.title,
+                    targetDateEpochMillis = activeGoal.targetDateEpochMillis,
                 )
             }
 
@@ -129,6 +130,7 @@ fun GoalsScreen(
                     featuredGoal = activeGoal,
                     currency = uiState.currency,
                     baselineRcs = uiState.capacity.realCapacityToSave,
+                    discretionarySpend = uiState.capacity.discretionary,
                 )
             }
         }

@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.kahavanu.ui.common.TrendChart
 import com.kahavanu.ui.theme.AccentIncome
+import com.kahavanu.ui.util.lastNDayLabels
 
 @Composable
 fun PerformanceChart(
@@ -16,5 +17,6 @@ fun PerformanceChart(
         lineColor = AccentIncome,
         modifier = modifier,
         endLabel = endLabel,
+        dayLabels = if (points.isNotEmpty()) lastNDayLabels(points.size) else emptyList(),
     )
 }

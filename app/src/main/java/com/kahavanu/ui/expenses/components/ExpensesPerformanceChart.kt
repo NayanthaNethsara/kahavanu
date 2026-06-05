@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.kahavanu.ui.common.TrendChart
+import com.kahavanu.ui.util.lastNDayLabels
 
 @Composable
 fun ExpensesPerformanceChart(
@@ -18,5 +19,6 @@ fun ExpensesPerformanceChart(
         modifier = modifier,
         budgetLine = dailyBudget,
         endLabel = endLabel,
+        dayLabels = if (points.isNotEmpty()) lastNDayLabels(points.size) else emptyList(),
     )
 }

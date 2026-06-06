@@ -158,7 +158,13 @@ fun MainTabsScreen(
             composable(AppDestination.IncomeLog.route) {
                 IncomeLogScreen(
                     onBack = { navController.popBackStack() },
-                    onLogged = { navController.popBackStack() },
+                    onLogged = {
+                        navController.navigate(AppDestination.Income.route) {
+                            popUpTo(AppDestination.Home.route) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
                     onManageSources = { navController.navigate(AppDestination.IncomeSources.route) },
                 )
             }
@@ -201,7 +207,13 @@ fun MainTabsScreen(
             composable(AppDestination.GoalSetup.route) {
                 GoalSetupScreen(
                     onBack = { navController.popBackStack() },
-                    onSaved = { navController.popBackStack() },
+                    onSaved = {
+                        navController.navigate(AppDestination.Goals.route) {
+                            popUpTo(AppDestination.Home.route) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
                 )
             }
             composable(AppDestination.GoalStats.route) {

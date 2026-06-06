@@ -9,6 +9,7 @@ import com.kahavanu.domain.repository.SubscriptionsRepository
 import com.kahavanu.domain.repository.SettingsRepository
 import com.kahavanu.domain.repository.SmsSuggestionRepository
 import com.kahavanu.ui.home.inferExpenseCategory
+import com.kahavanu.ui.util.CurrencyConverter
 import com.kahavanu.ui.util.dailyTotals
 import com.kahavanu.ui.theme.CategoryFun
 import com.kahavanu.ui.theme.CategoryHealth
@@ -73,24 +74,29 @@ class ExpensesViewModel @Inject constructor(
         pendingExpenseMatches,
         subscriptionsRepository.observeSubscriptions(),
     ) { (period, monthlyBudget), (primaryCurrency, _), allExpenses, pendingMatches, subscriptions ->
+        // Fold every currency into the primary one (static rates) so secondary logs aren't dropped.
+        val primary = primaryCurrency.code
+        fun ExpenseLogEntry.spentInPrimary(): Double =
+            CurrencyConverter.convert(amount, currency, primary)
+
         val filtered = allExpenses.filter { isWithinPeriod(it.spentAtEpochMillis, period) }
-        val categorySummaries = buildCategorySummaries(filtered)
-        val spendTrend = dailyTotals(allExpenses.map { it.spentAtEpochMillis to it.amount })
+        val categorySummaries = buildCategorySummaries(filtered, primary)
+        val spendTrend = dailyTotals(allExpenses.map { it.spentAtEpochMillis to it.spentInPrimary() })
         val dailyBudget = if (monthlyBudget > 0.0) (monthlyBudget / 30.0).toFloat() else null
         val nowMillis = System.currentTimeMillis()
         val dayMillis = 24L * 60 * 60 * 1000
         val thisWeekSpend = allExpenses
             .filter { it.spentAtEpochMillis >= nowMillis - 7 * dayMillis }
-            .sumOf { it.amount }
+            .sumOf { it.spentInPrimary() }
         val weeklyAverageSpend = allExpenses
             .filter { it.spentAtEpochMillis >= nowMillis - 28 * dayMillis }
-            .sumOf { it.amount } / 4.0
+            .sumOf { it.spentInPrimary() } / 4.0
 
         val activeCount = subscriptions.count { !it.isPaused }
         val activeTotal = subscriptions
             .filter { !it.isPaused }
             .sumOf { sub ->
-                val cost = sub.cost
+                val cost = CurrencyConverter.convert(sub.cost, sub.currency, primary)
                 if (sub.frequency.lowercase() == "yearly") {
                     cost / 12.0
                 } else {
@@ -101,7 +107,7 @@ class ExpensesViewModel @Inject constructor(
         ExpensesUiState(
             selectedPeriod = period,
             currency = primaryCurrency,
-            totalSpent = filtered.sumOf { it.amount },
+            totalSpent = filtered.sumOf { it.spentInPrimary() },
             budgetLimit = budgetFor(period, monthlyBudget),
             monthlyBudget = monthlyBudget,
             allExpensesCount = filtered.size,
@@ -169,10 +175,15 @@ class ExpensesViewModel @Inject constructor(
         }
     }
 
-    private fun buildCategorySummaries(entries: List<ExpenseLogEntry>): List<ExpenseCategorySummary> {
+    private fun buildCategorySummaries(
+        entries: List<ExpenseLogEntry>,
+        primaryCurrency: String,
+    ): List<ExpenseCategorySummary> {
         val byCategory = entries
             .groupBy { normalizeCategory(it.category) }
-            .mapValues { (_, items) -> items.sumOf { it.amount } }
+            .mapValues { (_, items) ->
+                items.sumOf { CurrencyConverter.convert(it.amount, it.currency, primaryCurrency) }
+            }
 
         return defaultCategorySummaries().map { default ->
             default.copy(amount = byCategory[default.label] ?: 0.0)

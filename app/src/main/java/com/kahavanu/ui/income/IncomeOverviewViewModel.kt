@@ -16,6 +16,7 @@ import com.kahavanu.ui.common.MatchItemState
 import com.kahavanu.ui.common.contains
 import com.kahavanu.ui.home.inferExpenseCategory
 import com.kahavanu.ui.theme.OnSurfaceVariant
+import com.kahavanu.ui.util.CurrencyConverter
 import com.kahavanu.ui.util.dailyTotals
 import com.kahavanu.ui.theme.Primary
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -77,70 +78,95 @@ class IncomeOverviewViewModel @Inject constructor(
             initialValue = emptyList(),
         )
 
+    // Primary currency code that every insight total is converted into, so secondary-currency
+    // entries are folded in rather than mixed or dropped. Declared first so the flows below can use it.
+    private val primaryCurrencyCode: StateFlow<String> = settingsRepository.observeCurrencySettings()
+        .map { it.first.code }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = "LKR",
+        )
+
+    /** Value of [this] log expressed in [target] currency using static rates. */
+    private fun IncomeLogEntry.amountIn(target: String): Double =
+        CurrencyConverter.convert(amount, currency, target)
+
     // Daily received-income totals for the last 7 days (oldest first) for the line chart.
-    val incomeTrend: StateFlow<List<Float>> = incomeRepository.observeIncomeLogs()
-        .map { logs ->
-            dailyTotals(
-                logs.filter { !isPending(it.sourceType) }
-                    .map { it.receivedAtEpochMillis to it.amount }
-            )
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = emptyList(),
+    val incomeTrend: StateFlow<List<Float>> = combine(
+        incomeRepository.observeIncomeLogs(),
+        primaryCurrencyCode,
+    ) { logs, primary ->
+        dailyTotals(
+            logs.filter { !isPending(it.sourceType) }
+                .map { it.receivedAtEpochMillis to it.amountIn(primary) }
         )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = emptyList(),
+    )
 
-    // Income received within the last 7 days ("this week").
-    val thisWeekIncome: StateFlow<Double> = incomeRepository.observeIncomeLogs()
-        .map { logs -> receivedWithinDays(logs, 7) }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = 0.0,
-        )
-
-    // Average weekly income over the trailing 4 weeks.
-    val weeklyAverageIncome: StateFlow<Double> = incomeRepository.observeIncomeLogs()
-        .map { logs -> receivedWithinDays(logs, 28) / 4.0 }
+    // Income received within the last 7 days ("this week"), converted to the primary currency.
+    val thisWeekIncome: StateFlow<Double> = combine(
+        incomeRepository.observeIncomeLogs(),
+        primaryCurrencyCode,
+    ) { logs, primary -> receivedWithinDays(logs, 7, primary) }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = 0.0,
         )
 
-    private fun receivedWithinDays(logs: List<IncomeLogEntry>, days: Int): Double {
+    // Average weekly income over the trailing 4 weeks, converted to the primary currency.
+    val weeklyAverageIncome: StateFlow<Double> = combine(
+        incomeRepository.observeIncomeLogs(),
+        primaryCurrencyCode,
+    ) { logs, primary -> receivedWithinDays(logs, 28, primary) / 4.0 }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = 0.0,
+        )
+
+    private fun receivedWithinDays(logs: List<IncomeLogEntry>, days: Int, primary: String): Double {
         val cutoff = System.currentTimeMillis() - days.toLong() * 24 * 60 * 60 * 1000
         return logs
             .filter { !isPending(it.sourceType) && it.receivedAtEpochMillis >= cutoff }
-            .sumOf { it.amount }
+            .sumOf { it.amountIn(primary) }
     }
 
     // Highest-earning income source across all received logs (pending/scheduled excluded).
-    val topIncomeSource: StateFlow<TopIncomeSource?> = incomeRepository.observeIncomeLogs()
-        .map { logs ->
-            val received = logs.filter { !isPending(it.sourceType) }
-            val total = received.sumOf { it.amount }
-            val top = received
-                .groupBy { it.sourceName?.takeIf(String::isNotBlank) ?: it.title }
-                .mapValues { (_, items) -> items.sumOf { it.amount } }
-                .maxByOrNull { it.value } ?: return@map null
-            val percent = if (total > 0.0) ((top.value / total) * 100).roundToInt() else 0
-            TopIncomeSource(name = top.key, amount = top.value, percent = percent)
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = null,
-        )
+    // Per-source totals are converted to the primary currency so currencies aren't mixed.
+    val topIncomeSource: StateFlow<TopIncomeSource?> = combine(
+        incomeRepository.observeIncomeLogs(),
+        primaryCurrencyCode,
+    ) { logs, primary ->
+        val received = logs.filter { !isPending(it.sourceType) }
+        val total = received.sumOf { it.amountIn(primary) }
+        val top = received
+            .groupBy { it.sourceName?.takeIf(String::isNotBlank) ?: it.title }
+            .mapValues { (_, items) -> items.sumOf { it.amountIn(primary) } }
+            .maxByOrNull { it.value } ?: return@combine null
+        val percent = if (total > 0.0) ((top.value / total) * 100).roundToInt() else 0
+        TopIncomeSource(name = top.key, amount = top.value, percent = percent)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = null,
+    )
 
-    // All-time net savings: received income (logs only, no scheduled/pending) minus logged expenses.
+    // All-time net savings: received income (logs only, no scheduled/pending) minus logged
+    // expenses, with both sides converted to the primary currency before subtracting.
     val currentSavings: StateFlow<Double> = combine(
         incomeRepository.observeIncomeLogs(),
         expensesRepository.observeExpenseLogs(),
-    ) { incomeLogs, expenseLogs ->
-        val totalIncome = incomeLogs.filter { !isPending(it.sourceType) }.sumOf { it.amount }
-        val totalExpenses = expenseLogs.sumOf { it.amount }
+        primaryCurrencyCode,
+    ) { incomeLogs, expenseLogs, primary ->
+        val totalIncome = incomeLogs.filter { !isPending(it.sourceType) }
+            .sumOf { it.amountIn(primary) }
+        val totalExpenses = expenseLogs
+            .sumOf { CurrencyConverter.convert(it.amount, it.currency, primary) }
         totalIncome - totalExpenses
     }.stateIn(
         scope = viewModelScope,

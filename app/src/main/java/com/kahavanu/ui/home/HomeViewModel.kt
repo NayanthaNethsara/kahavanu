@@ -113,13 +113,14 @@ class HomeViewModel @Inject constructor(
             return c.get(java.util.Calendar.YEAR) == currentYear && c.get(java.util.Calendar.MONTH) == currentMonth
         }
 
+        // Fold every currency into the primary one (static rates) so secondary logs aren't dropped.
         val totalIncomeThisMonth = incomeLogs
-            .filter { it.currency == primaryCode && it.sourceType != "pending" && isCurrentMonth(it.receivedAtEpochMillis) }
-            .sumOf { it.amount }
+            .filter { it.sourceType != "pending" && isCurrentMonth(it.receivedAtEpochMillis) }
+            .sumOf { com.kahavanu.ui.util.CurrencyConverter.convert(it.amount, it.currency, primaryCode) }
 
         val totalExpensesThisMonth = expenseLogs
-            .filter { it.currency == primaryCode && isCurrentMonth(it.spentAtEpochMillis) }
-            .sumOf { it.amount }
+            .filter { isCurrentMonth(it.spentAtEpochMillis) }
+            .sumOf { com.kahavanu.ui.util.CurrencyConverter.convert(it.amount, it.currency, primaryCode) }
 
         val monthlyFlow = buildMonthlyFlow(incomeLogs, expenseLogs, primaryCode, months = 6)
 
@@ -249,12 +250,13 @@ private fun buildMonthlyFlow(
 
     return (months - 1 downTo 0).map { ago ->
         val ym = thisMonth.minusMonths(ago.toLong())
+        // Fold every currency into the primary one (static rates) instead of dropping secondary logs.
         val income = incomeLogs
-            .filter { it.currency == currency && it.sourceType != "pending" && monthOf(it.receivedAtEpochMillis) == ym }
-            .sumOf { it.amount }
+            .filter { it.sourceType != "pending" && monthOf(it.receivedAtEpochMillis) == ym }
+            .sumOf { com.kahavanu.ui.util.CurrencyConverter.convert(it.amount, it.currency, currency) }
         val expense = expenseLogs
-            .filter { it.currency == currency && monthOf(it.spentAtEpochMillis) == ym }
-            .sumOf { it.amount }
+            .filter { monthOf(it.spentAtEpochMillis) == ym }
+            .sumOf { com.kahavanu.ui.util.CurrencyConverter.convert(it.amount, it.currency, currency) }
         MonthlyFlowPoint(
             label = ym.month.getDisplayName(java.time.format.TextStyle.SHORT, java.util.Locale.getDefault()),
             income = income,

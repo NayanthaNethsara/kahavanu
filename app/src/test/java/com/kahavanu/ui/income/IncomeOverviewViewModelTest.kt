@@ -204,6 +204,36 @@ class IncomeOverviewViewModelTest {
     }
 
     @Test
+    fun `currentSavings folds secondary-currency income into the primary currency`() = runTest {
+        // primary is LKR (see currencyFlow); USD converts at the static 300 rate.
+        incomeLogsFlow.value = listOf(
+            IncomeLogEntry(title = "Local", amount = 1000.0, currency = "LKR", receivedAtEpochMillis = 1L),
+            IncomeLogEntry(title = "Foreign", amount = 10.0, currency = "USD", receivedAtEpochMillis = 2L),
+        )
+
+        val vm = newVm()
+        // 1000 LKR + (10 USD × 300) = 4000 LKR, no expenses
+        val savings = vm.currentSavings.first { it != 0.0 }
+        assertEquals(4000.0, savings, 0.0)
+    }
+
+    @Test
+    fun `topIncomeSource ranks sources after converting to the primary currency`() = runTest {
+        incomeLogsFlow.value = listOf(
+            IncomeLogEntry(title = "Local", amount = 5000.0, currency = "LKR",
+                receivedAtEpochMillis = 1L, sourceName = "Salary"),
+            IncomeLogEntry(title = "Foreign", amount = 50.0, currency = "USD",
+                receivedAtEpochMillis = 2L, sourceName = "Freelance"),
+        )
+
+        val vm = newVm()
+        // Freelance 50 USD × 300 = 15,000 LKR outranks Salary's 5,000 LKR
+        val top = vm.topIncomeSource.first { it != null }!!
+        assertEquals("Freelance", top.name)
+        assertEquals(15000.0, top.amount, 0.0)
+    }
+
+    @Test
     fun `pendingLogs only includes persistent entries`() = runTest {
         val now = startOfThisMonthEpoch()
         val pending = IncomeLogEntry(title = "p", amount = 1.0, currency = "LKR",

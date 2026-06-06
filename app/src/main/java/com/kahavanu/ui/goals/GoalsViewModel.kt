@@ -8,6 +8,7 @@ import com.kahavanu.domain.repository.GoalsRepository
 import com.kahavanu.domain.repository.IncomeRepository
 import com.kahavanu.domain.repository.SettingsRepository
 import com.kahavanu.domain.repository.SubscriptionsRepository
+import com.kahavanu.ui.util.CurrencyConverter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -51,6 +52,7 @@ class GoalsViewModel @Inject constructor(
             incomes = incomes,
             expenses = expenses,
             subscriptions = subs,
+            primaryCurrency = primaryCurrency.code,
         )
 
         GoalsUiState(
@@ -110,6 +112,7 @@ private fun computeCapacity(
     incomes: List<com.kahavanu.domain.model.IncomeLogEntry>,
     expenses: List<com.kahavanu.domain.model.ExpenseLogEntry>,
     subscriptions: List<com.kahavanu.domain.model.Subscription>,
+    primaryCurrency: String,
 ): CapacityBreakdown {
     val zone = ZoneId.systemDefault()
     val now = java.time.LocalDate.now(zone)
@@ -120,18 +123,20 @@ private fun computeCapacity(
     fun inThisMonth(epochMillis: Long): Boolean =
         epochMillis in startOfMonth until endOfMonthExclusive
 
+    // Fold every currency into the primary one (static rates) so secondary logs aren't dropped.
     val monthlyIncome = incomes.filter { inThisMonth(it.receivedAtEpochMillis) }
-        .sumOf { it.amount }
+        .sumOf { CurrencyConverter.convert(it.amount, it.currency, primaryCurrency) }
 
     val monthlySubscriptions = subscriptions.filter { !it.isPaused }.sumOf { sub ->
+        val cost = CurrencyConverter.convert(sub.cost, sub.currency, primaryCurrency)
         when (sub.frequency.lowercase()) {
-            "yearly" -> sub.cost / 12.0
-            else -> sub.cost
+            "yearly" -> cost / 12.0
+            else -> cost
         }
     }
 
     val monthlyExpenses = expenses.filter { inThisMonth(it.spentAtEpochMillis) }
-        .sumOf { it.amount }
+        .sumOf { CurrencyConverter.convert(it.amount, it.currency, primaryCurrency) }
 
     // Committed = recurring subscriptions; Discretionary = the rest of this month's
     // spend (already excludes future subscription bills, includes any subscription

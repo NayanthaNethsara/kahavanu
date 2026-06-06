@@ -24,6 +24,7 @@ import androidx.compose.material.icons.outlined.Repeat
 import com.kahavanu.ui.common.QuickAction
 import com.kahavanu.ui.common.QuickActionRow
 import com.kahavanu.ui.common.ScreenHeader
+import com.kahavanu.ui.common.compactAmount
 import com.kahavanu.ui.income.components.IncomeLogSection
 import com.kahavanu.ui.income.components.MatchAndCatchSection
 import com.kahavanu.ui.income.components.PersistenceSection
@@ -49,6 +50,11 @@ fun IncomeScreen(
     val totalReceivedByCurrency by viewModel.totalReceivedByCurrency.collectAsStateWithLifecycle()
     val breakdownsByCurrency by viewModel.breakdownsByCurrency.collectAsStateWithLifecycle()
     val primaryCurrency by viewModel.primaryCurrency.collectAsStateWithLifecycle()
+    val thisWeekIncome by viewModel.thisWeekIncome.collectAsStateWithLifecycle()
+    val weeklyAverageIncome by viewModel.weeklyAverageIncome.collectAsStateWithLifecycle()
+    val incomeTrend by viewModel.incomeTrend.collectAsStateWithLifecycle()
+    val topIncomeSource by viewModel.topIncomeSource.collectAsStateWithLifecycle()
+    val currentSavings by viewModel.currentSavings.collectAsStateWithLifecycle()
     val monthLabel = currentMonthLabel()
 
     val pendingScheduled = scheduledIncomes.filter { scheduled ->
@@ -125,7 +131,17 @@ fun IncomeScreen(
             }
         }
         item {
-            InsightsSection()
+            InsightsSection(
+                topSourceTitle = topIncomeSource?.name ?: "—",
+                topSourceSubtitle = topIncomeSource?.let {
+                    "${compactAmount(primaryCurrency, it.amount.toFloat())} · ${it.percent}%"
+                } ?: "No income yet",
+                currentSavings = currentSavings,
+                thisWeekIncome = thisWeekIncome,
+                weeklyAverageIncome = weeklyAverageIncome,
+                incomeTrend = incomeTrend,
+                currencyCode = primaryCurrency,
+            )
         }
         item {
             MatchAndCatchSection(

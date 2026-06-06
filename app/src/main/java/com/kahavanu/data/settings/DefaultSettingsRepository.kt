@@ -79,9 +79,16 @@ class DefaultSettingsRepository @Inject constructor(
             ?: return Result.failure(IllegalStateException("User not authenticated"))
 
         val now = System.currentTimeMillis()
+        // Preserve any existing settings (budget, toggles, last scan) instead of
+        // replacing the whole row, which would reset them to defaults.
+        val existing = userSettingsDao.getSettings(uid)
         userSettingsDao.upsert(
-            UserSettingsEntity(
+            (existing ?: UserSettingsEntity(
                 userId = uid,
+                primaryCurrency = primary.name,
+                secondaryCurrency = secondary.name,
+                updatedAtEpochMillis = now,
+            )).copy(
                 primaryCurrency = primary.name,
                 secondaryCurrency = secondary.name,
                 updatedAtEpochMillis = now,
@@ -133,6 +140,23 @@ class DefaultSettingsRepository @Inject constructor(
             .set(data, SetOptions.merge()).awaitResult().map { }
     }
 
+    override fun observeMonthlyBudget(): Flow<Double> {
+        val uid = auth.currentUser?.uid ?: return flowOf(0.0)
+        return userSettingsDao.observeSettings(uid).map { it?.monthlyBudget ?: 0.0 }
+    }
+
+    override suspend fun updateMonthlyBudget(amount: Double): Result<Unit> {
+        val uid = auth.currentUser?.uid
+            ?: return Result.failure(IllegalStateException("User not authenticated"))
+        val sanitized = amount.coerceAtLeast(0.0)
+        val now = System.currentTimeMillis()
+        userSettingsDao.updateMonthlyBudget(uid, sanitized, now)
+        val data = mapOf("monthlyBudget" to sanitized, "updatedAt" to now)
+        return firestore.collection(USERS_COLLECTION).document(uid)
+            .collection(SETTINGS_COLLECTION).document(CONFIG_DOCUMENT)
+            .set(data, SetOptions.merge()).awaitResult().map { }
+    }
+
     override suspend fun getLastSmsScanEpochMillis(): Long {
         val uid = auth.currentUser?.uid ?: return 0L
         return userSettingsDao.getLastSmsScan(uid) ?: 0L
@@ -174,6 +198,7 @@ class DefaultSettingsRepository @Inject constructor(
 
                 repositoryScope.launch {
                     val local = userSettingsDao.getSettings(uid)
+                    val monthlyBudget = snapshot.getDouble("monthlyBudget") ?: local?.monthlyBudget ?: 0.0
                     if (local == null || updatedAt > local.updatedAtEpochMillis) {
                         userSettingsDao.upsert(
                             UserSettingsEntity(
@@ -184,6 +209,7 @@ class DefaultSettingsRepository @Inject constructor(
                                 lastSmsScanEpochMillis = maxOf(local?.lastSmsScanEpochMillis ?: 0L, lastSmsScan),
                                 isAutoMatchDepositsEnabled = autoMatch,
                                 isPushAlertsEnabled = pushAlerts,
+                                monthlyBudget = monthlyBudget,
                             )
                         )
                     }

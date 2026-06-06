@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import com.kahavanu.domain.model.CurrencyOption
 import com.kahavanu.domain.model.GoalEntry
 import com.kahavanu.ui.common.GlassCard
+import com.kahavanu.ui.common.compactAmount
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
@@ -45,33 +46,51 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlin.math.ceil
-import kotlin.math.roundToInt
 
+private val AccentGreen = Color(0xFF00BC7D)
+private val AccentRed = Color(0xFFEF4444)
+
+/**
+ * Lets the user trade discretionary spending against goal arrival, entirely from real numbers.
+ *
+ * The "flexible pool" is everything left after committed bills (income − committed = RCS +
+ * discretionary): spend none of it and the whole pool becomes savings; spend it all and savings
+ * drop to zero. The slider picks a simulated discretionary spend within that pool, the freed-up
+ * money raises RCS, and the arrival date is re-projected as ceil(remaining / new RCS).
+ */
 @Composable
 fun TradeOffSimulator(
     featuredGoal: GoalEntry?,
     currency: CurrencyOption,
     baselineRcs: Double = 0.0,
+    discretionarySpend: Double = 0.0,
     modifier: Modifier = Modifier,
 ) {
     if (featuredGoal == null || baselineRcs <= 0.0) return
     val remainingTarget = (featuredGoal.targetAmount - featuredGoal.currentAmount).coerceAtLeast(0.0)
+    if (remainingTarget <= 0.0) return
     val baselineMonths = ceil(remainingTarget / baselineRcs).toInt().coerceAtLeast(1)
 
-    var diningSpend by remember { mutableFloatStateOf(24000f) }
+    // Flexible pool = what you could save if you spent nothing discretionary (RCS + discretionary).
+    val flexiblePool = (baselineRcs + discretionarySpend).coerceAtLeast(1.0)
+    val baselineSpend = discretionarySpend.coerceIn(0.0, flexiblePool)
 
-    // diningSpend can range from 4,000 to 48,000
-    val minSpend = 4000f
-    val maxSpend = 48000f
+    // Re-seed the slider whenever the underlying figures change (new logs, new active goal).
+    var simulatedSpend by remember(baselineSpend, flexiblePool) {
+        mutableFloatStateOf(baselineSpend.toFloat())
+    }
 
-    val deltaDining = diningSpend.toDouble() - 24000.0
-    // new RCS: if dining spend is reduced (delta is negative), RCS increases!
-    val newRcs = (baselineRcs - deltaDining).coerceAtLeast(1000.0)
-    val newMonths = ceil(remainingTarget / newRcs).toInt().coerceAtLeast(1)
+    val newRcs = (flexiblePool - simulatedSpend).coerceAtLeast(0.0)
+    val newMonths = if (newRcs > 0.0) {
+        ceil(remainingTarget / newRcs).toInt().coerceAtLeast(1)
+    } else {
+        null
+    }
 
-    val targetDate = LocalDate.now().plusMonths(newMonths.toLong())
     val formatter = DateTimeFormatter.ofPattern("MMM yyyy", Locale.getDefault())
-    val targetDateText = "Around ${targetDate.format(formatter)}"
+    val targetDateText = newMonths?.let {
+        "Around ${LocalDate.now().plusMonths(it.toLong()).format(formatter)}"
+    } ?: "Not reachable at this rate"
 
     GlassCard(modifier = modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(Spacing.large)) {
@@ -106,10 +125,15 @@ fun TradeOffSimulator(
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "$newMonths mo",
+                        text = newMonths?.let { "$it mo" } ?: "—",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
-                        color = if (newMonths < baselineMonths) Color(0xFF00BC7D) else if (newMonths > baselineMonths) Color(0xFFEF4444) else TextPrimary,
+                        color = when {
+                            newMonths == null -> AccentRed
+                            newMonths < baselineMonths -> AccentGreen
+                            newMonths > baselineMonths -> AccentRed
+                            else -> TextPrimary
+                        },
                     )
                     Text(
                         text = targetDateText,
@@ -158,13 +182,13 @@ fun TradeOffSimulator(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Casual Dining Spend",
+                    text = "Discretionary Spend",
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Medium,
                     color = TextPrimary,
                 )
                 Text(
-                    text = formatSimAmount(diningSpend.toDouble(), currency.code),
+                    text = formatSimAmount(simulatedSpend.toDouble(), currency.code),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = TextPrimary,
@@ -174,13 +198,12 @@ fun TradeOffSimulator(
             Spacer(modifier = Modifier.height(Spacing.small))
 
             Slider(
-                value = diningSpend,
-                onValueChange = { diningSpend = it },
-                valueRange = minSpend..maxSpend,
-                steps = 43, // step by 1,000 LKR
+                value = simulatedSpend,
+                onValueChange = { simulatedSpend = it },
+                valueRange = 0f..flexiblePool.toFloat(),
                 colors = SliderDefaults.colors(
-                    thumbColor = Color(0xFF00BC7D),
-                    activeTrackColor = Color(0xFF00BC7D),
+                    thumbColor = AccentGreen,
+                    activeTrackColor = AccentGreen,
                     inactiveTrackColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
                     activeTickColor = Color.Transparent,
                     inactiveTickColor = Color.Transparent,
@@ -193,19 +216,19 @@ fun TradeOffSimulator(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "LKR 4K (Min)",
+                    text = "${currency.code} 0",
                     style = MaterialTheme.typography.labelSmall,
                     color = TextSecondary,
                     fontSize = 10.sp,
                 )
                 Text(
-                    text = "Baseline: LKR 24K",
+                    text = "Now: ${compactAmount(currency.code, baselineSpend.toFloat())}",
                     style = MaterialTheme.typography.labelSmall,
                     color = TextSecondary,
                     fontSize = 10.sp,
                 )
                 Text(
-                    text = "LKR 48K (Max)",
+                    text = compactAmount(currency.code, flexiblePool.toFloat()),
                     style = MaterialTheme.typography.labelSmall,
                     color = TextSecondary,
                     fontSize = 10.sp,
@@ -215,11 +238,12 @@ fun TradeOffSimulator(
             Spacer(modifier = Modifier.height(Spacing.medium))
 
             // Speed/Delay Pill Indicator
-            val deltaMonths = baselineMonths - newMonths
+            val deltaMonths = newMonths?.let { baselineMonths - it }
             val (pillText, pillColor, pillBg) = when {
-                deltaMonths > 0 -> Triple("Faster by $deltaMonths month${if (deltaMonths > 1) "s" else ""}!", Color(0xFF00BC7D), Color(0xFF00BC7D).copy(alpha = 0.08f))
-                deltaMonths < 0 -> Triple("Slower by ${-deltaMonths} month${if (-deltaMonths > 1) "s" else ""}", Color(0xFFEF4444), Color(0xFFEF4444).copy(alpha = 0.08f))
-                else -> Triple("Baseline dining budget", TextSecondary, MaterialTheme.colorScheme.surfaceVariant)
+                deltaMonths == null -> Triple("Saving nothing — goal stalls", AccentRed, AccentRed.copy(alpha = 0.08f))
+                deltaMonths > 0 -> Triple("Faster by $deltaMonths month${if (deltaMonths > 1) "s" else ""}!", AccentGreen, AccentGreen.copy(alpha = 0.08f))
+                deltaMonths < 0 -> Triple("Slower by ${-deltaMonths} month${if (-deltaMonths > 1) "s" else ""}", AccentRed, AccentRed.copy(alpha = 0.08f))
+                else -> Triple("At your current spending", TextSecondary, MaterialTheme.colorScheme.surfaceVariant)
             }
 
             Box(
@@ -270,7 +294,7 @@ fun TradeOffSimulator(
                 )
                 Spacer(modifier = Modifier.width(Spacing.small))
                 Text(
-                    text = "Move the slider to preview the impact on your arrival date.",
+                    text = "Trim this month's discretionary spend to see how much sooner you arrive.",
                     style = MaterialTheme.typography.labelSmall,
                     color = TextSecondary,
                     fontSize = 11.sp,

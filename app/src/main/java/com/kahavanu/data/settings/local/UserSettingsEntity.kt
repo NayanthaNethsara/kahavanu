@@ -12,4 +12,6 @@ data class UserSettingsEntity(
     val lastSmsScanEpochMillis: Long = 0L,
     val isAutoMatchDepositsEnabled: Boolean = true,
     val isPushAlertsEnabled: Boolean = true,
+    // User-defined monthly spending budget in the primary currency. 0.0 means "not set".
+    val monthlyBudget: Double = 0.0,
 )

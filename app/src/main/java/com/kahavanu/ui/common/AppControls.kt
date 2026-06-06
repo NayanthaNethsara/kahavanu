@@ -16,10 +16,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,7 +35,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.kahavanu.ui.theme.KahavanuShapes
+import com.kahavanu.ui.theme.ButtonTokens
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimaryEmerald
 import com.kahavanu.ui.theme.TextSecondary
@@ -46,6 +49,8 @@ fun PrimaryActionButton(
     enabled: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    leadingIcon: ImageVector? = null,
+    trailingIcon: ImageVector? = null,
 ) {
     val gradient = Brush.verticalGradient(
         colors = listOf(
@@ -63,6 +68,8 @@ fun PrimaryActionButton(
         ),
     )
 
+    val buttonShape = RoundedCornerShape(ButtonTokens.radius)
+
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -70,11 +77,11 @@ fun PrimaryActionButton(
             .shadow(
                 elevation = 18.dp,
                 spotColor = Color.Black.copy(alpha = 0.25f),
-                shape = KahavanuShapes.large,
+                shape = buttonShape,
             )
             .background(
                 if (enabled) gradient else disabledGradient,
-                KahavanuShapes.large,
+                buttonShape,
             )
             .border(
                 width = 0.5.dp,
@@ -84,19 +91,138 @@ fun PrimaryActionButton(
                         Color.White.copy(alpha = 0.1f),
                     ),
                 ),
-                shape = KahavanuShapes.large,
+                shape = buttonShape,
             )
-            .clip(KahavanuShapes.large)
+            .clip(buttonShape)
             .clickable(enabled = enabled, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
+        val contentColor = if (enabled) Color.White else Color.White.copy(alpha = 0.65f)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+        ) {
+            if (leadingIcon != null) {
+                Icon(
+                    imageVector = leadingIcon,
+                    contentDescription = null,
+                    tint = contentColor,
+                    modifier = Modifier.size(18.dp),
+                )
+                Spacer(modifier = Modifier.width(Spacing.small))
+            }
+            Text(
+                text = text,
+                style = MaterialTheme.typography.titleSmall,
+                fontSize = TextSize.base,
+                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                color = contentColor,
+                letterSpacing = (-0.23).sp,
+            )
+            if (trailingIcon != null) {
+                Spacer(modifier = Modifier.width(Spacing.small))
+                Icon(
+                    imageVector = trailingIcon,
+                    contentDescription = null,
+                    tint = contentColor,
+                    modifier = Modifier.size(18.dp),
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Secondary / outlined full-width action button. Use for the lower-emphasis choice next
+ * to a [PrimaryActionButton] (e.g. "Cancel", "Continue with Google").
+ */
+@Composable
+fun SecondaryActionButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    leadingIcon: ImageVector? = null,
+    tintIcon: Boolean = true,
+) {
+    val buttonShape = RoundedCornerShape(ButtonTokens.radius)
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(54.dp)
+            .clip(buttonShape)
+            .background(Color.White.copy(alpha = 0.7f), buttonShape)
+            .border(
+                width = 1.2.dp,
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.7f),
+                shape = buttonShape,
+            )
+            .clickable(enabled = enabled, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        val contentColor = MaterialTheme.colorScheme.onSurface
+            .copy(alpha = if (enabled) 1f else 0.5f)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+        ) {
+            if (leadingIcon != null) {
+                Icon(
+                    imageVector = leadingIcon,
+                    contentDescription = null,
+                    tint = if (tintIcon) contentColor else Color.Unspecified,
+                    modifier = Modifier.size(20.dp),
+                )
+                Spacer(modifier = Modifier.width(Spacing.small))
+            }
+            Text(
+                text = text,
+                style = MaterialTheme.typography.titleSmall,
+                fontSize = TextSize.base,
+                fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
+                color = contentColor,
+            )
+        }
+    }
+}
+
+/**
+ * Standard inline / dialog text button with consistent brand colouring. Pass [destructive]
+ * for actions like "Clear all" or "Delete".
+ */
+@Composable
+fun AppTextButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    destructive: Boolean = false,
+    muted: Boolean = false,
+    leadingIcon: ImageVector? = null,
+) {
+    val contentColor = when {
+        destructive -> MaterialTheme.colorScheme.error
+        muted -> TextSecondary
+        else -> MaterialTheme.colorScheme.primary
+    }
+    TextButton(
+        onClick = onClick,
+        modifier = modifier,
+        enabled = enabled,
+        colors = ButtonDefaults.textButtonColors(contentColor = contentColor),
+    ) {
+        if (leadingIcon != null) {
+            Icon(
+                imageVector = leadingIcon,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+            )
+            Spacer(modifier = Modifier.width(Spacing.small))
+        }
         Text(
             text = text,
             style = MaterialTheme.typography.titleSmall,
-            fontSize = TextSize.base,
-            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-            color = if (enabled) Color.White else Color.White.copy(alpha = 0.65f),
-            letterSpacing = (-0.23).sp,
+            fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
         )
     }
 }

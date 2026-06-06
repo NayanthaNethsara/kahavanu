@@ -11,6 +11,8 @@ import com.kahavanu.domain.model.SuggestionKind
 import com.kahavanu.domain.model.SuggestionStatus
 import com.kahavanu.domain.repository.SmsSenderRepository
 import com.kahavanu.domain.repository.SettingsRepository
+import com.kahavanu.notifications.AppNotifier
+import com.kahavanu.sieve.engine.PendingMatch
 import com.kahavanu.sieve.engine.PendingMatcher
 import com.kahavanu.sieve.engine.RawSms
 import com.kahavanu.sieve.engine.SmsClassifier
@@ -30,6 +32,7 @@ class SmsScanWorker @AssistedInject constructor(
     private val smsSuggestionDao: SmsSuggestionDao,
     private val smsSenderRepository: SmsSenderRepository,
     private val settingsRepository: SettingsRepository,
+    private val appNotifier: AppNotifier,
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
@@ -65,8 +68,18 @@ class SmsScanWorker @AssistedInject constructor(
 
         val parsed = classifier.classify(raw) ?: return
 
-        val matchedId = pendingMatcher.findMatch(parsed, raw.senderName)
-        val effectiveKind = if (matchedId != null) SuggestionKind.SETTLE_PENDING else parsed.kind
+        val match = pendingMatcher.findMatch(parsed, raw.senderName)
+
+        // A subscription charge is already auto-logged by the subscription scheduler, so the
+        // bank SMS for it is a duplicate — skip creating a redundant expense suggestion.
+        if (match is PendingMatch.SubscriptionCharge) return
+
+        val matchedScheduledIncomeId = (match as? PendingMatch.ScheduledIncome)?.scheduledIncomeId
+        val effectiveKind = if (matchedScheduledIncomeId != null) {
+            SuggestionKind.SETTLE_PENDING
+        } else {
+            parsed.kind
+        }
 
         val now = System.currentTimeMillis()
         smsSuggestionDao.insertIfNew(
@@ -81,12 +94,16 @@ class SmsScanWorker @AssistedInject constructor(
                 title = parsed.title,
                 merchant = parsed.merchant,
                 txnAtEpochMillis = parsed.txnAtEpochMillis,
-                matchedScheduledIncomeId = matchedId,
+                matchedScheduledIncomeId = matchedScheduledIncomeId,
                 status = SuggestionStatus.PENDING.name,
                 confidence = parsed.confidence,
                 createdAtEpochMillis = now,
                 updatedAtEpochMillis = now,
             )
         )
+
+        // The duplicate guard (existsByHash) above means we only reach here for a newly
+        // detected transaction, so it is safe to notify the user about it.
+        appNotifier.notifySmsDetected(parsed.kind, parsed.title, parsed.amount, parsed.currency)
     }
 }

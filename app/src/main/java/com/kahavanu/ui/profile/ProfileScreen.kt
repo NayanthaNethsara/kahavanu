@@ -30,8 +30,8 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -64,10 +64,10 @@ fun ProfileScreen(
     onNavigateToHelpSupport: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
-    val userSession by viewModel.userSession.collectAsState()
-    val isAutoMatchDepositsEnabled by viewModel.isAutoMatchDepositsEnabled.collectAsState()
-    val isPushAlertsEnabled by viewModel.isPushAlertsEnabled.collectAsState()
-    val isDarkModeEnabled by viewModel.isDarkModeEnabled.collectAsState()
+    val userSession by viewModel.userSession.collectAsStateWithLifecycle()
+    val isAutoMatchDepositsEnabled by viewModel.isAutoMatchDepositsEnabled.collectAsStateWithLifecycle()
+    val isPushAlertsEnabled by viewModel.isPushAlertsEnabled.collectAsStateWithLifecycle()
+    val isDarkModeEnabled by viewModel.isDarkModeEnabled.collectAsStateWithLifecycle()
 
     KahavanuScreen(
         headerLabel = "Profile",

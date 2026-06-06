@@ -48,9 +48,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.SnackbarHostState
 import com.kahavanu.ui.common.AppSnackbarHost
+import com.kahavanu.ui.common.AppTextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -143,7 +143,8 @@ fun IncomeLogScreen(
         DatePickerDialog(
             onDismissRequest = { viewModel.onDatePickerOpenChange(false) },
             confirmButton = {
-                TextButton(
+                AppTextButton(
+                    text = "OK",
                     onClick = {
                         val millis = pickerState.selectedDateMillis
                         if (millis != null) {
@@ -155,14 +156,10 @@ fun IncomeLogScreen(
                             viewModel.onDatePickerOpenChange(false)
                         }
                     },
-                ) {
-                    Text("OK")
-                }
+                )
             },
             dismissButton = {
-                TextButton(onClick = { viewModel.onDatePickerOpenChange(false) }) {
-                    Text("Cancel")
-                }
+                AppTextButton(text = "Cancel", onClick = { viewModel.onDatePickerOpenChange(false) })
             },
         ) {
             DatePicker(state = pickerState)

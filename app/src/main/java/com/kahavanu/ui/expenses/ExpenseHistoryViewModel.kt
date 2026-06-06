@@ -7,6 +7,7 @@ import com.kahavanu.domain.repository.ExpensesRepository
 import com.kahavanu.domain.repository.SettingsRepository
 import com.kahavanu.ui.common.HistoryDateRange
 import com.kahavanu.ui.common.contains
+import com.kahavanu.ui.util.CurrencyConverter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -81,7 +82,9 @@ class ExpenseHistoryViewModel @Inject constructor(
             availablePaymentMethods = availablePaymentMethods,
             currencyCode = primaryCurrency.code,
             expenses = filteredExpenses.sortedByDescending { it.spentAtEpochMillis },
-            totalExpenses = filteredExpenses.sumOf { it.amount },
+            // Total folds every currency into the primary one (static rates); list items keep their own.
+            totalExpenses = filteredExpenses
+                .sumOf { CurrencyConverter.convert(it.amount, it.currency, primaryCurrency.code) },
         )
     }.stateIn(
         scope = viewModelScope,

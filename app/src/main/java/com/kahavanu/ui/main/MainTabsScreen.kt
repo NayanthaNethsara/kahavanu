@@ -5,7 +5,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -32,6 +37,8 @@ import com.kahavanu.ui.support.HelpSupportScreen
 import com.kahavanu.ui.sources.IncomeSourcesScreen
 import com.kahavanu.ui.subscriptions.ManageSubscriptionsScreen
 import com.kahavanu.ui.navigation.AppDestination
+import com.kahavanu.ui.notifications.NotificationsSheet
+import com.kahavanu.ui.notifications.NotificationsViewModel
 import com.kahavanu.ui.profile.ProfileScreen
 import com.kahavanu.ui.sieve.SmsSenderSettingsScreen
 
@@ -43,6 +50,11 @@ fun MainTabsScreen(
 ) {
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = currentBackStackEntry?.destination?.route
+
+    val notificationsViewModel: NotificationsViewModel = hiltViewModel()
+    val unreadCount by notificationsViewModel.unreadCount.collectAsStateWithLifecycle()
+    val notifications by notificationsViewModel.notifications.collectAsStateWithLifecycle()
+    var showNotifications by remember { mutableStateOf(false) }
     val showBottomBar = currentRoute in setOf(
         AppDestination.Home.route,
         AppDestination.Income.route,
@@ -64,6 +76,11 @@ fun MainTabsScreen(
             if (showTopBar) {
                 TopAppHeader(
                     currentSession = currentSession,
+                    onNotificationClick = {
+                        showNotifications = true
+                        notificationsViewModel.markAllRead()
+                    },
+                    unreadCount = unreadCount,
                 )
             }
         },
@@ -141,7 +158,13 @@ fun MainTabsScreen(
             composable(AppDestination.IncomeLog.route) {
                 IncomeLogScreen(
                     onBack = { navController.popBackStack() },
-                    onLogged = { navController.popBackStack() },
+                    onLogged = {
+                        navController.navigate(AppDestination.Income.route) {
+                            popUpTo(AppDestination.Home.route) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
                     onManageSources = { navController.navigate(AppDestination.IncomeSources.route) },
                 )
             }
@@ -184,7 +207,13 @@ fun MainTabsScreen(
             composable(AppDestination.GoalSetup.route) {
                 GoalSetupScreen(
                     onBack = { navController.popBackStack() },
-                    onSaved = { navController.popBackStack() },
+                    onSaved = {
+                        navController.navigate(AppDestination.Goals.route) {
+                            popUpTo(AppDestination.Home.route) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
                 )
             }
             composable(AppDestination.GoalStats.route) {
@@ -249,5 +278,13 @@ fun MainTabsScreen(
                 )
             }
         }
+    }
+
+    if (showNotifications) {
+        NotificationsSheet(
+            notifications = notifications,
+            onClearAll = { notificationsViewModel.clearAll() },
+            onDismiss = { showNotifications = false },
+        )
     }
 }

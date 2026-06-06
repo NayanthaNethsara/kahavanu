@@ -17,6 +17,7 @@ import com.kahavanu.domain.model.IncomeLogEntry
 import com.kahavanu.domain.model.IncomeLogResult
 import com.kahavanu.domain.model.IncomeSource
 import com.kahavanu.domain.model.IncomeSourceType
+import com.kahavanu.notifications.AppNotifier
 import com.kahavanu.domain.repository.IncomeRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -44,6 +45,7 @@ class DefaultIncomeRepository @Inject constructor(
     private val incomeSourceDao: IncomeSourceDao,
     private val scheduledIncomeDao: ScheduledIncomeDao,
     private val syncScheduler: IncomeSyncScheduler,
+    private val appNotifier: AppNotifier,
     @ApplicationContext private val appContext: Context,
 ) : IncomeRepository {
     private val repositoryScope = CoroutineScope(Dispatchers.IO)
@@ -412,6 +414,7 @@ class DefaultIncomeRepository @Inject constructor(
                     isSynced = false
                 )
                 scheduledIncomeDao.upsert(updated)
+                appNotifier.notifyIncomeArrived(item.title, item.amount, item.currency)
                 val remoteResult = upsertRemoteScheduled(uid, updated)
                 if (remoteResult.isSuccess) {
                     scheduledIncomeDao.markSynced(updated.localId, remoteResult.getOrThrow())

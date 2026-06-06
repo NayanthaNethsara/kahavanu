@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import com.kahavanu.domain.model.CurrencyOption
 import com.kahavanu.domain.model.GoalEntry
 import com.kahavanu.ui.common.GlassCard
+import com.kahavanu.ui.common.PrimaryActionButton
 import com.kahavanu.ui.theme.CornerRadius
 import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
@@ -51,6 +52,7 @@ fun GoalsSummaryCard(
     featuredGoal: GoalEntry?,
     currency: CurrencyOption,
     onAddGoal: () -> Unit = {},
+    onAddSavings: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     if (featuredGoal == null) {
@@ -63,6 +65,7 @@ fun GoalsSummaryCard(
         ActiveGoalSummary(
             featuredGoal = featuredGoal,
             currency = currency,
+            onAddSavings = onAddSavings,
             modifier = modifier,
         )
     }
@@ -72,6 +75,7 @@ fun GoalsSummaryCard(
 private fun ActiveGoalSummary(
     featuredGoal: GoalEntry,
     currency: CurrencyOption,
+    onAddSavings: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val savedAmount = featuredGoal.currentAmount
@@ -213,6 +217,15 @@ private fun ActiveGoalSummary(
                     fontWeight = FontWeight.Medium,
                 )
             }
+
+            Spacer(modifier = Modifier.height(Spacing.medium))
+
+            PrimaryActionButton(
+                text = "Add savings",
+                enabled = true,
+                onClick = onAddSavings,
+                leadingIcon = Icons.Outlined.Add,
+            )
         }
     }
 }

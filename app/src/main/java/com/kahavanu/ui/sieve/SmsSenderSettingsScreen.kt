@@ -37,10 +37,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import com.kahavanu.ui.common.AppTextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,6 +55,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kahavanu.domain.model.SmsSender
 import com.kahavanu.ui.common.AppSnackbarHost
 import com.kahavanu.ui.common.GlassCard
@@ -79,21 +79,16 @@ fun SmsSenderSettingsScreen(
     onBack: () -> Unit,
     viewModel: SmsSenderSettingsViewModel = hiltViewModel()
 ) {
-    val senders by viewModel.senders.collectAsState()
+    val filteredSenders by viewModel.filteredSenders.collectAsStateWithLifecycle()
+    val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
+    // Form/dialog state is transient UI element state, so it stays hoisted in the composable.
     var newSenderName by remember { mutableStateOf("") }
     var newSenderSubtitle by remember { mutableStateOf("") }
     var isSheetOpen by remember { mutableStateOf(false) }
-    var searchQuery by remember { mutableStateOf("") }
     var senderToEdit by remember { mutableStateOf<SmsSender?>(null) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
-
-    val filteredSenders = remember(senders, searchQuery) {
-        senders.filter { sender ->
-            sender.senderName.contains(searchQuery, ignoreCase = true)
-        }
-    }
 
     KahavanuSubScreen(
         label = "SMS Scanning",
@@ -135,7 +130,7 @@ fun SmsSenderSettingsScreen(
         ) {
             NestedSearchField(
                 value = searchQuery,
-                onValueChange = { searchQuery = it },
+                onValueChange = viewModel::onSearchQueryChange,
                 placeholder = "Search senders...",
                 modifier = Modifier.fillMaxWidth()
             )
@@ -279,9 +274,7 @@ private fun SmsSenderForm(
                 fontWeight = FontWeight.Bold,
                 color = TextPrimary
             )
-            TextButton(onClick = onCancel) {
-                Text("Cancel", color = TextSecondary)
-            }
+            AppTextButton(text = "Cancel", onClick = onCancel, muted = true)
         }
 
         Column(verticalArrangement = Arrangement.spacedBy(Spacing.large)) {

@@ -44,13 +44,22 @@ data class IncomeStreamItem(
     val iconIndex: Int,
 )
 
+/** One month's income vs. expense totals (primary currency) for the home cash-flow chart. */
+data class MonthlyFlowPoint(
+    val label: String,
+    val income: Double,
+    val expense: Double,
+)
+
 data class HomeUiState(
     val featuredGoal: GoalEntry? = null,
     val sieveItems: List<SieveItem> = emptyList(),
     val incomeStreams: List<IncomeStreamItem> = emptyList(),
+    val monthlyFlow: List<MonthlyFlowPoint> = emptyList(),
     val currentUserName: String = "User",
     val totalIncomeThisMonth: Double = 0.0,
     val totalExpensesThisMonth: Double = 0.0,
+    val currencyCode: String = "LKR",
     val isScanning: Boolean = false,
     val isSieveEnabled: Boolean = false,
 )
@@ -77,9 +86,13 @@ class HomeViewModel @Inject constructor(
         smsSuggestionRepository.observePendingSuggestions(),
         smsScanRepository.isScanningFlow,
         smsSenderRepository.observeAuthorizedSenders(),
-    ) { triple, suggestions, isScanning, senders ->
+        settingsRepository.observeCurrencySettings(),
+    ) { triple, suggestions, isScanning, senders, currencies ->
         val (goals, incomeLogs, expenseLogs) = triple
-        val featured = goals.firstOrNull { !it.isCompleted }
+        val primaryCode = currencies.first.code
+        // Prefer the goal the user pinned as active; fall back to the latest open goal.
+        val featured = goals.firstOrNull { it.isActive && !it.isCompleted }
+            ?: goals.firstOrNull { !it.isCompleted }
         val hasEnabledSenders = senders.any { it.isEnabled }
         val sieveItems = if (hasEnabledSenders) suggestions.map { it.toSieveItem() } else emptyList()
 
@@ -100,17 +113,21 @@ class HomeViewModel @Inject constructor(
             return c.get(java.util.Calendar.YEAR) == currentYear && c.get(java.util.Calendar.MONTH) == currentMonth
         }
 
+        // Fold every currency into the primary one (static rates) so secondary logs aren't dropped.
         val totalIncomeThisMonth = incomeLogs
-            .filter { it.currency == "LKR" && it.sourceType != "pending" && isCurrentMonth(it.receivedAtEpochMillis) }
-            .sumOf { it.amount }
+            .filter { it.sourceType != "pending" && isCurrentMonth(it.receivedAtEpochMillis) }
+            .sumOf { com.kahavanu.ui.util.CurrencyConverter.convert(it.amount, it.currency, primaryCode) }
 
         val totalExpensesThisMonth = expenseLogs
-            .filter { it.currency == "LKR" && isCurrentMonth(it.spentAtEpochMillis) }
-            .sumOf { it.amount }
+            .filter { isCurrentMonth(it.spentAtEpochMillis) }
+            .sumOf { com.kahavanu.ui.util.CurrencyConverter.convert(it.amount, it.currency, primaryCode) }
+
+        val monthlyFlow = buildMonthlyFlow(incomeLogs, expenseLogs, primaryCode, months = 6)
 
         HomeUiState(
             featuredGoal = featured,
             sieveItems = sieveItems,
+            monthlyFlow = monthlyFlow,
             incomeStreams = listOf(
                 IncomeStreamItem(
                     title = "Local · LKR",
@@ -139,6 +156,7 @@ class HomeViewModel @Inject constructor(
             ),
             totalIncomeThisMonth = totalIncomeThisMonth,
             totalExpensesThisMonth = totalExpensesThisMonth,
+            currencyCode = primaryCode,
             isScanning = isScanning,
             isSieveEnabled = hasEnabledSenders,
         )
@@ -212,6 +230,38 @@ class HomeViewModel @Inject constructor(
                 }
             }
         }
+    }
+}
+
+/**
+ * Income vs. expense totals (primary [currency]) for the last [months] calendar months,
+ * oldest first and ending with the current month. Pending income is excluded.
+ */
+private fun buildMonthlyFlow(
+    incomeLogs: List<IncomeLogEntry>,
+    expenseLogs: List<ExpenseLogEntry>,
+    currency: String,
+    months: Int,
+): List<MonthlyFlowPoint> {
+    val zone = java.time.ZoneId.systemDefault()
+    val thisMonth = java.time.YearMonth.now(zone)
+    fun monthOf(epochMillis: Long): java.time.YearMonth =
+        java.time.YearMonth.from(java.time.Instant.ofEpochMilli(epochMillis).atZone(zone))
+
+    return (months - 1 downTo 0).map { ago ->
+        val ym = thisMonth.minusMonths(ago.toLong())
+        // Fold every currency into the primary one (static rates) instead of dropping secondary logs.
+        val income = incomeLogs
+            .filter { it.sourceType != "pending" && monthOf(it.receivedAtEpochMillis) == ym }
+            .sumOf { com.kahavanu.ui.util.CurrencyConverter.convert(it.amount, it.currency, currency) }
+        val expense = expenseLogs
+            .filter { monthOf(it.spentAtEpochMillis) == ym }
+            .sumOf { com.kahavanu.ui.util.CurrencyConverter.convert(it.amount, it.currency, currency) }
+        MonthlyFlowPoint(
+            label = ym.month.getDisplayName(java.time.format.TextStyle.SHORT, java.util.Locale.getDefault()),
+            income = income,
+            expense = expense,
+        )
     }
 }
 

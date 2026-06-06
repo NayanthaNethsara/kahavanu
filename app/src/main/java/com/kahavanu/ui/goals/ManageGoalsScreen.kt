@@ -43,12 +43,10 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -62,12 +60,14 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kahavanu.domain.model.CurrencyOption
 import com.kahavanu.domain.model.GoalCategory
 import com.kahavanu.domain.model.GoalEntry
 import com.kahavanu.ui.common.AppSnackbarHost
 import com.kahavanu.ui.common.GlassCard
 import com.kahavanu.ui.common.KahavanuSubScreen
+import com.kahavanu.ui.common.AppTextButton
 import com.kahavanu.ui.common.PrimaryActionButton
 import com.kahavanu.ui.common.SectionLabel
 import com.kahavanu.ui.common.textFieldColors
@@ -94,7 +94,7 @@ fun ManageGoalsScreen(
     onAddGoal: () -> Unit,
     viewModel: ManageGoalsViewModel = hiltViewModel(),
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val scrollState = rememberScrollState()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val snackbarHostState = remember { SnackbarHostState() }
@@ -130,17 +130,17 @@ fun ManageGoalsScreen(
                 )
             },
             confirmButton = {
-                TextButton(onClick = {
-                    viewModel.deleteGoal(goal.id)
-                    goalToDelete = null
-                }) {
-                    Text("Delete", color = MaterialTheme.colorScheme.error)
-                }
+                AppTextButton(
+                    text = "Delete",
+                    destructive = true,
+                    onClick = {
+                        viewModel.deleteGoal(goal.id)
+                        goalToDelete = null
+                    },
+                )
             },
             dismissButton = {
-                TextButton(onClick = { goalToDelete = null }) {
-                    Text("Cancel", color = TextSecondary)
-                }
+                AppTextButton(text = "Cancel", onClick = { goalToDelete = null }, muted = true)
             },
             containerColor = Color.White,
             shape = KahavanuShapes.large,
@@ -266,22 +266,23 @@ fun ManageGoalsScreen(
             DatePickerDialog(
                 onDismissRequest = { viewModel.onDatePickerOpenChange(false) },
                 confirmButton = {
-                    TextButton(onClick = {
-                        val millis = pickerState.selectedDateMillis
-                        if (millis != null) {
-                            val date = java.time.Instant.ofEpochMilli(millis)
-                                .atZone(ZoneOffset.UTC)
-                                .toLocalDate()
-                            viewModel.onDateChange(date)
-                        } else {
-                            viewModel.onDatePickerOpenChange(false)
-                        }
-                    }) { Text("OK") }
+                    AppTextButton(
+                        text = "OK",
+                        onClick = {
+                            val millis = pickerState.selectedDateMillis
+                            if (millis != null) {
+                                val date = java.time.Instant.ofEpochMilli(millis)
+                                    .atZone(ZoneOffset.UTC)
+                                    .toLocalDate()
+                                viewModel.onDateChange(date)
+                            } else {
+                                viewModel.onDatePickerOpenChange(false)
+                            }
+                        },
+                    )
                 },
                 dismissButton = {
-                    TextButton(onClick = { viewModel.onDatePickerOpenChange(false) }) {
-                        Text("Cancel")
-                    }
+                    AppTextButton(text = "Cancel", onClick = { viewModel.onDatePickerOpenChange(false) })
                 },
             ) {
                 DatePicker(state = pickerState)
@@ -585,9 +586,7 @@ private fun EditGoalForm(
                 fontWeight = FontWeight.Bold,
                 color = TextPrimary,
             )
-            TextButton(onClick = onCancel) {
-                Text("Cancel", color = TextSecondary)
-            }
+            AppTextButton(text = "Cancel", onClick = onCancel, muted = true)
         }
 
         Column(verticalArrangement = Arrangement.spacedBy(Spacing.small)) {
@@ -689,9 +688,7 @@ private fun EditGoalForm(
                 Box(modifier = Modifier.matchParentSize())
             }
             if (targetDateLabel.isNotBlank()) {
-                TextButton(onClick = onClearDate) {
-                    Text("Clear target date", color = TextSecondary)
-                }
+                AppTextButton(text = "Clear target date", onClick = onClearDate, muted = true)
             }
         }
 

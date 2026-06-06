@@ -3,6 +3,7 @@ package com.kahavanu.ui.expenses.components
 import com.kahavanu.ui.util.formatAmount
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,6 +34,7 @@ import com.kahavanu.ui.theme.Spacing
 import com.kahavanu.ui.theme.TextPrimary
 import com.kahavanu.ui.theme.TextSecondary
 import com.kahavanu.ui.theme.TextSize
+import com.kahavanu.ui.theme.Warning
 import kotlin.math.roundToInt
 
 @Composable
@@ -43,6 +45,7 @@ fun ExpensesSummaryCard(
     budgetLimit: Double,
     categorySummaries: List<ExpenseCategorySummary>,
     monthLabel: String,
+    onEditBudget: () -> Unit = {},
 ) {
     val activeSummaries = categorySummaries.filter { it.amount > 0.0 }
     val totalForDonut = activeSummaries.sumOf { it.amount }
@@ -63,7 +66,9 @@ fun ExpensesSummaryCard(
     }
 
     GlassCard(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onEditBudget() }
     ) {
         Column(
             modifier = Modifier.padding(Spacing.large),
@@ -88,9 +93,13 @@ fun ExpensesSummaryCard(
             Spacer(modifier = Modifier.height(Spacing.medium))
 
             Text(
-                text = "Budget: ${formatAmount(budgetLimit, currency.code, decimals = 0)} · $budgetRatio% used",
+                text = if (budgetLimit > 0.0) {
+                    "Budget: ${formatAmount(budgetLimit, currency.code, decimals = 0)} · $budgetRatio% used"
+                } else {
+                    "Tap to set a budget"
+                },
                 style = MaterialTheme.typography.bodySmall,
-            color = TextSecondary,
+                color = if (budgetLimit > 0.0 && budgetRatio > 100) Warning else TextSecondary,
             )
 
             if (activeSummaries.size >= 4) {

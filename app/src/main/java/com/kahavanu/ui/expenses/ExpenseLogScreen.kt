@@ -32,17 +32,16 @@ import androidx.compose.material.icons.outlined.PhoneAndroid
 import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material.icons.outlined.SportsEsports
 import androidx.compose.material.icons.outlined.Wallet
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.SnackbarHostState
 import com.kahavanu.ui.common.AppSnackbarHost
+import com.kahavanu.ui.common.AppTextButton
+import com.kahavanu.ui.common.PrimaryActionButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -131,7 +130,8 @@ fun ExpenseLogScreen(
         DatePickerDialog(
             onDismissRequest = { viewModel.onDatePickerOpenChange(false) },
             confirmButton = {
-                TextButton(
+                AppTextButton(
+                    text = "OK",
                     onClick = {
                         val selectedDateMillis = pickerState.selectedDateMillis
                         if (selectedDateMillis != null) {
@@ -142,16 +142,10 @@ fun ExpenseLogScreen(
                         }
                         viewModel.onDatePickerOpenChange(false)
                     },
-                ) {
-                    Text("OK")
-                }
+                )
             },
             dismissButton = {
-                TextButton(
-                    onClick = { viewModel.onDatePickerOpenChange(false) },
-                ) {
-                    Text("Cancel")
-                }
+                AppTextButton(text = "Cancel", onClick = { viewModel.onDatePickerOpenChange(false) })
             },
         ) {
             DatePicker(state = pickerState)
@@ -321,28 +315,11 @@ fun ExpenseLogScreen(
                 )
             }
 
-            Button(
-                onClick = viewModel::logExpense,
+            PrimaryActionButton(
+                text = if (uiState.isSaving) "Adding..." else "Add Expense",
                 enabled = !uiState.isSaving,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
-                shape = RoundedCornerShape(99.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = AccentExpense,
-                    contentColor = Color.White,
-                    disabledContainerColor = AccentExpense.copy(alpha = 0.5f),
-                    disabledContentColor = Color.White,
-                ),
-            ) {
-                Text(
-                    text = if (uiState.isSaving) "Adding..." else "Add Expense",
-                    fontSize = 22.sp,
-                    lineHeight = 26.sp,
-                    fontWeight = FontWeight.Medium,
-                    letterSpacing = (-0.55).sp,
-                )
-            }
+                onClick = viewModel::logExpense,
+            )
 
             Spacer(modifier = Modifier.height(Spacing.huge))
         }

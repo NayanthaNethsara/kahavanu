@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.kahavanu.domain.model.ExpenseLogEntry
 import com.kahavanu.domain.repository.ExpensesRepository
 import com.kahavanu.domain.repository.SettingsRepository
+import com.kahavanu.ui.util.CurrencyConverter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -30,10 +31,13 @@ class ExpenseGraphViewModel @Inject constructor(
     )
 
     private fun buildStats(expenses: List<ExpenseLogEntry>, currencyCode: String): ExpenseStats {
-        val totalSpent = expenses.sumOf { it.amount }
+        // Fold every currency into the primary one (static rates) so secondary logs aren't dropped.
+        fun ExpenseLogEntry.spentInPrimary(): Double =
+            CurrencyConverter.convert(amount, currency, currencyCode)
+        val totalSpent = expenses.sumOf { it.spentInPrimary() }
         val categoryBreakdown = expenses
             .groupBy { it.category }
-            .mapValues { (_, entries) -> entries.sumOf { it.amount } }
+            .mapValues { (_, entries) -> entries.sumOf { it.spentInPrimary() } }
             .entries
             .sortedByDescending { it.value }
             .associate { it.key to it.value }

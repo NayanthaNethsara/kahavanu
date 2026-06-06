@@ -24,6 +24,7 @@ import com.kahavanu.ui.theme.AccentIncome
 import com.kahavanu.ui.theme.AccentExpense
 import com.kahavanu.ui.theme.InfoAccent
 import com.kahavanu.ui.theme.Warning
+import com.kahavanu.ui.home.components.MonthlyFlowCard
 import com.kahavanu.ui.home.components.OverviewSection
 import com.kahavanu.ui.home.components.SieveSection
 import com.kahavanu.ui.home.components.StreamsCard
@@ -78,6 +79,7 @@ fun HomeScreen(
             OverviewSection(
                 totalIncomeThisMonth = uiState.totalIncomeThisMonth,
                 totalExpensesThisMonth = uiState.totalExpensesThisMonth,
+                currencyCode = uiState.currencyCode,
             )
         }
         screenSection {
@@ -98,7 +100,6 @@ fun HomeScreen(
                     icon = Icons.Outlined.HourglassEmpty,
                     label = "Pending",
                     onClick = onPendingClick,
-                    badgeCount = uiState.sieveItems.size,
                     iconTint = InfoAccent
                 ),
                 QuickAction(
@@ -109,6 +110,12 @@ fun HomeScreen(
                 )
             )
             QuickActionRow(actions = quickActions)
+        }
+        screenSection {
+            MonthlyFlowCard(
+                points = uiState.monthlyFlow,
+                currencyCode = uiState.currencyCode,
+            )
         }
         if (uiState.isSieveEnabled) {
             item {

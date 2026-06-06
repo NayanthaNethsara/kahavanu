@@ -3,9 +3,18 @@ package com.kahavanu.ui.expenses
 import com.kahavanu.ui.util.currentMonthLabel
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import com.kahavanu.ui.common.AppTextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.material.icons.Icons
@@ -34,15 +43,16 @@ fun ExpensesScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val monthLabel = currentMonthLabel()
+    var showBudgetDialog by remember { mutableStateOf(false) }
 
     // Dynamically calculate the biggest spend metrics based on database summaries
     val activeSummaries = uiState.categorySummaries.filter { it.amount > 0.0 }
     val biggestSpend = activeSummaries.maxByOrNull { it.amount }
     val totalSpent = uiState.totalSpent
-    
-    val biggestSpendCategory = biggestSpend?.label ?: "Food"
-    val biggestSpendAmount = biggestSpend?.amount ?: 45000.0
-    val biggestSpendPercent = if (totalSpent > 0.0) ((biggestSpendAmount / totalSpent) * 100).toInt() else 30
+
+    val biggestSpendCategory = biggestSpend?.label ?: "—"
+    val biggestSpendAmount = biggestSpend?.amount ?: 0.0
+    val biggestSpendPercent = if (totalSpent > 0.0) ((biggestSpendAmount / totalSpent) * 100).toInt() else 0
     val biggestSpendSubtitle = "LKR ${String.format("%,.0f", biggestSpendAmount / 1000)}K · $biggestSpendPercent%"
     val biggestSpendSubtitleText = "LKR ${String.format("%,.0f", biggestSpendAmount / 1000)}K · $biggestSpendPercent%"
 
@@ -59,6 +69,7 @@ fun ExpensesScreen(
                     budgetLimit = uiState.budgetLimit,
                     categorySummaries = uiState.categorySummaries,
                     monthLabel = monthLabel,
+                    onEditBudget = { showBudgetDialog = true },
                 )
                 QuickActionRow(
                     actions = listOf(
@@ -96,6 +107,11 @@ fun ExpensesScreen(
                 biggestSpendSubtitle = biggestSpendSubtitle,
                 subscriptionCost = uiState.subscriptionCost,
                 subscriptionCount = uiState.subscriptionCount,
+                spendTrend = uiState.spendTrend,
+                dailyBudget = uiState.dailyBudget,
+                thisWeekSpend = uiState.thisWeekSpend,
+                weeklyAverageSpend = uiState.weeklyAverageSpend,
+                currencyCode = uiState.currency.code,
                 onSubscriptionLongClick = onViewSubscriptions
             )
         }
@@ -121,4 +137,51 @@ fun ExpensesScreen(
             )
         }
     }
+
+    if (showBudgetDialog) {
+        MonthlyBudgetDialog(
+            currentBudget = uiState.monthlyBudget,
+            currencyCode = uiState.currency.code,
+            onDismiss = { showBudgetDialog = false },
+            onConfirm = { amount ->
+                viewModel.setMonthlyBudget(amount)
+                showBudgetDialog = false
+            },
+        )
+    }
+}
+
+@Composable
+private fun MonthlyBudgetDialog(
+    currentBudget: Double,
+    currencyCode: String,
+    onDismiss: () -> Unit,
+    onConfirm: (Double) -> Unit,
+) {
+    var input by remember {
+        mutableStateOf(if (currentBudget > 0.0) currentBudget.toLong().toString() else "")
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(text = "Monthly budget") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.small)) {
+                Text(text = "Set your spending budget for the month ($currencyCode). Leave at 0 to turn budget tracking off.")
+                OutlinedTextField(
+                    value = input,
+                    onValueChange = { new -> input = new.filter { it.isDigit() } },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    label = { Text(text = "Amount") },
+                )
+            }
+        },
+        confirmButton = {
+            AppTextButton(text = "Save", onClick = { onConfirm(input.toDoubleOrNull() ?: 0.0) })
+        },
+        dismissButton = {
+            AppTextButton(text = "Cancel", onClick = onDismiss)
+        },
+    )
 }
